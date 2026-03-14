@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User, Car, LogOut, Coins, Truck } from "lucide-react";
+import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,15 @@ const Header = () => {
           >
             <Trophy className="h-4 w-4" />
             <span className="hidden sm:inline">Leaderboard</span>
+          </Link>
+          <Link
+            to="/map"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
+              isActive("/map") ? "bg-muted text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            <MapPin className="h-4 w-4" />
+            <span className="hidden sm:inline">Watch Map</span>
           </Link>
           {user ? (
             <>

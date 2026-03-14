@@ -35,6 +35,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
   const [location, setLocation] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
   const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toISOString().slice(0, 16);
@@ -45,6 +48,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setPlateNumber(initialPlate);
     setInfraction(null);
     setLocation("");
+    setLatitude(null);
+    setLongitude(null);
+    setGeoStatus("idle");
     setDateTime(new Date().toISOString().slice(0, 16));
   };
 
@@ -55,7 +61,25 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       return;
     }
     setOpen(v);
+    if (v) {
+      // Auto-detect GPS on open
+      detectLocation();
+    }
     if (!v) reset();
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) return;
+    setGeoStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude);
+        setLongitude(pos.coords.longitude);
+        setGeoStatus("done");
+      },
+      () => setGeoStatus("denied"),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async () => {
@@ -66,7 +90,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         p_plate_number: plateNumber,
         p_infraction: infraction,
         p_location: location,
-      });
+        p_latitude: latitude,
+        p_longitude: longitude,
+      } as any);
       if (error) {
         if (error.message.includes("Insufficient credits")) {
           toast.error("Not enough coins!", { description: "You've used all your monthly coins. Credits refresh on the 1st." });
@@ -179,6 +205,24 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="rounded-md border p-3 flex items-center justify-between">
+              <div className="text-sm">
+                <p className="font-medium">📍 GPS Location</p>
+                {geoStatus === "loading" && <p className="text-xs text-muted-foreground">Detecting…</p>}
+                {geoStatus === "done" && (
+                  <p className="text-xs text-emerald-600">
+                    Located ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
+                  </p>
+                )}
+                {geoStatus === "denied" && <p className="text-xs text-destructive">Permission denied</p>}
+                {geoStatus === "idle" && <p className="text-xs text-muted-foreground">Not detected</p>}
+              </div>
+              {(geoStatus === "denied" || geoStatus === "idle") && (
+                <Button variant="outline" size="sm" onClick={detectLocation} type="button">
+                  Detect
+                </Button>
+              )}
             </div>
             <div>
               <Label className="text-sm font-medium">Date & Time</Label>
