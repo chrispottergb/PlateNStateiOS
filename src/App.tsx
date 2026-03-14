@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,10 +12,11 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ClaimPlate from "./pages/ClaimPlate";
 import Fleet from "./pages/Fleet";
-import WatchMap from "./pages/WatchMap";
 import InsurancePortal from "./pages/InsurancePortal";
 import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
+
+const WatchMap = lazy(() => import("./pages/WatchMap"));
 
 const queryClient = new QueryClient();
 
@@ -33,7 +35,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/claim" element={<ClaimPlate />} />
             <Route path="/fleet" element={<Fleet />} />
-            <Route path="/map" element={<WatchMap />} />
+            <Route path="/map" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading map…</div>}><WatchMap /></Suspense>} />
             <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="*" element={<NotFound />} />
