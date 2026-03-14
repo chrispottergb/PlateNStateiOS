@@ -35,7 +35,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/claim" element={<ClaimPlate />} />
             <Route path="/fleet" element={<Fleet />} />
-            <Route path="/map" element={<WatchMap />} />
+            <Route path="/map" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading map…</div>}><WatchMap /></Suspense>} />
             <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="*" element={<NotFound />} />
