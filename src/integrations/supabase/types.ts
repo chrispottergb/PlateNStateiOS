@@ -287,6 +287,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_screenings: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plates: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plates: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plates?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_key: string
@@ -313,6 +337,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
       insurance_plate_lookup: {
         Args: { p_plate_number: string }
         Returns: Json
