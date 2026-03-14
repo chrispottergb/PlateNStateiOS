@@ -125,9 +125,12 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t py-6">
-        <div className="container text-center text-xs text-muted-foreground">
+        <div className="container text-center text-xs text-muted-foreground space-y-1">
           <p>WI Plate Watch — Community-driven road safety for Wisconsin</p>
-          <p className="mt-1">This is a community reporting tool. Not affiliated with any government agency.</p>
+          <p>This is a community reporting tool. Not affiliated with any government agency.</p>
+          <p>
+            <Link to="/insurance" className="text-primary hover:underline">Insurance Company Portal →</Link>
+          </p>
         </div>
       </footer>
     </div>
