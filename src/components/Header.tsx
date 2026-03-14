@@ -3,6 +3,7 @@ import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin } from "lucide-
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { Button } from "@/components/ui/button";
+import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const location = useLocation();
@@ -69,6 +70,7 @@ const Header = () => {
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
               </Link>
+              <NotificationBell />
               <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground ml-1">
                 <LogOut className="h-4 w-4" />
               </Button>
