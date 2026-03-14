@@ -10,6 +10,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ClaimPlate from "./pages/ClaimPlate";
+import Fleet from "./pages/Fleet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/claim" element={<ClaimPlate />} />
+            <Route path="/fleet" element={<Fleet />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

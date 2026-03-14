@@ -35,6 +35,30 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          contact_email: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          contact_email: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -61,6 +85,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      fleet_vehicles: {
+        Row: {
+          added_at: string
+          company_id: string
+          id: string
+          plate_number: string
+          vehicle_label: string | null
+        }
+        Insert: {
+          added_at?: string
+          company_id: string
+          id?: string
+          plate_number: string
+          vehicle_label?: string | null
+        }
+        Update: {
+          added_at?: string
+          company_id?: string
+          id?: string
+          plate_number?: string
+          vehicle_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_vehicles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -121,6 +177,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       spend_credit_on_report: {
         Args: {
           p_infraction: string
