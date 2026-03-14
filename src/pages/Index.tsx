@@ -7,7 +7,7 @@ import RecentReports from "@/components/RecentReports";
 import ReportModal from "@/components/ReportModal";
 import { MOCK_PLATES } from "@/lib/data";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Index = () => {
