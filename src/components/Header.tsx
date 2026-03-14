@@ -1,8 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User } from "lucide-react";
+import { Shield, Trophy, User, Car, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -22,15 +25,37 @@ const Header = () => {
             <Trophy className="h-4 w-4" />
             <span className="hidden sm:inline">Leaderboard</span>
           </Link>
-          <Link
-            to="/profile"
-            className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
-              isActive("/profile") ? "bg-muted text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">Profile</span>
-          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/claim"
+                className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
+                  isActive("/claim") ? "bg-muted text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <Car className="h-4 w-4" />
+                <span className="hidden sm:inline">My Plates</span>
+              </Link>
+              <Link
+                to="/profile"
+                className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
+                  isActive("/profile") ? "bg-muted text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground ml-1">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Link to="/auth">
+              <Button variant="default" size="sm" className="ml-2">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>
