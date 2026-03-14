@@ -35,6 +35,7 @@ const App = () => (
             <Route path="/fleet" element={<Fleet />} />
             <Route path="/map" element={<WatchMap />} />
             <Route path="/insurance" element={<InsurancePortal />} />
+            <Route path="/screening" element={<BatchScreening />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
