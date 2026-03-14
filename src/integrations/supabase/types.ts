@@ -118,6 +118,33 @@ export type Database = {
           },
         ]
       }
+      insurance_accounts: {
+        Row: {
+          approved: boolean
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -286,6 +313,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      insurance_plate_lookup: {
+        Args: { p_plate_number: string }
+        Returns: Json
+      }
+      is_approved_insurance: { Args: { p_user_id: string }; Returns: boolean }
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       spend_credit_on_report:
         | {
