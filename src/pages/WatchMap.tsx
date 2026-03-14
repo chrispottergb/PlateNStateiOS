@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,33 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Clock, RefreshCw } from "lucide-react";
 import ReportModal from "@/components/ReportModal";
-
-// Fix default marker icons for Leaflet + bundlers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-const severityIcon = (infraction: string) => {
-  const color =
-    infraction === "reckless_driving" || infraction === "road_rage"
-      ? "#ef4444"
-      : infraction === "speeding" || infraction === "distracted_driving"
-      ? "#f59e0b"
-      : "#3b82f6";
-
-  return L.divIcon({
-    className: "custom-marker",
-    html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
-      <span style="color:white;font-size:14px;font-weight:bold;">!</span>
-    </div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16],
-  });
-};
 
 interface Report {
   id: string;
@@ -47,19 +19,10 @@ interface Report {
   created_at: string;
 }
 
-// Auto-fit to markers
-const FitBounds = ({ reports }: { reports: Report[] }) => {
-  const map = useMap();
-  useEffect(() => {
-    const geoReports = reports.filter((r) => r.latitude && r.longitude);
-    if (geoReports.length > 0) {
-      const bounds = L.latLngBounds(
-        geoReports.map((r) => [r.latitude!, r.longitude!])
-      );
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
-    }
-  }, [reports, map]);
-  return null;
+const severityColor = (infraction: string) => {
+  if (infraction === "reckless_driving" || infraction === "road_rage") return "#ef4444";
+  if (infraction === "speeding" || infraction === "distracted_driving") return "#f59e0b";
+  return "#3b82f6";
 };
 
 const timeAgo = (date: string) => {
@@ -72,10 +35,12 @@ const timeAgo = (date: string) => {
 };
 
 const WatchMap = () => {
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<L.LayerGroup | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<"24h" | "all">("24h");
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -101,9 +66,63 @@ const WatchMap = () => {
     fetchReports();
   }, [filter]);
 
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    mapRef.current = L.map(mapContainerRef.current).setView([44.5, -89.5], 7);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(mapRef.current);
+
+    markersRef.current = L.layerGroup().addTo(mapRef.current);
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Update markers when reports change
+  useEffect(() => {
+    if (!markersRef.current || !mapRef.current) return;
+    markersRef.current.clearLayers();
+
+    const geoReports = reports.filter((r) => r.latitude && r.longitude);
+
+    geoReports.forEach((r) => {
+      const color = severityColor(r.infraction);
+      const icon = L.divIcon({
+        className: "custom-marker",
+        html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+          <span style="color:white;font-size:14px;font-weight:bold;">!</span>
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -16],
+      });
+
+      const marker = L.marker([r.latitude!, r.longitude!], { icon });
+      marker.bindPopup(`
+        <div style="min-width:160px;font-size:12px;">
+          <a href="/plate/${encodeURIComponent(r.plate_number)}" style="font-family:monospace;font-weight:bold;font-size:14px;">${r.plate_number}</a>
+          <p style="text-transform:capitalize;margin:4px 0 2px;">${r.infraction.replace(/_/g, " ")}</p>
+          <p style="color:#888;">${r.location}</p>
+          <p style="color:#888;">${timeAgo(r.created_at)}</p>
+        </div>
+      `);
+      markersRef.current!.addLayer(marker);
+    });
+
+    if (geoReports.length > 0) {
+      const bounds = L.latLngBounds(geoReports.map((r) => [r.latitude!, r.longitude!] as [number, number]));
+      mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+    }
+  }, [reports]);
+
   // Realtime subscription
   useEffect(() => {
-    channelRef.current = supabase
+    const channel = supabase
       .channel("watch-map-reports")
       .on(
         "postgres_changes",
@@ -118,12 +137,9 @@ const WatchMap = () => {
       .subscribe();
 
     return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
+      supabase.removeChannel(channel);
     };
   }, []);
-
-  // Wisconsin center
-  const center: [number, number] = [44.5, -89.5];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -174,39 +190,7 @@ const WatchMap = () => {
       </div>
 
       <div className="flex-1 relative" style={{ minHeight: "500px" }}>
-        <MapContainer
-          center={center}
-          zoom={7}
-          className="absolute inset-0 z-0"
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <FitBounds reports={reports} />
-          {reports.map((r) => (
-            <Marker
-              key={r.id}
-              position={[r.latitude!, r.longitude!]}
-              icon={severityIcon(r.infraction)}
-            >
-              <Popup>
-                <div className="text-xs space-y-1 min-w-[160px]">
-                  <Link
-                    to={`/plate/${encodeURIComponent(r.plate_number)}`}
-                    className="font-mono font-bold text-sm text-primary hover:underline"
-                  >
-                    {r.plate_number}
-                  </Link>
-                  <p className="capitalize">{r.infraction.replace(/_/g, " ")}</p>
-                  <p className="text-muted-foreground">{r.location}</p>
-                  <p className="text-muted-foreground">{timeAgo(r.created_at)}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        <div ref={mapContainerRef} className="absolute inset-0 z-0" style={{ height: "100%", width: "100%" }} />
 
         {/* Report count overlay */}
         <div className="absolute top-3 left-3 z-[1000]">
