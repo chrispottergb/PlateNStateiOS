@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { INFRACTIONS, WISCONSIN_CITIES } from "@/lib/data";
 import { InfractionType } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, CarFront, Gauge, CircleAlert, ParkingSquare, ArrowLeftRight, Smartphone } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, CarFront, Gauge, CircleAlert, ParkingSquare, ArrowLeftRight, Smartphone, Coins } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-6 w-6" />,
@@ -24,11 +27,14 @@ interface ReportModalProps {
 }
 
 const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
   const [location, setLocation] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toISOString().slice(0, 16);
@@ -42,12 +48,43 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setDateTime(new Date().toISOString().slice(0, 16));
   };
 
-  const handleSubmit = () => {
-    toast.success("Report submitted!", {
-      description: `${plateNumber} reported for ${INFRACTIONS.find(i => i.type === infraction)?.label}`,
-    });
-    reset();
-    setOpen(false);
+  const handleOpenChange = (v: boolean) => {
+    if (v && !user) {
+      toast.error("Sign in required", { description: "You need an account to report plates." });
+      navigate("/auth");
+      return;
+    }
+    setOpen(v);
+    if (!v) reset();
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !infraction) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.rpc("spend_credit_on_report", {
+        p_plate_number: plateNumber,
+        p_infraction: infraction,
+        p_location: location,
+      });
+      if (error) {
+        if (error.message.includes("Insufficient credits")) {
+          toast.error("Not enough coins!", { description: "You've used all your monthly coins. Credits refresh on the 1st." });
+        } else {
+          toast.error("Failed to submit report", { description: error.message });
+        }
+        return;
+      }
+      toast.success("Report submitted! 🪙 1 coin spent", {
+        description: `${plateNumber} reported for ${INFRACTIONS.find(i => i.type === infraction)?.label}`,
+      });
+      reset();
+      setOpen(false);
+    } catch (err: any) {
+      toast.error("Something went wrong", { description: err.message });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const formatPlate = (value: string) => {
@@ -62,13 +99,16 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
             Report a Bad Driver
+            <span className="ml-auto flex items-center gap-1 text-xs font-normal text-muted-foreground">
+              <Coins className="h-3.5 w-3.5" /> 1 coin
+            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -187,8 +227,8 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
               Next <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
-            <Button size="sm" onClick={handleSubmit} className="bg-primary">
-              <Check className="h-4 w-4 mr-1" /> Submit Report
+            <Button size="sm" onClick={handleSubmit} disabled={submitting} className="bg-primary">
+              <Check className="h-4 w-4 mr-1" /> {submitting ? "Submitting…" : "Submit Report"}
             </Button>
           )}
         </div>

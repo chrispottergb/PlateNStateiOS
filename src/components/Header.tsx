@@ -1,11 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User, Car, LogOut } from "lucide-react";
+import { Shield, Trophy, User, Car, LogOut, Coins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useCredits } from "@/hooks/useCredits";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { credits } = useCredits();
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -27,6 +29,10 @@ const Header = () => {
           </Link>
           {user ? (
             <>
+              <div className="flex items-center gap-1 rounded-md bg-muted px-2.5 py-1.5 text-sm font-medium">
+                <Coins className="h-4 w-4 text-amber-500" />
+                <span className="font-mono">{credits ?? "–"}</span>
+              </div>
               <Link
                 to="/claim"
                 className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
