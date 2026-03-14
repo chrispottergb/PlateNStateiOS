@@ -35,8 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          credits: number
           display_name: string | null
           id: string
           joined_at: string
@@ -44,6 +72,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          credits?: number
           display_name?: string | null
           id?: string
           joined_at?: string
@@ -51,6 +80,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          credits?: number
           display_name?: string | null
           id?: string
           joined_at?: string
@@ -91,7 +121,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      spend_credit_on_report: {
+        Args: {
+          p_infraction: string
+          p_location: string
+          p_plate_number: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
