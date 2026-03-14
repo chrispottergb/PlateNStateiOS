@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import ClaimPlate from "./pages/ClaimPlate";
 import Fleet from "./pages/Fleet";
 import WatchMap from "./pages/WatchMap";
+import InsurancePortal from "./pages/InsurancePortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
