@@ -150,7 +150,9 @@ export type Database = {
           created_at: string
           id: string
           infraction: string
+          latitude: number | null
           location: string
+          longitude: number | null
           plate_number: string
           reporter_id: string | null
         }
@@ -158,7 +160,9 @@ export type Database = {
           created_at?: string
           id?: string
           infraction: string
+          latitude?: number | null
           location: string
+          longitude?: number | null
           plate_number: string
           reporter_id?: string | null
         }
@@ -166,7 +170,9 @@ export type Database = {
           created_at?: string
           id?: string
           infraction?: string
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           plate_number?: string
           reporter_id?: string | null
         }
