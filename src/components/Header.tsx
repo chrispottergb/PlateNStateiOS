@@ -70,6 +70,7 @@ const Header = () => {
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
               </Link>
+              <NotificationBell />
               <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground ml-1">
                 <LogOut className="h-4 w-4" />
               </Button>
