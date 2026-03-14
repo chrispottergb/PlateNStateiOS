@@ -31,6 +31,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/claim" element={<ClaimPlate />} />
             <Route path="/fleet" element={<Fleet />} />
+            <Route path="/map" element={<WatchMap />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

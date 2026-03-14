@@ -206,6 +206,24 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="rounded-md border p-3 flex items-center justify-between">
+              <div className="text-sm">
+                <p className="font-medium">📍 GPS Location</p>
+                {geoStatus === "loading" && <p className="text-xs text-muted-foreground">Detecting…</p>}
+                {geoStatus === "done" && (
+                  <p className="text-xs text-emerald-600">
+                    Located ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
+                  </p>
+                )}
+                {geoStatus === "denied" && <p className="text-xs text-destructive">Permission denied</p>}
+                {geoStatus === "idle" && <p className="text-xs text-muted-foreground">Not detected</p>}
+              </div>
+              {(geoStatus === "denied" || geoStatus === "idle") && (
+                <Button variant="outline" size="sm" onClick={detectLocation} type="button">
+                  Detect
+                </Button>
+              )}
+            </div>
             <div>
               <Label className="text-sm font-medium">Date & Time</Label>
               <Input
