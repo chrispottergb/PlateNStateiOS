@@ -61,7 +61,25 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       return;
     }
     setOpen(v);
+    if (v) {
+      // Auto-detect GPS on open
+      detectLocation();
+    }
     if (!v) reset();
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) return;
+    setGeoStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude);
+        setLongitude(pos.coords.longitude);
+        setGeoStatus("done");
+      },
+      () => setGeoStatus("denied"),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async () => {
