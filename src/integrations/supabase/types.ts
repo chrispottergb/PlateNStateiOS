@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      claimed_plates: {
+        Row: {
+          claimed_at: string
+          id: string
+          plate_number: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          plate_number: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          plate_number?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          display_name: string | null
+          id: string
+          joined_at: string
+          total_reports: number
+          user_id: string
+        }
+        Insert: {
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          total_reports?: number
+          user_id: string
+        }
+        Update: {
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          total_reports?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          infraction: string
+          location: string
+          plate_number: string
+          reporter_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          infraction: string
+          location: string
+          plate_number: string
+          reporter_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          infraction?: string
+          location?: string
+          plate_number?: string
+          reporter_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
