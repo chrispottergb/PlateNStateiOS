@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ClaimPlate from "./pages/ClaimPlate";
 import Fleet from "./pages/Fleet";
+import WatchMap from "./pages/WatchMap";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
