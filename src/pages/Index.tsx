@@ -78,6 +78,19 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Fleet CTA */}
+      <section className="container pt-8">
+        <Link to="/fleet" className="block rounded-lg border bg-muted/50 p-4 hover:bg-muted transition-colors">
+          <div className="flex items-center gap-3">
+            <Truck className="h-5 w-5 text-primary flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold">Manage a fleet?</p>
+              <p className="text-xs text-muted-foreground">Track your drivers' reports with "How's My Driving?" →</p>
+            </div>
+          </div>
+        </Link>
+      </section>
+
       {/* Featured Plates */}
       <section className="container py-10">
         <div className="flex items-center justify-between mb-6">

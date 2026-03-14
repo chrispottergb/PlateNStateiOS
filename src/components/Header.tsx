@@ -43,6 +43,15 @@ const Header = () => {
                 <span className="hidden sm:inline">My Plates</span>
               </Link>
               <Link
+                to="/fleet"
+                className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
+                  isActive("/fleet") ? "bg-muted text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <Truck className="h-4 w-4" />
+                <span className="hidden sm:inline">Fleet</span>
+              </Link>
+              <Link
                 to="/profile"
                 className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
                   isActive("/profile") ? "bg-muted text-foreground" : "text-muted-foreground"

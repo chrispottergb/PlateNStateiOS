@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/claim" element={<ClaimPlate />} />
+            <Route path="/fleet" element={<Fleet />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
