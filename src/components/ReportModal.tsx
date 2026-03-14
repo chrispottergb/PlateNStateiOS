@@ -90,7 +90,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         p_plate_number: plateNumber,
         p_infraction: infraction,
         p_location: location,
-      });
+        p_latitude: latitude,
+        p_longitude: longitude,
+      } as any);
       if (error) {
         if (error.message.includes("Insufficient credits")) {
           toast.error("Not enough coins!", { description: "You've used all your monthly coins. Credits refresh on the 1st." });
