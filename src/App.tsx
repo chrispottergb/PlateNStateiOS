@@ -33,6 +33,7 @@ const App = () => (
             <Route path="/claim" element={<ClaimPlate />} />
             <Route path="/fleet" element={<Fleet />} />
             <Route path="/map" element={<WatchMap />} />
+            <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
