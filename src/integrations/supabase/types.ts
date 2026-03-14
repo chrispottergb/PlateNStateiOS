@@ -124,26 +124,64 @@ export type Database = {
           display_name: string | null
           id: string
           joined_at: string
+          last_report_date: string | null
+          streak_days: number
           total_reports: number
           user_id: string
+          xp: number
         }
         Insert: {
           credits?: number
           display_name?: string | null
           id?: string
           joined_at?: string
+          last_report_date?: string | null
+          streak_days?: number
           total_reports?: number
           user_id: string
+          xp?: number
         }
         Update: {
           credits?: number
           display_name?: string | null
           id?: string
           joined_at?: string
+          last_report_date?: string | null
+          streak_days?: number
           total_reports?: number
           user_id?: string
+          xp?: number
         }
         Relationships: []
+      }
+      report_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_upvotes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -155,6 +193,7 @@ export type Database = {
           longitude: number | null
           plate_number: string
           reporter_id: string | null
+          upvote_count: number
         }
         Insert: {
           created_at?: string
@@ -165,6 +204,7 @@ export type Database = {
           longitude?: number | null
           plate_number: string
           reporter_id?: string | null
+          upvote_count?: number
         }
         Update: {
           created_at?: string
@@ -175,6 +215,28 @@ export type Database = {
           longitude?: number | null
           plate_number?: string
           reporter_id?: string | null
+          upvote_count?: number
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_key: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_key: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_key?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -203,6 +265,7 @@ export type Database = {
             }
             Returns: string
           }
+      upvote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
