@@ -3,6 +3,7 @@ import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin } from "lucide-
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { Button } from "@/components/ui/button";
+import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const location = useLocation();
