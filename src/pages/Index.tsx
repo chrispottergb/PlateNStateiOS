@@ -128,8 +128,9 @@ const Index = () => {
         <div className="container text-center text-xs text-muted-foreground space-y-1">
           <p>WI Plate Watch — Community-driven road safety for Wisconsin</p>
           <p>This is a community reporting tool. Not affiliated with any government agency.</p>
-          <p>
-            <Link to="/insurance" className="text-primary hover:underline">Insurance Company Portal →</Link>
+          <p className="space-x-3">
+            <Link to="/insurance" className="text-primary hover:underline">Insurance Portal →</Link>
+            <Link to="/screening" className="text-primary hover:underline">Batch Plate Screening →</Link>
           </p>
         </div>
       </footer>
