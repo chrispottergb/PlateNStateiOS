@@ -35,6 +35,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
   const [location, setLocation] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
   const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toISOString().slice(0, 16);
@@ -45,6 +48,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setPlateNumber(initialPlate);
     setInfraction(null);
     setLocation("");
+    setLatitude(null);
+    setLongitude(null);
+    setGeoStatus("idle");
     setDateTime(new Date().toISOString().slice(0, 16));
   };
 
