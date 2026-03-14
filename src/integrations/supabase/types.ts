@@ -184,14 +184,25 @@ export type Database = {
     }
     Functions: {
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
-      spend_credit_on_report: {
-        Args: {
-          p_infraction: string
-          p_location: string
-          p_plate_number: string
-        }
-        Returns: string
-      }
+      spend_credit_on_report:
+        | {
+            Args: {
+              p_infraction: string
+              p_location: string
+              p_plate_number: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_infraction: string
+              p_latitude?: number
+              p_location: string
+              p_longitude?: number
+              p_plate_number: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       [_ in never]: never
