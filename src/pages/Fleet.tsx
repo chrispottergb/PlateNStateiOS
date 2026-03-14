@@ -51,6 +51,29 @@ const Fleet = () => {
     fetchCompany();
   }, [user]);
 
+  // Realtime: refresh report counts when new reports come in for fleet plates
+  useEffect(() => {
+    if (!company || vehicles.length === 0) return;
+
+    const plateNumbers = vehicles.map((v) => v.plate_number);
+    const channel = supabase
+      .channel("fleet-reports")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reports" },
+        (payload) => {
+          if (plateNumbers.includes((payload.new as { plate_number: string }).plate_number)) {
+            fetchVehicles(company.id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [company, vehicles.length]);
+
   const fetchCompany = async () => {
     setLoading(true);
     const { data } = await supabase
