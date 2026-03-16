@@ -1,21 +1,32 @@
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
-import { MOCK_REPORTS, MOCK_PLATES, INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
+import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
+import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, MapPin, Clock } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp } from "lucide-react";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PlateDetail = () => {
   const { plateNumber } = useParams<{ plateNumber: string }>();
   const decoded = decodeURIComponent(plateNumber || "");
-  const plate = MOCK_PLATES.find(p => p.plateNumber === decoded);
-  const reports = MOCK_REPORTS.filter(r => r.plateNumber === decoded).sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-  const rank = MOCK_PLATES.findIndex(p => p.plateNumber === decoded) + 1;
+  const { plate, reports, loading } = usePlateDetail(decoded);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container py-6 max-w-2xl space-y-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-48 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+        </div>
+      </div>
+    );
+  }
 
   if (!plate) {
     return (
@@ -55,8 +66,6 @@ const PlateDetail = () => {
               <p className="text-xs text-muted-foreground font-medium mb-1">Wisconsin Plate</p>
               <h1 className="font-mono text-3xl font-bold tracking-wider">{plate.plateNumber}</h1>
               <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-                <span>Rank #{rank}</span>
-                <span>·</span>
                 <span>{plate.reportCount} reports</span>
                 <span>·</span>
                 <span className="flex items-center gap-1">
@@ -97,19 +106,27 @@ const PlateDetail = () => {
         {/* Report History */}
         <h2 className="text-lg font-bold mb-3">Report History</h2>
         <div className="space-y-2">
+          {reports.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">No reports recorded.</p>
+          )}
           {reports.map(report => {
-            const inf = INFRACTIONS.find(i => i.type === report.infraction)!;
+            const inf = INFRACTIONS.find(i => i.type === report.infraction);
             return (
               <div key={report.id} className="flex items-center gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
-                <Badge variant="secondary" className="shrink-0">{inf.label}</Badge>
-                <span className="text-xs text-muted-foreground">+{inf.points} pts</span>
-                <div className="ml-auto text-right shrink-0">
+                <Badge variant="secondary" className="shrink-0">{inf?.label || report.infraction}</Badge>
+                <span className="text-xs text-muted-foreground">+{inf?.points ?? 3} pts</span>
+                <div className="ml-auto text-right shrink-0 flex items-center gap-3">
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" /> {report.location}
+                    <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
                   </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" /> {format(new Date(report.timestamp), "MMM d, h:mm a")}
-                  </span>
+                  <div>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3" /> {report.location}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" /> {format(new Date(report.created_at), "MMM d, h:mm a")}
+                    </span>
+                  </div>
                 </div>
               </div>
             );

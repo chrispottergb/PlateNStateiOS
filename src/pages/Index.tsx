@@ -5,15 +5,16 @@ import Header from "@/components/Header";
 import PlateCard from "@/components/PlateCard";
 import RecentReports from "@/components/RecentReports";
 import ReportModal from "@/components/ReportModal";
-import { MOCK_PLATES } from "@/lib/data";
+import { usePlateRecords } from "@/hooks/usePlateRecords";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const [searchPlate, setSearchPlate] = useState("");
   const navigate = useNavigate();
-  const featuredPlates = MOCK_PLATES.slice(0, 6);
+  const { plates: featuredPlates, loading } = usePlateRecords(6);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,16 +104,23 @@ const Index = () => {
           </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredPlates.map((plate, i) => (
-            <motion.div
-              key={plate.plateNumber}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <PlateCard plate={plate} rank={i + 1} />
-            </motion.div>
-          ))}
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))
+            : featuredPlates.length === 0
+              ? <p className="text-sm text-muted-foreground col-span-full text-center py-8">No reports yet. Be the first to report!</p>
+              : featuredPlates.map((plate, i) => (
+                  <motion.div
+                    key={plate.plateNumber}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <PlateCard plate={plate} rank={i + 1} />
+                  </motion.div>
+                ))
+          }
         </div>
       </section>
 
