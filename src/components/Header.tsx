@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin } from "lucide-react";
+import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
 
