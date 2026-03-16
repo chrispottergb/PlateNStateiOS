@@ -50,7 +50,7 @@ const Index = () => {
               Report Bad Drivers.<br />Keep Roads Safe.
             </h1>
             <p className="text-primary-foreground/70 text-base sm:text-lg max-w-lg mx-auto">
-              Community-powered accountability for Wisconsin roads. Report dangerous driving, track repeat offenders.
+              Community-powered accountability for your state's roads. Report dangerous driving, track repeat offenders.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
