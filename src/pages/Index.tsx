@@ -127,7 +127,7 @@ const Index = () => {
       {/* Recent Reports */}
       <section className="container pb-16">
         <h2 className="text-xl font-bold mb-1">Recent Reports</h2>
-        <p className="text-sm text-muted-foreground mb-6">Latest activity across Wisconsin</p>
+        <p className="text-sm text-muted-foreground mb-6">Latest activity from the community</p>
         <RecentReports />
       </section>
 
