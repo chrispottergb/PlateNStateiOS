@@ -44,7 +44,7 @@ const Index = () => {
           >
             <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
               <Shield className="h-5 w-5" />
-              <span className="text-sm font-medium uppercase tracking-widest">Wisconsin</span>
+              <span className="text-sm font-medium uppercase tracking-widest">Plate In State</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
               Report Bad Drivers.<br />Keep Roads Safe.
