@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [searchPlate, setSearchPlate] = useState("");
@@ -28,12 +29,10 @@ const Index = () => {
       <Header />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b bg-primary text-primary-foreground">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: "repeating-linear-gradient(45deg, currentColor 0, currentColor 1px, transparent 0, transparent 50%)",
-            backgroundSize: "20px 20px",
-          }} />
+      <section className="relative overflow-hidden border-b text-primary-foreground">
+        <div className="absolute inset-0">
+          <img src={heroBg} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-primary/80 backdrop-blur-[2px]" />
         </div>
         <div className="container relative py-12 sm:py-20">
           <motion.div

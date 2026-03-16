@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
+import { Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
+import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -17,7 +18,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" />
+          <img src={logoIcon} alt="Plate In State" className="h-8 w-8" />
           <span className="font-bold text-lg tracking-tight">Plate In State</span>
         </Link>
         <nav className="flex items-center gap-1">

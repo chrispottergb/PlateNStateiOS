@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
-import { Shield, Car } from "lucide-react";
 import { motion } from "framer-motion";
+import authBg from "@/assets/auth-bg.jpg";
+import logoIcon from "@/assets/logo-icon.png";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -56,18 +57,19 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container flex items-center justify-center py-16">
+      <div className="relative flex items-center justify-center py-16 min-h-[calc(100vh-3.5rem)]">
+        <div className="absolute inset-0 overflow-hidden">
+          <img src={authBg} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md"
+          className="w-full max-w-md relative z-10 px-4"
         >
-          <Card className="border-0 shadow-lg">
+          <Card className="border shadow-2xl">
             <CardHeader className="text-center space-y-2">
-              <div className="mx-auto flex items-center justify-center gap-2 text-primary">
-                <Car className="h-6 w-6" />
-                <Shield className="h-6 w-6" />
-              </div>
+              <img src={logoIcon} alt="Plate In State" className="h-12 w-12 mx-auto" />
               <CardTitle className="text-2xl">
                 {isSignUp ? "Create your account" : "Welcome back"}
               </CardTitle>
