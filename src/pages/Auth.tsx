@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { motion } from "framer-motion";
 import logoIcon from "@/assets/logo-icon.png";
+import authBg from "@/assets/auth-bg.jpg";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
