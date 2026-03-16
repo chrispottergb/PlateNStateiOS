@@ -10,6 +10,7 @@ const Header = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { credits } = useCredits();
+  const { isAdmin } = useIsAdmin();
   const isActive = (path: string) => location.pathname === path;
 
   return (
