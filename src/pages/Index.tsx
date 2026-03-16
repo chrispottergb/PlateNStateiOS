@@ -97,7 +97,7 @@ const Index = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold">Worst Offenders</h2>
-            <p className="text-sm text-muted-foreground">Highest-scoring plates in Wisconsin</p>
+            <p className="text-sm text-muted-foreground">Highest-scoring plates ranked by community reports</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/leaderboard")} className="text-muted-foreground">
             View all →
