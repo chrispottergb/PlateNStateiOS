@@ -94,7 +94,7 @@ const ClaimPlate = () => {
               </div>
               <CardTitle className="text-2xl">Claim Your Plate</CardTitle>
               <CardDescription>
-                Link your Wisconsin license plate to your account. See reports filed against your plate and track your driving reputation.
+                Link your license plate to your account. See reports filed against your plate and track your driving reputation.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -44,13 +44,13 @@ const Index = () => {
           >
             <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
               <Shield className="h-5 w-5" />
-              <span className="text-sm font-medium uppercase tracking-widest">Wisconsin</span>
+              <span className="text-sm font-medium uppercase tracking-widest">Plate In State</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
               Report Bad Drivers.<br />Keep Roads Safe.
             </h1>
             <p className="text-primary-foreground/70 text-base sm:text-lg max-w-lg mx-auto">
-              Community-powered accountability for Wisconsin roads. Report dangerous driving, track repeat offenders.
+              Community-powered accountability for your state's roads. Report dangerous driving, track repeat offenders.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -97,7 +97,7 @@ const Index = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold">Worst Offenders</h2>
-            <p className="text-sm text-muted-foreground">Highest-scoring plates in Wisconsin</p>
+            <p className="text-sm text-muted-foreground">Highest-scoring plates ranked by community reports</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/leaderboard")} className="text-muted-foreground">
             View all →
@@ -127,14 +127,14 @@ const Index = () => {
       {/* Recent Reports */}
       <section className="container pb-16">
         <h2 className="text-xl font-bold mb-1">Recent Reports</h2>
-        <p className="text-sm text-muted-foreground mb-6">Latest activity across Wisconsin</p>
+        <p className="text-sm text-muted-foreground mb-6">Latest activity from the community</p>
         <RecentReports />
       </section>
 
       {/* Footer */}
       <footer className="border-t py-6">
         <div className="container text-center text-xs text-muted-foreground space-y-1">
-          <p>WI Plate Watch — Community-driven road safety for Wisconsin</p>
+          <p>Plate In State — Community-driven road safety</p>
           <p>This is a community reporting tool. Not affiliated with any government agency.</p>
           <p className="space-x-3">
             <Link to="/insurance" className="text-primary hover:underline">Insurance Portal →</Link>

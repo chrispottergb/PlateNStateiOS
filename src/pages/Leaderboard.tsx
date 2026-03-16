@@ -28,7 +28,7 @@ const Leaderboard = () => {
           <h1 className="text-2xl font-bold">Leaderboard</h1>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          Wisconsin's worst-scoring license plates ranked by community reports
+          Worst-scoring license plates ranked by community reports
         </p>
 
         <div className="mb-6">

@@ -163,7 +163,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 maxLength={8}
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground mt-1.5">Wisconsin plates only</p>
+              <p className="text-xs text-muted-foreground mt-1.5">Enter a license plate number</p>
             </div>
           </div>
         )}
