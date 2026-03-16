@@ -62,7 +62,6 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     }
     setOpen(v);
     if (v) {
-      // Auto-detect GPS on open
       detectLocation();
     }
     if (!v) reset();
@@ -127,7 +126,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md glass-strong rounded-xl border-border/50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -159,7 +158,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 value={plateNumber}
                 onChange={e => setPlateNumber(formatPlate(e.target.value))}
                 placeholder="ABC 1234"
-                className="mt-1.5 font-mono text-lg tracking-wider text-center"
+                className="mt-1.5 font-mono text-lg tracking-wider text-center rounded-lg"
                 maxLength={8}
                 autoFocus
               />
@@ -176,10 +175,10 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 <button
                   key={inf.type}
                   onClick={() => setInfraction(inf.type)}
-                  className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-all ${
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-sm transition-all ${
                     infraction === inf.type
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-primary/30 hover:bg-muted text-muted-foreground"
+                      ? "border-primary bg-primary/10 text-primary glow"
+                      : "border-border/50 hover:border-primary/30 hover:bg-muted/50 text-muted-foreground"
                   }`}
                 >
                   {ICON_MAP[inf.icon]}
@@ -196,7 +195,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
             <div>
               <Label className="text-sm font-medium">Location</Label>
               <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger className="mt-1.5 rounded-lg">
                   <SelectValue placeholder="Select city" />
                 </SelectTrigger>
                 <SelectContent>
@@ -206,12 +205,12 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="rounded-md border p-3 flex items-center justify-between">
+            <div className="rounded-xl glass p-3 flex items-center justify-between">
               <div className="text-sm">
                 <p className="font-medium">📍 GPS Location</p>
                 {geoStatus === "loading" && <p className="text-xs text-muted-foreground">Detecting…</p>}
                 {geoStatus === "done" && (
-                  <p className="text-xs text-emerald-600">
+                  <p className="text-xs text-emerald-400">
                     Located ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
                   </p>
                 )}
@@ -219,7 +218,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 {geoStatus === "idle" && <p className="text-xs text-muted-foreground">Not detected</p>}
               </div>
               {(geoStatus === "denied" || geoStatus === "idle") && (
-                <Button variant="outline" size="sm" onClick={detectLocation} type="button">
+                <Button variant="outline" size="sm" onClick={detectLocation} type="button" className="rounded-full">
                   Detect
                 </Button>
               )}
@@ -230,14 +229,14 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 type="datetime-local"
                 value={dateTime}
                 onChange={e => setDateTime(e.target.value)}
-                className="mt-1.5"
+                className="mt-1.5 rounded-lg"
               />
             </div>
           </div>
         )}
 
         {step === 4 && (
-          <div className="space-y-3 rounded-lg bg-muted p-4">
+          <div className="space-y-3 rounded-xl glass p-4">
             <h4 className="font-medium text-sm">Review Your Report</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -262,16 +261,16 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
 
         <div className="flex justify-between pt-2">
           {step > 1 ? (
-            <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)}>
+            <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)} className="rounded-full">
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
           ) : <div />}
           {step < 4 ? (
-            <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()}>
+            <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full">
               Next <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
-            <Button size="sm" onClick={handleSubmit} disabled={submitting} className="bg-primary">
+            <Button size="sm" onClick={handleSubmit} disabled={submitting} className="rounded-full glow">
               <Check className="h-4 w-4 mr-1" /> {submitting ? "Submitting…" : "Submit Report"}
             </Button>
           )}

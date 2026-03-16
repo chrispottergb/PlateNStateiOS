@@ -47,7 +47,6 @@ const RecentReports = () => {
     fetchMyUpvotes();
   }, [user]);
 
-  // Realtime new reports
   useEffect(() => {
     const channel = supabase
       .channel("recent-reports")
@@ -99,7 +98,7 @@ const RecentReports = () => {
         return (
           <div
             key={report.id}
-            className="flex items-center gap-3 rounded-lg bg-card px-3 py-2.5 shadow-sm transition-all hover:shadow-md group"
+            className="flex items-center gap-3 rounded-xl glass px-4 py-3 transition-all hover:glow group"
           >
             <Link
               to={`/plate/${encodeURIComponent(report.plate_number)}`}
@@ -107,7 +106,7 @@ const RecentReports = () => {
             >
               {report.plate_number}
             </Link>
-            <Badge variant="secondary" className="text-xs shrink-0">
+            <Badge variant="secondary" className="text-xs shrink-0 rounded-full">
               {inf?.label || report.infraction}
             </Badge>
             <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto shrink-0">
@@ -121,7 +120,7 @@ const RecentReports = () => {
             <Button
               variant={hasUpvoted ? "default" : "ghost"}
               size="sm"
-              className={`h-7 px-2 gap-1 shrink-0 ${hasUpvoted ? "" : "text-muted-foreground"}`}
+              className={`h-7 px-2 gap-1 shrink-0 rounded-full ${hasUpvoted ? "" : "text-muted-foreground"}`}
               disabled={votingId === report.id || hasUpvoted}
               onClick={() => handleUpvote(report.id)}
             >

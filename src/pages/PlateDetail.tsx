@@ -21,8 +21,8 @@ const PlateDetail = () => {
         <Header />
         <div className="container py-6 max-w-2xl space-y-4">
           <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-48 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
         </div>
       </div>
     );
@@ -37,7 +37,7 @@ const PlateDetail = () => {
           <p className="text-muted-foreground mb-6">No reports found for this plate.</p>
           <ReportModal
             trigger={
-              <Button className="gap-2">
+              <Button className="gap-2 rounded-full glow">
                 <AlertTriangle className="h-4 w-4" /> Report this Plate
               </Button>
             }
@@ -51,15 +51,15 @@ const PlateDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container py-6 max-w-2xl">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
+      <div className="container py-8 max-w-2xl">
+        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg bg-card p-6 shadow-sm mb-6"
+          className="rounded-xl glass p-6 mb-6"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -84,9 +84,9 @@ const PlateDetail = () => {
           {/* Infraction Breakdown */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2">
             {INFRACTIONS.filter(inf => plate.infractions[inf.type] > 0).map(inf => (
-              <div key={inf.type} className="flex items-center gap-2 rounded-md bg-muted px-3 py-2">
+              <div key={inf.type} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
                 <span className="text-sm font-medium">{inf.label}</span>
-                <Badge variant="secondary" className="ml-auto text-xs">{plate.infractions[inf.type]}</Badge>
+                <Badge variant="secondary" className="ml-auto text-xs rounded-full">{plate.infractions[inf.type]}</Badge>
               </div>
             ))}
           </div>
@@ -94,7 +94,7 @@ const PlateDetail = () => {
           <div className="mt-4">
             <ReportModal
               trigger={
-                <Button size="sm" className="gap-1.5 w-full sm:w-auto">
+                <Button size="sm" className="gap-1.5 w-full sm:w-auto rounded-full glow">
                   <AlertTriangle className="h-4 w-4" /> Report Again
                 </Button>
               }
@@ -112,8 +112,8 @@ const PlateDetail = () => {
           {reports.map(report => {
             const inf = INFRACTIONS.find(i => i.type === report.infraction);
             return (
-              <div key={report.id} className="flex items-center gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
-                <Badge variant="secondary" className="shrink-0">{inf?.label || report.infraction}</Badge>
+              <div key={report.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
+                <Badge variant="secondary" className="shrink-0 rounded-full">{inf?.label || report.infraction}</Badge>
                 <span className="text-xs text-muted-foreground">+{inf?.points ?? 3} pts</span>
                 <div className="ml-auto text-right shrink-0 flex items-center gap-3">
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">

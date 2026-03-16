@@ -22,18 +22,22 @@ const Leaderboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container py-8 max-w-2xl">
+      <div className="container py-10 max-w-2xl">
         <div className="flex items-center gap-3 mb-1">
-          <Trophy className="h-6 w-6 text-accent" />
-          <h1 className="text-2xl font-bold">Leaderboard</h1>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <Trophy className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Leaderboard</h1>
+            <p className="text-sm text-muted-foreground">
+              Worst-scoring plates ranked by community reports
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground mb-6">
-          Worst-scoring license plates ranked by community reports
-        </p>
 
-        <div className="mb-6">
+        <div className="my-6">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-56">
+            <SelectTrigger className="w-56 rounded-lg">
               <SelectValue placeholder="Filter by infraction" />
             </SelectTrigger>
             <SelectContent>
@@ -48,7 +52,7 @@ const Leaderboard = () => {
         <div className="space-y-3">
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-20 rounded-lg" />
+                <Skeleton key={i} className="h-24 rounded-xl" />
               ))
             : filtered.length === 0
               ? <p className="text-sm text-muted-foreground text-center py-8">No reported plates yet.</p>
