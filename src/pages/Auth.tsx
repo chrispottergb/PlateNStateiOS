@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
-import { Shield, Car } from "lucide-react";
 import { motion } from "framer-motion";
+import authBg from "@/assets/auth-bg.jpg";
+import logoIcon from "@/assets/logo-icon.png";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
