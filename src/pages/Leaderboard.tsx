@@ -1,18 +1,22 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import PlateCard from "@/components/PlateCard";
-import { MOCK_PLATES, INFRACTIONS } from "@/lib/data";
+import { INFRACTIONS } from "@/lib/data";
 import { InfractionType } from "@/lib/types";
+import { usePlateRecords } from "@/hooks/usePlateRecords";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trophy } from "lucide-react";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Leaderboard = () => {
   const [filter, setFilter] = useState<string>("all");
+  const { plates, loading } = usePlateRecords();
 
   const filtered = filter === "all"
-    ? MOCK_PLATES
-    : MOCK_PLATES.filter(p => p.infractions[filter as InfractionType] > 0)
+    ? plates
+    : plates
+        .filter(p => p.infractions[filter as InfractionType] > 0)
         .sort((a, b) => b.infractions[filter as InfractionType] - a.infractions[filter as InfractionType]);
 
   return (
@@ -42,16 +46,23 @@ const Leaderboard = () => {
         </div>
 
         <div className="space-y-3">
-          {filtered.map((plate, i) => (
-            <motion.div
-              key={plate.plateNumber}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-            >
-              <PlateCard plate={plate} rank={i + 1} />
-            </motion.div>
-          ))}
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-lg" />
+              ))
+            : filtered.length === 0
+              ? <p className="text-sm text-muted-foreground text-center py-8">No reported plates yet.</p>
+              : filtered.map((plate, i) => (
+                  <motion.div
+                    key={plate.plateNumber}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                  >
+                    <PlateCard plate={plate} rank={i + 1} />
+                  </motion.div>
+                ))
+          }
         </div>
       </div>
     </div>
