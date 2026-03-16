@@ -152,7 +152,7 @@ const WatchMap = () => {
             Neighborhood Watch Map
           </h1>
           <p className="text-sm text-muted-foreground">
-            Real-time incident reports across Wisconsin
+            Real-time incident reports across your state
           </p>
         </div>
         <div className="flex items-center gap-2">
