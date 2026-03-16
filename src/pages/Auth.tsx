@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { motion } from "framer-motion";
 import logoIcon from "@/assets/logo-icon.png";
+import authBg from "@/assets/auth-bg.jpg";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -54,10 +55,13 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background gradient-mesh-bg">
+    <div className="min-h-screen bg-background">
       <Header />
       <div className="relative flex items-center justify-center py-16 min-h-[calc(100vh-3.5rem)]">
-        <div className="absolute inset-0 dot-grid" />
+        <div className="absolute inset-0">
+          <img src={authBg} alt="" className="w-full h-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,4 +1,6 @@
 import { AlertTriangle, Search, Shield, Truck, ArrowRight } from "lucide-react";
+import heroBg from "@/assets/hero-bg.jpg";
+import sectionBg from "@/assets/section-bg.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
@@ -28,7 +30,11 @@ const Index = () => {
       <Header />
 
       {/* Hero */}
-      <section className="relative overflow-hidden gradient-mesh-bg">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={heroBg} alt="" className="w-full h-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px]" />
+        </div>
         <div className="absolute inset-0 dot-grid" />
         <div className="container relative py-20 sm:py-32">
           <motion.div
