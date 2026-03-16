@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin } from "lucide-react";
+import { Shield, Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -9,6 +10,7 @@ const Header = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { credits } = useCredits();
+  const { isAdmin } = useIsAdmin();
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -70,6 +72,17 @@ const Header = () => {
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
               </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted ${
+                    isActive("/admin") ? "bg-muted text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+              )}
               <NotificationBell />
               <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground ml-1">
                 <LogOut className="h-4 w-4" />

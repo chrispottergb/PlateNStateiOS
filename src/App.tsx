@@ -15,6 +15,7 @@ import Fleet from "./pages/Fleet";
 import InsurancePortal from "./pages/InsurancePortal";
 import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
+import AdminPanel from "./pages/AdminPanel";
 
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/map" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading map…</div>}><WatchMap /></Suspense>} />
             <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="/screening" element={<BatchScreening />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
