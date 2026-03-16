@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp } from "lucide-react";
+import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
