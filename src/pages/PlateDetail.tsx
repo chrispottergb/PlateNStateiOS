@@ -64,8 +64,7 @@ const PlateDetail = () => {
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Wisconsin Plate</p>
-              <h1 className="font-mono text-3xl font-bold tracking-wider">{plate.plateNumber}</h1>
+              <WisconsinPlate plateNumber={plate.plateNumber} size="lg" className="mb-3" />
               <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
                 <span>{plate.reportCount} reports</span>
                 <span>·</span>
