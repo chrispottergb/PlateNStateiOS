@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const [searchPlate, setSearchPlate] = useState("");
