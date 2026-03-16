@@ -13,12 +13,12 @@ const PlateCard = ({ plate, rank }: PlateCardProps) => {
   return (
     <Link
       to={`/plate/${encodeURIComponent(plate.plateNumber)}`}
-      className="group block rounded-lg bg-card p-4 shadow-sm transition-all hover:shadow-md"
+      className="group block rounded-xl glass p-4 transition-all hover:glow hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {rank && (
-            <span className="text-xs font-medium text-muted-foreground mb-1 block">
+            <span className="text-xs font-semibold text-muted-foreground mb-1 block">
               #{rank}
             </span>
           )}
@@ -42,7 +42,7 @@ const PlateCard = ({ plate, rank }: PlateCardProps) => {
             </span>
           </div>
         </div>
-        <div className={`flex flex-col items-center rounded-lg px-3 py-2 ${getScoreBg(plate.totalScore)}`}>
+        <div className={`flex flex-col items-center rounded-xl px-3 py-2 ${getScoreBg(plate.totalScore)}`}>
           <span className={`text-2xl font-bold font-mono ${getScoreColor(plate.totalScore)}`}>
             {plate.totalScore}
           </span>

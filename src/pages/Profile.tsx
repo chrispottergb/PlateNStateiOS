@@ -70,7 +70,6 @@ const Profile = () => {
       if (txRes.data) setTransactions(txRes.data);
       if (badgesRes.data) setBadges(badgesRes.data as UserBadge[]);
 
-      // Auto-award badges client-side
       if (profileRes.data) autoAwardBadges(profileRes.data, badgesRes.data as UserBadge[] || []);
     };
     fetchData();
@@ -118,15 +117,15 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container py-8 max-w-2xl">
+      <div className="container py-10 max-w-2xl">
         {/* Profile card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg bg-card p-6 shadow-sm mb-8"
+          className="rounded-xl glass p-6 mb-8"
         >
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
               <User className="h-7 w-7" />
             </div>
             <div>
@@ -138,25 +137,25 @@ const Profile = () => {
             </div>
           </div>
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="rounded-lg bg-muted p-3">
-              <p className="text-2xl font-bold font-mono">{profile.total_reports}</p>
+            <div className="rounded-xl bg-muted/50 p-3">
+              <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.total_reports}</p>
               <p className="text-xs text-muted-foreground">Reports</p>
             </div>
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-xl bg-muted/50 p-3">
               <div className="flex items-center justify-center gap-1">
                 <Coins className="h-5 w-5 text-amber-500" />
                 <p className="text-2xl font-bold font-mono">{credits ?? profile.credits}</p>
               </div>
               <p className="text-xs text-muted-foreground">Coins</p>
             </div>
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-xl bg-muted/50 p-3">
               <div className="flex items-center justify-center gap-1">
                 <Zap className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold font-mono">{profile.xp}</p>
+                <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.xp}</p>
               </div>
               <p className="text-xs text-muted-foreground">XP</p>
             </div>
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-xl bg-muted/50 p-3">
               <div className="flex items-center justify-center gap-1">
                 <Flame className={`h-5 w-5 ${profile.streak_days > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
                 <p className="text-2xl font-bold font-mono">{profile.streak_days}</p>
@@ -179,7 +178,7 @@ const Profile = () => {
                 return (
                   <div
                     key={b.badge_key}
-                    className="rounded-lg border bg-card px-3 py-2 flex items-center gap-2 shadow-sm"
+                    className="rounded-xl glass px-3 py-2 flex items-center gap-2"
                     title={def.description}
                   >
                     <span className="text-lg">{def.icon}</span>
@@ -203,11 +202,11 @@ const Profile = () => {
           {reports.map((report) => {
             const inf = INFRACTIONS.find((i) => i.type === report.infraction);
             return (
-              <div key={report.id} className="flex items-center gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
+              <div key={report.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
                 <span className="font-mono text-sm font-bold tracking-wider min-w-[90px]">{report.plate_number}</span>
-                <Badge variant="secondary" className="shrink-0 text-xs">{inf?.label || report.infraction}</Badge>
+                <Badge variant="secondary" className="shrink-0 text-xs rounded-full">{inf?.label || report.infraction}</Badge>
                 {report.upvote_count > 0 && (
-                  <Badge variant="outline" className="shrink-0 text-xs gap-1">
+                  <Badge variant="outline" className="shrink-0 text-xs gap-1 rounded-full">
                     👍 {report.upvote_count}
                   </Badge>
                 )}
@@ -231,15 +230,15 @@ const Profile = () => {
             <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet.</p>
           )}
           {transactions.map((tx) => (
-            <div key={tx.id} className="flex items-center gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${tx.amount > 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"}`}>
+            <div key={tx.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${tx.amount > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-destructive/10 text-destructive"}`}>
                 {txIcon(tx.type, tx.amount)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{tx.description || tx.type}</p>
                 <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}</p>
               </div>
-              <span className={`font-mono text-sm font-bold ${tx.amount > 0 ? "text-emerald-600" : "text-destructive"}`}>
+              <span className={`font-mono text-sm font-bold ${tx.amount > 0 ? "text-emerald-400" : "text-destructive"}`}>
                 {tx.amount > 0 ? "+" : ""}{tx.amount}
               </span>
             </div>

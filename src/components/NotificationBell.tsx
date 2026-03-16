@@ -13,8 +13,8 @@ const NotificationBell = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative text-muted-foreground">
-          <Bell className="h-4 w-4" />
+        <Button variant="ghost" size="sm" className="relative text-muted-foreground rounded-full h-8 w-8 p-0">
+          <Bell className="h-3.5 w-3.5" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -22,11 +22,11 @@ const NotificationBell = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-3 py-2 border-b">
+      <PopoverContent className="w-80 p-0 glass-strong rounded-xl" align="end">
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/50">
           <p className="text-sm font-semibold">Notifications</p>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" className="text-xs h-auto py-1" onClick={markAllRead}>
+            <Button variant="ghost" size="sm" className="text-xs h-auto py-1 rounded-full" onClick={markAllRead}>
               Mark all read
             </Button>
           )}
@@ -41,7 +41,7 @@ const NotificationBell = () => {
                 <Link
                   key={n.id}
                   to={`/plate/${encodeURIComponent(n.plate_number)}`}
-                  className={`block px-3 py-2.5 border-b last:border-0 hover:bg-muted transition-colors ${
+                  className={`block px-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-colors ${
                     !n.read ? "bg-primary/5" : ""
                   }`}
                 >

@@ -22,13 +22,13 @@ const BadgeDisplay = ({ earnedBadges }: BadgeDisplayProps) => {
         return (
           <div
             key={badge.type}
-            className={`flex flex-col items-center gap-2 rounded-lg p-4 text-center transition-all ${
+            className={`flex flex-col items-center gap-2 rounded-xl p-4 text-center transition-all ${
               earned
-                ? "bg-accent/20 text-accent-foreground"
-                : "bg-muted/50 text-muted-foreground opacity-50"
+                ? "glass glow text-foreground"
+                : "bg-muted/30 text-muted-foreground opacity-40"
             }`}
           >
-            <div className={`rounded-full p-2 ${earned ? "bg-accent text-accent-foreground" : "bg-muted"}`}>
+            <div className={`rounded-full p-2 ${earned ? "bg-primary/10 text-primary" : "bg-muted"}`}>
               {BADGE_ICONS[badge.icon]}
             </div>
             <span className="text-xs font-semibold">{badge.label}</span>

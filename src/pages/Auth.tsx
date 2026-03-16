@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { motion } from "framer-motion";
-import authBg from "@/assets/auth-bg.jpg";
 import logoIcon from "@/assets/logo-icon.png";
 
 const Auth = () => {
@@ -55,22 +54,19 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background gradient-mesh-bg">
       <Header />
       <div className="relative flex items-center justify-center py-16 min-h-[calc(100vh-3.5rem)]">
-        <div className="absolute inset-0 overflow-hidden">
-          <img src={authBg} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" />
-        </div>
+        <div className="absolute inset-0 dot-grid" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md relative z-10 px-4"
         >
-          <Card className="border shadow-2xl">
-            <CardHeader className="text-center space-y-2">
-              <img src={logoIcon} alt="Plate In State" className="h-12 w-12 mx-auto" />
-              <CardTitle className="text-2xl">
+          <Card className="glass-strong glow-lg border-border/50">
+            <CardHeader className="text-center space-y-3">
+              <img src={logoIcon} alt="Plate In State" className="h-10 w-10 mx-auto" />
+              <CardTitle className="text-2xl font-bold">
                 {isSignUp ? "Create your account" : "Welcome back"}
               </CardTitle>
               <CardDescription>
@@ -88,6 +84,7 @@ const Auth = () => {
                       value={displayName}
                       onChange={e => setDisplayName(e.target.value)}
                       placeholder="Your name"
+                      className="rounded-lg"
                     />
                   </div>
                 )}
@@ -99,6 +96,7 @@ const Auth = () => {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
+                    className="rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
@@ -110,9 +108,10 @@ const Auth = () => {
                     placeholder="••••••••"
                     required
                     minLength={6}
+                    className="rounded-lg"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full rounded-full glow" disabled={loading}>
                   {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
                 </Button>
               </form>
