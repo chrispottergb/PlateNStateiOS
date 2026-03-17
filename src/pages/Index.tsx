@@ -1,4 +1,4 @@
-import { AlertTriangle, Search, Shield, Truck, ArrowRight } from "lucide-react";
+import { AlertTriangle, Search, Shield, Truck, ArrowRight, ShieldCheck, Landmark } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import sectionBg from "@/assets/section-bg.jpg";
 import { Button } from "@/components/ui/button";
@@ -82,18 +82,44 @@ const Index = () => {
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* Fleet CTA */}
-      <section className="container pt-8">
+      {/* Portal CTAs */}
+      <section className="container pt-8 grid sm:grid-cols-3 gap-3">
         <Link to="/fleet" className="group block rounded-xl glass p-4 hover:glow transition-all">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
               <Truck className="h-5 w-5" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Manage a fleet?</p>
-              <p className="text-xs text-muted-foreground">Track your drivers' reports with "How's My Driving?"</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Fleet Management</p>
+              <p className="text-xs text-muted-foreground truncate">Track drivers with "How's My Driving?"</p>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          </div>
+        </Link>
+
+        <Link to="/law-enforcement" className="group block rounded-xl glass p-4 hover:glow transition-all">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <Landmark className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Law Enforcement</p>
+              <p className="text-xs text-muted-foreground truncate">Plate lookups & investigation tools</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          </div>
+        </Link>
+
+        <Link to="/insurance" className="group block rounded-xl glass p-4 hover:glow transition-all">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Insurance Portal</p>
+              <p className="text-xs text-muted-foreground truncate">Risk scores & driver report access</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
           </div>
         </Link>
       </section>
