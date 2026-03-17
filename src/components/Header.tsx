@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
+import { Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck, Shield } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
@@ -50,6 +50,10 @@ const Header = () => {
               <Link to="/fleet" className={navLinkClass("/fleet")}>
                 <Truck className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Fleet</span>
+              </Link>
+              <Link to="/law-enforcement" className={navLinkClass("/law-enforcement")}>
+                <Shield className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">LEO</span>
               </Link>
               <Link to="/profile" className={navLinkClass("/profile")}>
                 <User className="h-3.5 w-3.5" />

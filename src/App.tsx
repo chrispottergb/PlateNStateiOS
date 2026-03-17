@@ -16,6 +16,7 @@ import InsurancePortal from "./pages/InsurancePortal";
 import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
+import LawEnforcement from "./pages/LawEnforcement";
 
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/law-enforcement" element={<LawEnforcement />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

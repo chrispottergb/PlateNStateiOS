@@ -148,6 +148,39 @@ export type Database = {
         }
         Relationships: []
       }
+      law_enforcement_accounts: {
+        Row: {
+          approved: boolean
+          badge_number: string | null
+          contact_email: string
+          created_at: string
+          department_name: string
+          id: string
+          tier: Database["public"]["Enums"]["le_tier"]
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          badge_number?: string | null
+          contact_email: string
+          created_at?: string
+          department_name: string
+          id?: string
+          tier?: Database["public"]["Enums"]["le_tier"]
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          badge_number?: string | null
+          contact_email?: string
+          created_at?: string
+          department_name?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["le_tier"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -396,6 +429,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       fleet_tier: "starter" | "business" | "premium"
+      le_tier: "department" | "precinct" | "agency"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -525,6 +559,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       fleet_tier: ["starter", "business", "premium"],
+      le_tier: ["department", "precinct", "agency"],
     },
   },
 } as const
