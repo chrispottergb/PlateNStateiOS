@@ -16,6 +16,7 @@ import InsurancePortal from "./pages/InsurancePortal";
 import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
+import LawEnforcement from "./pages/LawEnforcement";
 
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 

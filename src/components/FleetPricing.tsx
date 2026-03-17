@@ -22,7 +22,7 @@ const tiers: TierConfig[] = [
   {
     key: "starter",
     name: "Starter",
-    price: "$29",
+    price: "$99",
     period: "/mo",
     icon: <Zap className="h-6 w-6" />,
     description: "For small fleets getting started with driver safety tracking.",
@@ -37,7 +37,7 @@ const tiers: TierConfig[] = [
   {
     key: "business",
     name: "Business",
-    price: "$79",
+    price: "$249",
     period: "/mo",
     icon: <Building2 className="h-6 w-6" />,
     description: "For growing fleets that need deeper insights and analytics.",
@@ -55,7 +55,7 @@ const tiers: TierConfig[] = [
   {
     key: "premium",
     name: "Premium",
-    price: "$199",
+    price: "$599",
     period: "/mo",
     icon: <Crown className="h-6 w-6" />,
     description: "For enterprise fleets needing full coverage and custom tools.",
