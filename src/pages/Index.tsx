@@ -1,4 +1,4 @@
-import { AlertTriangle, Search, Shield, Truck, ArrowRight } from "lucide-react";
+import { AlertTriangle, Search, Shield, Truck, ArrowRight, ShieldCheck, Landmark } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import sectionBg from "@/assets/section-bg.jpg";
 import { Button } from "@/components/ui/button";
