@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck } from "lucide-react";
+import { Trophy, User, Car, LogOut, Coins, Truck, MapPin, ShieldCheck, Shield } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
