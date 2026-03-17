@@ -51,6 +51,10 @@ const Header = () => {
                 <Truck className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Fleet</span>
               </Link>
+              <Link to="/law-enforcement" className={navLinkClass("/law-enforcement")}>
+                <Shield className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">LEO</span>
+              </Link>
               <Link to="/profile" className={navLinkClass("/profile")}>
                 <User className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Profile</span>
