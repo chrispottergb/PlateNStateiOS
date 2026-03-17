@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Plus, Truck, BarChart3 } from "lucide-react";
+import { Building2, Plus, Truck, BarChart3, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import FleetVehicleCard from "@/components/FleetVehicleCard";
+import FleetPricing, { FleetTier, TIER_VEHICLE_LIMITS } from "@/components/FleetPricing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -16,6 +18,7 @@ interface Company {
   id: string;
   name: string;
   contact_email: string;
+  tier: FleetTier;
 }
 
 interface VehicleWithReports {
@@ -25,6 +28,12 @@ interface VehicleWithReports {
   report_count: number;
 }
 
+const TIER_LABELS: Record<FleetTier, string> = {
+  starter: "Starter",
+  business: "Business",
+  premium: "Premium",
+};
+
 const Fleet = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +41,9 @@ const Fleet = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [vehicles, setVehicles] = useState<VehicleWithReports[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Registration flow: step 1 = pick tier, step 2 = fill details
+  const [selectedTier, setSelectedTier] = useState<FleetTier | null>(null);
 
   // Registration form
   const [regName, setRegName] = useState("");
@@ -51,7 +63,6 @@ const Fleet = () => {
     fetchCompany();
   }, [user]);
 
-  // Realtime: refresh report counts when new reports come in for fleet plates
   useEffect(() => {
     if (!company || vehicles.length === 0) return;
 
@@ -78,12 +89,12 @@ const Fleet = () => {
     setLoading(true);
     const { data } = await supabase
       .from("companies")
-      .select("id, name, contact_email")
+      .select("id, name, contact_email, tier")
       .eq("owner_id", user!.id)
       .maybeSingle();
 
     if (data) {
-      setCompany(data);
+      setCompany(data as Company);
       await fetchVehicles(data.id);
     }
     setLoading(false);
@@ -121,17 +132,19 @@ const Fleet = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedTier) return;
     setRegLoading(true);
     const { error } = await supabase.from("companies").insert({
       owner_id: user!.id,
       name: regName.trim(),
       contact_email: regEmail.trim(),
+      tier: selectedTier,
     });
     setRegLoading(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Company registered!" });
+      toast({ title: "Company registered!", description: `You're on the ${TIER_LABELS[selectedTier]} plan.` });
       fetchCompany();
     }
   };
@@ -139,6 +152,17 @@ const Fleet = () => {
   const handleAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company) return;
+
+    const limit = TIER_VEHICLE_LIMITS[company.tier];
+    if (vehicles.length >= limit) {
+      toast({
+        title: "Vehicle limit reached",
+        description: `Your ${TIER_LABELS[company.tier]} plan allows up to ${limit === 9999 ? "unlimited" : limit} vehicles. Upgrade to add more.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setAddLoading(true);
     const { error } = await supabase.from("fleet_vehicles").insert({
       company_id: company.id,
@@ -170,55 +194,78 @@ const Fleet = () => {
   }
 
   const totalReports = vehicles.reduce((s, v) => s + v.report_count, 0);
+  const vehicleLimit = company ? TIER_VEHICLE_LIMITS[company.tier] : 0;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container py-8 max-w-3xl space-y-8">
+      <div className="container py-8 max-w-4xl space-y-8">
         {!company ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card>
-              <CardHeader className="text-center">
-                <Building2 className="h-10 w-10 mx-auto text-primary mb-2" />
-                <CardTitle className="text-2xl">Register Your Fleet</CardTitle>
-                <p className="text-muted-foreground text-sm">
-                  Set up "How's My Driving?" tracking for your company vehicles.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleRegister} className="space-y-4 max-w-sm mx-auto">
-                  <div>
-                    <Label htmlFor="company-name">Company Name</Label>
-                    <Input id="company-name" value={regName} onChange={(e) => setRegName(e.target.value)} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="contact-email">Contact Email</Label>
-                    <Input id="contact-email" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={regLoading}>
-                    {regLoading ? "Registering…" : "Register Company"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
+          !selectedTier ? (
+            /* Step 1: Pick a tier */
+            <FleetPricing onSelectTier={setSelectedTier} />
+          ) : (
+            /* Step 2: Company registration form */
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="max-w-md mx-auto">
+                <CardHeader className="text-center">
+                  <Building2 className="h-10 w-10 mx-auto text-primary mb-2" />
+                  <CardTitle className="text-2xl">Register Your Fleet</CardTitle>
+                  <Badge variant="secondary" className="mx-auto mt-1">
+                    {TIER_LABELS[selectedTier]} Plan
+                  </Badge>
+                  <p className="text-muted-foreground text-sm mt-2">
+                    Set up "How's My Driving?" tracking for your company vehicles.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                      <Label htmlFor="company-name">Company Name</Label>
+                      <Input id="company-name" value={regName} onChange={(e) => setRegName(e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label htmlFor="contact-email">Contact Email</Label>
+                      <Input id="contact-email" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" className="flex-1" onClick={() => setSelectedTier(null)}>
+                        Back
+                      </Button>
+                      <Button type="submit" className="flex-1" disabled={regLoading}>
+                        {regLoading ? "Registering…" : "Register Company"}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
         ) : (
           <>
             {/* Header & Stats */}
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Building2 className="h-6 w-6 text-primary" />
-                {company.name}
-              </h1>
-              <p className="text-sm text-muted-foreground">{company.contact_email}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <Building2 className="h-6 w-6 text-primary" />
+                  {company.name}
+                </h1>
+                <p className="text-sm text-muted-foreground">{company.contact_email}</p>
+              </div>
+              <Badge variant="outline" className="gap-1 text-sm py-1 px-3">
+                <Crown className="h-3.5 w-3.5" />
+                {TIER_LABELS[company.tier]}
+              </Badge>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               <Card>
                 <CardContent className="p-4 text-center">
                   <Truck className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                   <p className="text-2xl font-bold">{vehicles.length}</p>
-                  <p className="text-xs text-muted-foreground">Vehicles</p>
+                  <p className="text-xs text-muted-foreground">
+                    {vehicleLimit === 9999 ? "Vehicles" : `of ${vehicleLimit}`}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -234,6 +281,13 @@ const Fleet = () => {
                     {vehicles.length > 0 ? (totalReports / vehicles.length).toFixed(1) : "0"}
                   </p>
                   <p className="text-xs text-muted-foreground">Avg / Vehicle</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Crown className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+                  <p className="text-2xl font-bold mt-1">{TIER_LABELS[company.tier]}</p>
+                  <p className="text-xs text-muted-foreground">Plan</p>
                 </CardContent>
               </Card>
             </div>
@@ -256,11 +310,16 @@ const Fleet = () => {
                     onChange={(e) => setNewLabel(e.target.value)}
                     className="flex-1"
                   />
-                  <Button type="submit" disabled={addLoading} className="gap-1">
+                  <Button type="submit" disabled={addLoading || vehicles.length >= vehicleLimit} className="gap-1">
                     <Plus className="h-4 w-4" />
                     Add
                   </Button>
                 </form>
+                {vehicles.length >= vehicleLimit && vehicleLimit !== 9999 && (
+                  <p className="text-xs text-destructive mt-2 text-center">
+                    Vehicle limit reached on your {TIER_LABELS[company.tier]} plan.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
