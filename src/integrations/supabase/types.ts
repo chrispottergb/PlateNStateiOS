@@ -42,6 +42,7 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          tier: Database["public"]["Enums"]["fleet_tier"]
         }
         Insert: {
           contact_email: string
@@ -49,6 +50,7 @@ export type Database = {
           id?: string
           name: string
           owner_id: string
+          tier?: Database["public"]["Enums"]["fleet_tier"]
         }
         Update: {
           contact_email?: string
@@ -56,6 +58,7 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          tier?: Database["public"]["Enums"]["fleet_tier"]
         }
         Relationships: []
       }
@@ -392,6 +395,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      fleet_tier: "starter" | "business" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -520,6 +524,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      fleet_tier: ["starter", "business", "premium"],
     },
   },
 } as const
