@@ -41,6 +41,7 @@ const App = () => (
             <Route path="/insurance" element={<InsurancePortal />} />
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/law-enforcement" element={<LawEnforcement />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
