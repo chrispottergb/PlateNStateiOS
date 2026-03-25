@@ -37,6 +37,9 @@ const FLAIR_FILTERS = [
   { key: "distracted_driving", label: "📱 Textaholics" },
 ];
 
+const VEHICLE_TYPES = ["Sedan", "SUV", "Truck", "Van", "Minivan", "Coupe", "Convertible", "Hatchback", "Wagon", "Motorcycle", "Semi/Commercial"];
+const VEHICLE_COLORS = ["Black", "White", "Silver/Gray", "Red", "Blue", "Green", "Yellow", "Orange", "Brown", "Gold"];
+
 type SortMode = "hot" | "new" | "top";
 
 interface Report {
@@ -46,6 +49,8 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
+  vehicle_type: string | null;
+  vehicle_color: string | null;
 }
 
 const HonkZone = () => {
