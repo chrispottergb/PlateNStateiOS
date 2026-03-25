@@ -126,11 +126,12 @@ const Index = () => {
   const driverOfTheWeek = useMemo(() => {
     if (!featuredPlates.length) return null;
     const top = featuredPlates[0];
-    const topInfraction = INFRACTIONS.find((i) => i.type === top.topInfraction);
+    const topInfractionKey = Object.entries(top.infractions).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const topInfraction = INFRACTIONS.find((i) => i.type === topInfractionKey);
     return {
       plateNumber: top.plateNumber,
       reportCount: top.reportCount,
-      topInfraction: topInfraction?.label || top.topInfraction || "Various",
+      topInfraction: topInfraction?.label || topInfractionKey || "Various",
     };
   }, [featuredPlates]);
 
