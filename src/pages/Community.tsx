@@ -197,7 +197,11 @@ const Community = () => {
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
             : featuredPlates.length === 0
-              ? <p className="text-sm text-muted-foreground col-span-full text-center py-8">No reports yet. Be the first!</p>
+              ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-16 space-y-3">
+                  <div className="text-5xl">😇</div>
+                  <p className="text-lg font-extrabold">No Offenders… Yet</p>
+                  <p className="text-sm text-muted-foreground">Apparently everyone's a saint. We'll wait.</p>
+                </motion.div>
               : featuredPlates.map((plate, i) => (
                   <motion.div key={plate.plateNumber} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
                     <PlateCard plate={plate} rank={i + 1} />

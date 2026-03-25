@@ -298,10 +298,24 @@ const HonkZone = () => {
                 ))}
               </div>
             ) : filteredReports.length === 0 ? (
-              <div className="text-center py-20 glass-card p-8">
-                <p className="text-lg font-bold">No reports here yet 🦗</p>
-                <p className="text-sm mt-1 text-muted-foreground">Be the first to honk!</p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16 glass-card p-10 rounded-2xl space-y-4"
+              >
+                <div className="text-6xl">🦗</div>
+                <p className="text-xl font-extrabold">Suspiciously Quiet…</p>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Either everyone's driving like angels or nobody's snitching yet. We both know which one it is.
+                </p>
+                <ReportModal
+                  trigger={
+                    <Button size="lg" className="rounded-full gap-2 mt-2 glow">
+                      <AlertTriangle className="h-4 w-4" /> Be the First to Report
+                    </Button>
+                  }
+                />
+              </motion.div>
             ) : (
               <div className={viewMode === "feed" ? "grid gap-4 sm:grid-cols-2" : "grid gap-3 grid-cols-2 sm:grid-cols-3"}>
                 {filteredReports.map((report, i) => (
