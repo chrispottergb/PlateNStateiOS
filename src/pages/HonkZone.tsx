@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList, Filter } from "lucide-react";
+import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import SocialReportCard from "@/components/SocialReportCard";
@@ -9,7 +9,6 @@ import TrendingPlates from "@/components/TrendingPlates";
 import ReportModal from "@/components/ReportModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,11 +67,7 @@ const HonkZone = () => {
     trendingPlatesRaw.map(p => {
       const topKey = Object.entries(p.infractions).sort((a, b) => b[1] - a[1])[0]?.[0];
       const topInf = INFRACTIONS.find(i => i.type === topKey);
-      return {
-        plateNumber: p.plateNumber,
-        reportCount: p.reportCount,
-        topInfraction: topInf?.label || topKey || "Various",
-      };
+      return { plateNumber: p.plateNumber, reportCount: p.reportCount, topInfraction: topInf?.label || topKey || "Various" };
     }),
     [trendingPlatesRaw]
   );
@@ -80,26 +75,16 @@ const HonkZone = () => {
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
-      let query = supabase
-        .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count");
-
+      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });
-
       const { data } = await query.limit(30);
       if (data) setReports(data);
       setLoading(false);
     };
     fetchReports();
-
-    const channel = supabase
-      .channel("honkzone-reports")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => {
-        fetchReports();
-      })
-      .subscribe();
+    const channel = supabase.channel("honkzone-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [sortMode]);
 
@@ -142,59 +127,68 @@ const HonkZone = () => {
   const filteredReports = flairFilter === "all" ? reports : reports.filter(r => r.infraction === flairFilter);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background noise-overlay">
       <Header />
 
-      {/* Hero */}
-      <section className="container py-8 sm:py-12 text-center space-y-4">
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-3xl">📯</span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text">The Honk Zone</h1>
-        </div>
+      {/* Hero with mesh background */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-mesh-bg" />
+        <div className="absolute inset-0 dot-grid opacity-30" />
+        {/* Floating orbs */}
+        <div className="absolute top-10 left-1/3 w-40 h-40 bg-primary/8 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 right-1/4 w-56 h-56 bg-accent/6 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
-        <div className="h-6 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={taglineIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="text-sm text-muted-foreground italic"
-            >
-              {FUNNY_TAGLINES[taglineIndex]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
+        <div className="container relative py-10 sm:py-14 text-center space-y-5 z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-4"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5">
+              <span className="text-lg">📯</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The Honk Zone</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The Honk Zone</h1>
+          </motion.div>
 
-        <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-          <ReportModal
-            trigger={
-              <Button size="lg" className="gap-2 font-semibold text-base w-full sm:w-auto rounded-full glow">
-                <AlertTriangle className="h-5 w-5" />
-                Report a Plate
-              </Button>
-            }
-          />
-          <form onSubmit={handleSearch} className="flex gap-2 flex-1">
-            <Input
-              value={searchPlate}
-              onChange={e => setSearchPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-              placeholder="Search plate..."
-              className="glass font-mono rounded-full"
-              maxLength={8}
+          <div className="h-6 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.p key={taglineIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} className="text-sm text-muted-foreground italic">
+                {FUNNY_TAGLINES[taglineIndex]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <ReportModal
+              trigger={
+                <Button size="lg" className="gap-2 font-semibold text-base w-full sm:w-auto rounded-full glow">
+                  <AlertTriangle className="h-5 w-5" />
+                  Report a Plate
+                </Button>
+              }
             />
-            <Button type="submit" size="icon" variant="secondary" className="rounded-full shrink-0">
-              <Search className="h-4 w-4" />
-            </Button>
-          </form>
+            <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+              <Input
+                value={searchPlate}
+                onChange={e => setSearchPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
+                placeholder="Search plate..."
+                className="glass font-mono rounded-full border-foreground/5"
+                maxLength={8}
+              />
+              <Button type="submit" size="icon" variant="secondary" className="rounded-full shrink-0">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
         </div>
       </section>
 
-      <div className="container pb-20">
+      <div className="container pb-20 relative z-10">
         {/* Fresh Catches */}
         {reports.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8 mt-2">
             <FreshCatches reports={reports.slice(0, 10)} />
           </div>
         )}
@@ -204,7 +198,6 @@ const HonkZone = () => {
           <div className="flex-1 space-y-4">
             {/* Controls bar */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Sort tabs */}
               <div className="flex rounded-full glass overflow-hidden">
                 {([
                   { key: "hot" as SortMode, icon: <Flame className="h-3.5 w-3.5" />, label: "Hot" },
@@ -214,8 +207,8 @@ const HonkZone = () => {
                   <button
                     key={s.key}
                     onClick={() => setSortMode(s.key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all ${
-                      sortMode === s.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                    className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium transition-all ${
+                      sortMode === s.key ? "bg-primary text-primary-foreground shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.4)]" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {s.icon} {s.label}
@@ -223,7 +216,6 @@ const HonkZone = () => {
                 ))}
               </div>
 
-              {/* View toggle */}
               <button
                 onClick={() => setViewMode(v => v === "feed" ? "grid" : "feed")}
                 className="ml-auto p-2 rounded-full glass text-muted-foreground hover:text-foreground transition-colors"
@@ -231,9 +223,8 @@ const HonkZone = () => {
                 {viewMode === "feed" ? <LayoutGrid className="h-4 w-4" /> : <LayoutList className="h-4 w-4" />}
               </button>
 
-              {/* Wall of Shame link */}
               <Link to="/honkzone/wall">
-                <Button variant="outline" size="sm" className="rounded-full gap-1.5">
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive">
                   <Skull className="h-3.5 w-3.5" /> Wall of Shame
                 </Button>
               </Link>
@@ -245,9 +236,9 @@ const HonkZone = () => {
                 <button
                   key={f.key}
                   onClick={() => setFlairFilter(f.key)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
                     flairFilter === f.key
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary/15 text-primary border border-primary/30"
                       : "glass text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -259,24 +250,19 @@ const HonkZone = () => {
             {/* Reports */}
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-52 rounded-2xl" />
+                ))}
               </div>
             ) : filteredReports.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground">
+              <div className="text-center py-20 glass-card p-8">
                 <p className="text-lg font-bold">No reports here yet 🦗</p>
-                <p className="text-sm mt-1">Be the first to honk!</p>
+                <p className="text-sm mt-1 text-muted-foreground">Be the first to honk!</p>
               </div>
             ) : (
               <div className={viewMode === "feed" ? "grid gap-4 sm:grid-cols-2" : "grid gap-3 grid-cols-2 sm:grid-cols-3"}>
                 {filteredReports.map((report, i) => (
-                  <SocialReportCard
-                    key={report.id}
-                    report={report}
-                    hasUpvoted={myUpvotes.has(report.id)}
-                    votingId={votingId}
-                    onUpvote={handleUpvote}
-                    index={i}
-                  />
+                  <SocialReportCard key={report.id} report={report} hasUpvoted={myUpvotes.has(report.id)} votingId={votingId} onUpvote={handleUpvote} index={i} />
                 ))}
               </div>
             )}
@@ -289,7 +275,7 @@ const HonkZone = () => {
         </div>
       </div>
 
-      <footer className="border-t border-border/50 py-6">
+      <footer className="border-t border-border/30 py-6">
         <div className="container text-center text-xs text-muted-foreground">
           <p>Plate N' State — Community-driven road safety. Not affiliated with any government agency.</p>
         </div>

@@ -14,18 +14,21 @@ const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction }: DriverOfTh
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="relative rounded-2xl p-[2px] bg-gradient-to-r from-amber-500 via-red-500 to-purple-600 overflow-hidden"
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="relative rounded-2xl overflow-hidden"
     >
+      {/* Animated gradient border */}
+      <div className="absolute inset-0 bg-gradient-to-r from-warning via-destructive to-primary animate-glow-pulse" />
+
       {/* Inner card */}
-      <div className="rounded-[14px] bg-background p-6 space-y-4">
+      <div className="relative m-[2px] rounded-[14px] bg-background p-6 space-y-4">
         {/* Title */}
         <div className="flex items-center justify-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h3 className="text-lg font-extrabold tracking-tight gradient-text">
+          <Trophy className="h-5 w-5 text-warning" />
+          <h3 className="text-lg font-extrabold tracking-tight gradient-text-fire">
             Worst Driver of the Week
           </h3>
-          <Flame className="h-5 w-5 text-red-500 animate-pulse" />
+          <Flame className="h-5 w-5 text-destructive animate-pulse" />
         </div>
 
         {/* Plate */}
@@ -42,7 +45,7 @@ const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction }: DriverOfTh
             <p className="text-2xl font-extrabold text-foreground">{reportCount}</p>
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Reports</p>
           </div>
-          <div className="h-8 w-px bg-border/50" />
+          <div className="h-8 w-px bg-border/30" />
           <div className="text-center">
             <p className="text-sm font-semibold text-foreground">{topInfraction}</p>
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Top Violation</p>
