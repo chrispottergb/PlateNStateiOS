@@ -321,8 +321,10 @@ export type Database = {
       }
       reports: {
         Row: {
+          comment: string | null
           created_at: string
           downvote_count: number
+          driver_gender: string | null
           hot_take: string | null
           id: string
           infraction: string
@@ -333,10 +335,17 @@ export type Database = {
           reporter_id: string | null
           tags: string[] | null
           upvote_count: number
+          vehicle_color: string | null
+          vehicle_features: string[] | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string | null
         }
         Insert: {
+          comment?: string | null
           created_at?: string
           downvote_count?: number
+          driver_gender?: string | null
           hot_take?: string | null
           id?: string
           infraction: string
@@ -347,10 +356,17 @@ export type Database = {
           reporter_id?: string | null
           tags?: string[] | null
           upvote_count?: number
+          vehicle_color?: string | null
+          vehicle_features?: string[] | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
         }
         Update: {
+          comment?: string | null
           created_at?: string
           downvote_count?: number
+          driver_gender?: string | null
           hot_take?: string | null
           id?: string
           infraction?: string
@@ -361,6 +377,11 @@ export type Database = {
           reporter_id?: string | null
           tags?: string[] | null
           upvote_count?: number
+          vehicle_color?: string | null
+          vehicle_features?: string[] | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
         }
         Relationships: []
       }
@@ -462,6 +483,23 @@ export type Database = {
               p_location: string
               p_longitude?: number
               p_plate_number: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_comment?: string
+              p_driver_gender?: string
+              p_infraction: string
+              p_latitude?: number
+              p_location: string
+              p_longitude?: number
+              p_plate_number: string
+              p_vehicle_color?: string
+              p_vehicle_features?: string[]
+              p_vehicle_make?: string
+              p_vehicle_model?: string
+              p_vehicle_type?: string
             }
             Returns: string
           }
