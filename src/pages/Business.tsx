@@ -92,7 +92,7 @@ const Business = () => {
       {/* Testimonial / trust */}
       <section className="container pb-20 max-w-2xl mx-auto text-center space-y-4">
         <p className="text-muted-foreground text-sm italic">
-          "Plate In State helped our department identify 3x more repeat offenders in the first quarter alone."
+          "Plate N' State helped our department identify 3x more repeat offenders in the first quarter alone."
         </p>
         <p className="text-xs text-muted-foreground font-semibold">— Sheriff's Dept., Dane County</p>
       </section>
