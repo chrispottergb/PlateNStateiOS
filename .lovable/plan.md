@@ -1,78 +1,95 @@
 
 
-# Landing Page Redesign: Dual-Mode with Humor
+# Social Platform Overhaul: "The Honk Zone"
 
-Split the landing page into two distinct experiences accessible via prominent nav toggle buttons — a **Community/Social** mode (fun, meme-style feed of bad driver reports) and a **Business** mode (professional portal for Fleet, Law Enforcement, Insurance).
+Rename the community section to something funnier — **"The Honk Zone"** (other options: "Road Rage Therapy", "The Blinker-Free Zone") — and add key social media features inspired by Facebook, X, Reddit, Instagram, and Tumblr.
 
-## Concept
+## Name Options (pick during implementation or ask)
+- **The Honk Zone** — playful, memorable
+- **Road Rage Therapy** — relatable humor
+- **The Blinker-Free Zone** — on-brand
+
+The "Wall of Shame" becomes a sub-section *within* this new parent path.
+
+## Route Structure
 
 ```text
-┌─────────────────────────────────────────────┐
-│  Header: Plate In State                     │
-├─────────────────────────────────────────────┤
-│  Hero with tagline + two big toggle buttons │
-│  ┌──────────────┐  ┌──────────────────────┐ │
-│  │ 🎭 Wall of   │  │ 💼 Business &        │ │
-│  │    Shame      │  │    Enterprise        │ │
-│  └──────────────┘  └──────────────────────┘ │
-├─────────────────────────────────────────────┤
-│  [Content switches based on active tab]     │
-│                                             │
-│  SOCIAL MODE:                               │
-│  - Funny taglines rotating                  │
-│  - Reports styled as social media cards     │
-│  - Upvote/react system (😂🤦‍♂️🚨)            │
-│  - "Worst Driver of the Week" spotlight     │
-│  - Meme-style plate roasts                  │
-│                                             │
-│  BUSINESS MODE:                             │
-│  - Fleet / LEO / Insurance portal cards     │
-│  - Professional stats & pricing links       │
-│  - Trust badges & testimonials              │
-└─────────────────────────────────────────────┘
+/honkzone          → Main social hub (feed, trending, categories)
+/honkzone/wall     → Wall of Shame (worst offenders leaderboard)
 ```
 
-## Humor Elements (Social Mode)
+The landing page `/` card currently linking to `/community` will link to `/honkzone` instead.
 
-- **Rotating funny taglines** in the hero: "Because honking isn't enough™", "Snitches get... safer roads", "Passive-aggressive, but make it civic duty"
-- **Social-media-style report cards** with reaction emojis (😂 🤦 🚨 💀) instead of plain lists
-- **"Wall of Shame" branding** for the worst offenders section
-- **"Driver of the Week" spotlight** card with dramatic styling
-- **Funny category badges** on reports: "Turn Signal Allergic", "Speed Demon", "Parking Picasso"
+## Features Inspired by Major Platforms
 
-## Changes
+### From Reddit
+- **Category/flair filters** — filter feed by infraction type ("No Blinker Gang", "Parking Picasso", etc.)
+- **Sort options** — Hot / New / Top (today, week, all time)
+- **Upvote/downvote** with net score (expand current upvote-only to include downvotes)
+- **Comment threads** on reports (nested replies, future phase)
 
-### 1. `src/pages/Index.tsx` — Major overhaul
-- Add `activeTab` state: `"social"` | `"business"` (default: social)
-- **Hero**: Keep search/report, add two large pill-toggle buttons beneath
-- **Social tab content**:
-  - Rotating funny tagline with `AnimatePresence`
-  - "Wall of Shame" header for worst offenders with dramatic styling
-  - Report cards restyled as social-media-style posts with emoji reactions
-  - "Driver of the Week" featured card with glow
-- **Business tab content**:
-  - Professional headline: "Enterprise Solutions for Road Safety"
-  - The existing 3-column Fleet/LEO/Insurance CTA grid (moved here)
-  - Stats row (reports filed, plates tracked, etc.)
-  - Trust/credibility section
+### From X (Twitter)
+- **Trending section** — "Trending plates" sidebar/banner showing plates getting most reports right now
+- **Quote-repost** style shares — "Can you BELIEVE this guy??"
+- **Character-limited hot takes** — optional short comment when reporting
 
-### 2. `src/components/SocialReportCard.tsx` — New component
-- Social-media-style card for plate reports
-- Shows `WisconsinPlate` mini, report reason with funny badge, timestamp
-- Row of emoji reaction buttons (visual only for now)
-- "Share" and "Comment" icons for social feel
+### From Instagram
+- **Story-like "Fresh Catches"** — horizontal scrollable row of the latest reports at the top (avatar circles)
+- **Grid vs. Feed toggle** — switch between card feed and compact grid view
 
-### 3. `src/components/DriverOfTheWeek.tsx` — New component
-- Spotlight card with gradient border glow
-- Shows the #1 worst offender plate large
-- Dramatic title: "🏆 Worst Driver of the Week"
-- Report count and top violation category
+### From Facebook
+- **Reaction bar upgrade** — expand emoji reactions beyond current 4, show reaction counts
+- **"Happened to me too" button** — a "me too" solidarity react for shared experiences
 
-### 4. `src/components/Header.tsx` — Minor update
-- Add "Wall of Shame" and "Business" quick-links in nav (optional, or keep as-is since Index handles tabs)
+### From Tumblr
+- **Reblog/reshare with commentary** — stack user commentary on top of original reports
+- **Tags** — user-added funny hashtags (#NoSignalNovember, #ParkingLotPicasso)
+
+## Implementation Plan
+
+### 1. Rename route & update nav
+- **`src/App.tsx`**: Change `/community` to `/honkzone` and add `/honkzone/wall` nested route
+- **`src/pages/Index.tsx`**: Update the community card link to `/honkzone`
+- **`src/components/Header.tsx`**: Add "Honk Zone" nav link
+
+### 2. Create `src/pages/HonkZone.tsx` — Main social hub
+- Tab bar: **Feed** | **Wall of Shame** | **Trending**
+- Sort controls: Hot / New / Top (with time range dropdown)
+- Category filter chips (infraction types with funny names)
+- "Fresh Catches" horizontal story-like row at top
+- Grid/Feed view toggle button
+- Existing social feed content migrated here
+- Links to `/honkzone/wall` for the full Wall of Shame
+
+### 3. Create `src/pages/WallOfShame.tsx` — Dedicated worst offenders
+- The current "Worst Offenders" grid + "Driver of the Week" spotlight
+- Full leaderboard of shame with pagination
+- Sort by: Most reports, Most upvoted, Most recent
+
+### 4. Update `src/components/SocialReportCard.tsx`
+- Add expanded reaction bar (6 emojis with counts)
+- Add "comment" count indicator
+- Add optional hot-take text field on cards
+- Category flair/badge chip
+- Funny hashtag display
+
+### 5. Create `src/components/FreshCatches.tsx`
+- Instagram-stories-style horizontal scroll of latest reports
+- Circular plate thumbnails with glow ring
+- Click to expand full report card
+
+### 6. Create `src/components/TrendingPlates.tsx`
+- Sidebar/banner showing top 5 trending plates
+- Shows plate number, report velocity, top infraction
+
+### 7. Database changes (migration)
+- Add `downvote_count` column to `reports` table
+- Add `hot_take` text column to `reports` (short user comment, max 140 chars)
+- Create `report_reactions` table (user_id, report_id, reaction_type)
+- Add `tags` text array column to `reports`
 
 ## Files
-- **Edit**: `src/pages/Index.tsx`
-- **Create**: `src/components/SocialReportCard.tsx`
-- **Create**: `src/components/DriverOfTheWeek.tsx`
+- **Create**: `src/pages/HonkZone.tsx`, `src/pages/WallOfShame.tsx`, `src/components/FreshCatches.tsx`, `src/components/TrendingPlates.tsx`
+- **Edit**: `src/App.tsx`, `src/pages/Index.tsx`, `src/components/Header.tsx`, `src/components/SocialReportCard.tsx`
+- **Migration**: New columns + `report_reactions` table
 
