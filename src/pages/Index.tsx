@@ -33,7 +33,7 @@ const Index = () => {
           >
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Shield className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em]">Plate In State</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em]">Plate N' State</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] gradient-text">
