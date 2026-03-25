@@ -146,10 +146,10 @@ const HonkZone = () => {
             className="space-y-4"
           >
             <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5">
-              <span className="text-lg">📯</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The Honk Zone</span>
+              <span className="text-lg">🚨</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The A-Hole Patrol</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The Honk Zone</h1>
+            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The A-Hole Patrol</h1>
           </motion.div>
 
           <div className="h-6 flex items-center justify-center">
