@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Loader2, MapPin, Pencil } from "lucide-react";
+import { Loader2, MapPin, Pencil, Car, Palette, Wrench, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { INFRACTIONS, WISCONSIN_CITIES } from "@/lib/data";
 import { InfractionType } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,10 +24,24 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Smartphone: <Smartphone className="h-6 w-6" />,
 };
 
+const VEHICLE_TYPES = ["Sedan", "SUV", "Truck", "Van", "Minivan", "Coupe", "Convertible", "Hatchback", "Wagon", "Motorcycle", "Semi/Commercial"];
+const VEHICLE_COLORS = ["Black", "White", "Silver/Gray", "Red", "Blue", "Green", "Yellow", "Orange", "Brown", "Gold", "Other"];
+const VEHICLE_FEATURE_OPTIONS = [
+  "Visible Damage",
+  "Aftermarket Rims",
+  "Lifted/Lowered",
+  "Custom Paint/Wrap",
+  "Tinted Windows",
+  "Loud Exhaust",
+  "Bumper Stickers",
+];
+
 interface ReportModalProps {
   trigger: React.ReactNode;
   initialPlate?: string;
 }
+
+const TOTAL_STEPS = 6;
 
 const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const { user } = useAuth();
@@ -42,10 +58,18 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [geocoding, setGeocoding] = useState(false);
   const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState(false);
-  const [dateTime, setDateTime] = useState(() => {
-    const now = new Date();
-    return now.toISOString().slice(0, 16);
-  });
+  const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
+
+  // Vehicle fields
+  const [vehicleType, setVehicleType] = useState("");
+  const [vehicleColor, setVehicleColor] = useState("");
+  const [vehicleMake, setVehicleMake] = useState("");
+  const [vehicleModel, setVehicleModel] = useState("");
+  const [vehicleFeatures, setVehicleFeatures] = useState<string[]>([]);
+
+  // Driver fields
+  const [driverGenderFemale, setDriverGenderFemale] = useState(false);
+  const [comment, setComment] = useState("");
 
   const reset = () => {
     setStep(1);
@@ -59,6 +83,13 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setAutoDetectedLocation(null);
     setManualOverride(false);
     setDateTime(new Date().toISOString().slice(0, 16));
+    setVehicleType("");
+    setVehicleColor("");
+    setVehicleMake("");
+    setVehicleModel("");
+    setVehicleFeatures([]);
+    setDriverGenderFemale(false);
+    setComment("");
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -68,9 +99,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       return;
     }
     setOpen(v);
-    if (v) {
-      detectLocation();
-    }
+    if (v) detectLocation();
     if (!v) reset();
   };
 
@@ -91,7 +120,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         setLocation(detected);
       }
     } catch {
-      // Silently fail — user can still pick manually
+      // fallback to manual
     } finally {
       setGeocoding(false);
     }
@@ -112,6 +141,12 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     );
   };
 
+  const toggleFeature = (feature: string) => {
+    setVehicleFeatures(prev =>
+      prev.includes(feature) ? prev.filter(f => f !== feature) : [...prev, feature]
+    );
+  };
+
   const handleSubmit = async () => {
     if (!user || !infraction) return;
     setSubmitting(true);
@@ -122,6 +157,13 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         p_location: location,
         p_latitude: latitude,
         p_longitude: longitude,
+        p_vehicle_type: vehicleType || null,
+        p_vehicle_color: vehicleColor || null,
+        p_vehicle_make: vehicleMake || null,
+        p_vehicle_model: vehicleModel || null,
+        p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
+        p_driver_gender: driverGenderFemale ? "female" : null,
+        p_comment: comment || null,
       } as any);
       if (error) {
         if (error.message.includes("Insufficient credits")) {
@@ -143,21 +185,23 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     }
   };
 
-  const formatPlate = (value: string) => {
-    return value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 8);
-  };
+  const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 8);
 
   const canProceed = () => {
     if (step === 1) return plateNumber.trim().length >= 4;
-    if (step === 2) return infraction !== null;
-    if (step === 3) return location.trim().length > 0;
+    if (step === 2) return true; // vehicle description is optional
+    if (step === 3) return infraction !== null;
+    if (step === 4) return location.trim().length > 0;
+    if (step === 5) return true; // driver description is optional
     return true;
   };
+
+  const stepLabels = ["Plate", "Vehicle", "Infraction", "Location", "Driver", "Review"];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md glass-strong rounded-xl border-border/50">
+      <DialogContent className="sm:max-w-md glass-strong rounded-xl border-border/50 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -169,17 +213,23 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         </DialogHeader>
 
         {/* Progress */}
-        <div className="flex gap-1 mb-4">
-          {[1, 2, 3, 4].map(s => (
-            <div
-              key={s}
-              className={`h-1 flex-1 rounded-full transition-colors ${
-                s <= step ? "bg-primary" : "bg-muted"
-              }`}
-            />
-          ))}
+        <div className="space-y-1.5 mb-4">
+          <div className="flex gap-1">
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(s => (
+              <div
+                key={s}
+                className={`h-1 flex-1 rounded-full transition-colors ${
+                  s <= step ? "bg-primary" : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Step {step} of {TOTAL_STEPS} — {stepLabels[step - 1]}
+          </p>
         </div>
 
+        {/* Step 1: Plate */}
         {step === 1 && (
           <div className="space-y-4">
             <div>
@@ -198,7 +248,88 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
           </div>
         )}
 
+        {/* Step 2: Vehicle Description */}
         {step === 2 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Car className="h-4 w-4 text-primary" />
+              Vehicle Description
+              <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Vehicle Type</Label>
+                <Select value={vehicleType} onValueChange={setVehicleType}>
+                  <SelectTrigger className="mt-1 rounded-lg text-xs h-9">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VEHICLE_TYPES.map(t => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Color</Label>
+                <Select value={vehicleColor} onValueChange={setVehicleColor}>
+                  <SelectTrigger className="mt-1 rounded-lg text-xs h-9">
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VEHICLE_COLORS.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Make</Label>
+                <Input
+                  value={vehicleMake}
+                  onChange={e => setVehicleMake(e.target.value)}
+                  placeholder="e.g. Toyota"
+                  className="mt-1 rounded-lg text-xs h-9"
+                  maxLength={30}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Model</Label>
+                <Input
+                  value={vehicleModel}
+                  onChange={e => setVehicleModel(e.target.value)}
+                  placeholder="e.g. Camry"
+                  className="mt-1 rounded-lg text-xs h-9"
+                  maxLength={30}
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs flex items-center gap-1.5">
+                <Wrench className="h-3 w-3" /> Noticeable Features
+              </Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {VEHICLE_FEATURE_OPTIONS.map(feat => (
+                  <label
+                    key={feat}
+                    className="flex items-center gap-2 text-xs cursor-pointer rounded-lg border border-border/50 px-2.5 py-2 hover:bg-muted/40 transition-colors"
+                  >
+                    <Checkbox
+                      checked={vehicleFeatures.includes(feat)}
+                      onCheckedChange={() => toggleFeature(feat)}
+                    />
+                    <span>{feat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Infraction */}
+        {step === 3 && (
           <div className="space-y-3">
             <Label className="text-sm font-medium">What did they do?</Label>
             <div className="grid grid-cols-2 gap-2">
@@ -221,11 +352,11 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
           </div>
         )}
 
-        {step === 3 && (
+        {/* Step 4: Location */}
+        {step === 4 && (
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Location</Label>
-              {/* Auto-detected location display */}
               {autoDetectedLocation && !manualOverride ? (
                 <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
                   <MapPin className="h-4 w-4 text-primary shrink-0" />
@@ -288,7 +419,37 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
           </div>
         )}
 
-        {step === 4 && (
+        {/* Step 5: Driver Description */}
+        {step === 5 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <User className="h-4 w-4 text-primary" />
+              Driver Description & Comments
+              <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+            </div>
+            <label className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-3 cursor-pointer hover:bg-muted/40 transition-colors">
+              <Checkbox
+                checked={driverGenderFemale}
+                onCheckedChange={(checked) => setDriverGenderFemale(checked === true)}
+              />
+              <span className="text-sm">Female driver</span>
+            </label>
+            <div>
+              <Label className="text-xs">Additional Comments</Label>
+              <Textarea
+                value={comment}
+                onChange={e => setComment(e.target.value.slice(0, 280))}
+                placeholder="Any additional details about the incident..."
+                className="mt-1.5 rounded-lg text-sm min-h-[80px]"
+                maxLength={280}
+              />
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">{comment.length}/280</p>
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Review */}
+        {step === 6 && (
           <div className="space-y-3 rounded-xl glass p-4">
             <h4 className="font-medium text-sm">Review Your Report</h4>
             <div className="space-y-2 text-sm">
@@ -296,6 +457,20 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 <span className="text-muted-foreground">Plate</span>
                 <span className="font-mono font-bold">{plateNumber}</span>
               </div>
+              {(vehicleType || vehicleColor || vehicleMake || vehicleModel) && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Vehicle</span>
+                  <span className="text-right text-xs">
+                    {[vehicleColor, vehicleType, vehicleMake, vehicleModel].filter(Boolean).join(" ")}
+                  </span>
+                </div>
+              )}
+              {vehicleFeatures.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Features</span>
+                  <span className="text-right text-xs">{vehicleFeatures.join(", ")}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Infraction</span>
                 <span className="font-medium">{INFRACTIONS.find(i => i.type === infraction)?.label}</span>
@@ -308,6 +483,18 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 <span className="text-muted-foreground">When</span>
                 <span>{new Date(dateTime).toLocaleString()}</span>
               </div>
+              {driverGenderFemale && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Driver</span>
+                  <span>Female</span>
+                </div>
+              )}
+              {comment && (
+                <div className="pt-1 border-t border-border/30">
+                  <span className="text-muted-foreground text-xs">Comment:</span>
+                  <p className="text-xs mt-0.5">{comment}</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -318,9 +505,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
           ) : <div />}
-          {step < 4 ? (
+          {step < TOTAL_STEPS ? (
             <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full">
-              Next <ArrowRight className="h-4 w-4 ml-1" />
+              {step === 2 || step === 5 ? "Skip / " : ""}Next <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
             <Button size="sm" onClick={handleSubmit} disabled={submitting} className="rounded-full glow">
