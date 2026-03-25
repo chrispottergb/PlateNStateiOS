@@ -7,14 +7,15 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1.5rem",
       screens: {
         "2xl": "1400px",
       },
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
         mono: ["IBM Plex Mono", "monospace"],
       },
       colors: {
@@ -85,7 +86,7 @@ export default {
           to: { height: "0" },
         },
         "glow-pulse": {
-          "0%, 100%": { opacity: "0.6" },
+          "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "1" },
         },
       },
