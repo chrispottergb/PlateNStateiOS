@@ -25,8 +25,8 @@ const Header = () => {
     <header className="sticky top-0 z-50 glass-strong">
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <img src={logoIcon} alt="Plate In State" className="h-7 w-7 transition-transform group-hover:scale-110" />
-          <span className="font-bold text-base tracking-tight">Plate In State</span>
+          <img src={logoIcon} alt="Plate N' State" className="h-7 w-7 transition-transform group-hover:scale-110" />
+          <span className="font-bold text-base tracking-tight">Plate N' State</span>
         </Link>
         <nav className="flex items-center gap-0.5">
           <Link to="/leaderboard" className={navLinkClass("/leaderboard")}>
