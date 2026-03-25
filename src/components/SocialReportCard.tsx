@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
-import { MapPin, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
+import { MapPin, ThumbsUp, MessageCircle, Share2, Car } from "lucide-react";
 import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,12 @@ interface SocialReportCardProps {
     location: string;
     created_at: string;
     upvote_count: number;
+    vehicle_type?: string | null;
+    vehicle_color?: string | null;
+    vehicle_make?: string | null;
+    vehicle_model?: string | null;
+    vehicle_features?: string[] | null;
+    comment?: string | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
@@ -47,6 +53,10 @@ interface SocialReportCardProps {
 const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
   const inf = INFRACTIONS.find((i) => i.type === report.infraction);
   const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
+
+  const vehicleDesc = [report.vehicle_color, report.vehicle_type, report.vehicle_make, report.vehicle_model]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <motion.div
@@ -76,6 +86,26 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
         <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="block w-fit mx-auto group-hover:scale-105 transition-transform">
           <WisconsinPlate plateNumber={report.plate_number} size="sm" />
         </Link>
+
+        {/* Vehicle description */}
+        {vehicleDesc && (
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Car className="h-3 w-3" />
+            <span>{vehicleDesc}</span>
+          </div>
+        )}
+
+        {/* Vehicle features badges */}
+        {report.vehicle_features && report.vehicle_features.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1">
+            {report.vehicle_features.map(feat => (
+              <Badge key={feat} variant="outline" className="text-[9px] px-1.5 py-0 rounded-full border-accent/30 text-accent-foreground/70">
+                {feat}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         <p className="text-sm text-center font-semibold text-foreground">
           {inf?.label || report.infraction}
         </p>
@@ -83,6 +113,13 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           <MapPin className="h-3 w-3" />
           <span>{report.location}</span>
         </div>
+
+        {/* Comment */}
+        {report.comment && (
+          <p className="text-xs text-muted-foreground italic text-center px-2 pt-1 border-t border-border/20">
+            "{report.comment}"
+          </p>
+        )}
       </div>
 
       {/* Reactions */}
