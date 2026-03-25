@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
+import Community from "./pages/Community";
+import Business from "./pages/Business";
 import PlateDetail from "./pages/PlateDetail";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
