@@ -52,6 +52,7 @@ interface SocialReportCardProps {
 }
 
 const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
+  const [showComments, setShowComments] = useState(false);
   const inf = INFRACTIONS.find((i) => i.type === report.infraction);
   const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
 
