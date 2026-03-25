@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
@@ -5,8 +6,8 @@ import { MapPin, ThumbsUp, MessageCircle, Share2, Car } from "lucide-react";
 import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-
+import { motion, AnimatePresence } from "framer-motion";
+import CommentThread from "./CommentThread";
 const FUNNY_BADGES: Record<string, string> = {
   reckless: "🏎️ Speed Demon",
   tailgating: "🐌 Personal Space Invader",
