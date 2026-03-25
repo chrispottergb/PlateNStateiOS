@@ -215,18 +215,26 @@ const Community = () => {
       <section className="container pb-20">
         <h2 className="text-xl font-extrabold mb-1">Latest Tea ☕</h2>
         <p className="text-sm text-muted-foreground mb-6">Fresh reports from the streets</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reports.map((report, i) => (
-            <SocialReportCard
-              key={report.id}
-              report={report}
-              hasUpvoted={myUpvotes.has(report.id)}
-              votingId={votingId}
-              onUpvote={handleUpvote}
-              index={i}
-            />
-          ))}
-        </div>
+        {reports.length === 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 space-y-3">
+            <div className="text-5xl">☕</div>
+            <p className="text-lg font-extrabold">No Tea to Spill</p>
+            <p className="text-sm text-muted-foreground">The streets are quiet. Report a plate to get the conversation started.</p>
+          </motion.div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reports.map((report, i) => (
+              <SocialReportCard
+                key={report.id}
+                report={report}
+                hasUpvoted={myUpvotes.has(report.id)}
+                votingId={votingId}
+                onUpvote={handleUpvote}
+                index={i}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <footer className="border-t border-border/50 py-6">
