@@ -95,7 +95,7 @@ const Index = () => {
 
       <footer className="border-t border-border/50 py-6">
         <div className="container text-center text-xs text-muted-foreground">
-          <p>Plate In State — Community-driven road safety. Not affiliated with any government agency.</p>
+          <p>Plate N' State — Community-driven road safety. Not affiliated with any government agency.</p>
         </div>
       </footer>
     </div>

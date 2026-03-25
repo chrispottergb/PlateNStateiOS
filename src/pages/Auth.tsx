@@ -69,7 +69,7 @@ const Auth = () => {
         >
           <Card className="glass-strong glow-lg border-border/50">
             <CardHeader className="text-center space-y-3">
-              <img src={logoIcon} alt="Plate In State" className="h-10 w-10 mx-auto" />
+              <img src={logoIcon} alt="Plate N' State" className="h-10 w-10 mx-auto" />
               <CardTitle className="text-2xl font-bold">
                 {isSignUp ? "Create your account" : "Welcome back"}
               </CardTitle>

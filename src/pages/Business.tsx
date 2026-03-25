@@ -99,7 +99,7 @@ const Business = () => {
 
       <footer className="border-t border-border/50 py-6">
         <div className="container text-center text-xs text-muted-foreground">
-          <p>Plate In State — Enterprise road safety solutions. Contact us for custom plans.</p>
+          <p>Plate N' State — Enterprise road safety solutions. Contact us for custom plans.</p>
         </div>
       </footer>
     </div>
