@@ -146,7 +146,10 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
             <ThumbsUp className="h-3 w-3" />
             <span className="font-mono text-[11px]">{report.upvote_count}</span>
           </Button>
-          <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
+          <button
+            onClick={() => setShowComments(v => !v)}
+            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${showComments ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+          >
             <MessageCircle className="h-3.5 w-3.5" />
           </button>
           <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
@@ -154,6 +157,20 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           </button>
         </div>
       </div>
+
+      {/* Comment thread */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-border/20 overflow-hidden"
+          >
+            <CommentThread reportId={report.id} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
