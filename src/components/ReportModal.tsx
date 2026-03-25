@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Loader2, MapPin, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
+  const [geocoding, setGeocoding] = useState(false);
+  const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
+  const [manualOverride, setManualOverride] = useState(false);
   const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toISOString().slice(0, 16);
@@ -51,6 +55,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setLatitude(null);
     setLongitude(null);
     setGeoStatus("idle");
+    setGeocoding(false);
+    setAutoDetectedLocation(null);
+    setManualOverride(false);
     setDateTime(new Date().toISOString().slice(0, 16));
   };
 
@@ -67,6 +74,29 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     if (!v) reset();
   };
 
+  const reverseGeocode = async (lat: number, lng: number) => {
+    setGeocoding(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      const addr = data.address;
+      const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
+      const state = addr?.state ? `, ${addr.state}` : "";
+      if (city) {
+        const detected = `${city}${state}`;
+        setAutoDetectedLocation(detected);
+        setLocation(detected);
+      }
+    } catch {
+      // Silently fail — user can still pick manually
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const detectLocation = () => {
     if (!navigator.geolocation) return;
     setGeoStatus("loading");
@@ -75,6 +105,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         setLatitude(pos.coords.latitude);
         setLongitude(pos.coords.longitude);
         setGeoStatus("done");
+        reverseGeocode(pos.coords.latitude, pos.coords.longitude);
       },
       () => setGeoStatus("denied"),
       { enableHighAccuracy: true, timeout: 10000 }
@@ -194,23 +225,45 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Location</Label>
-              <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger className="mt-1.5 rounded-lg">
-                  <SelectValue placeholder="Select city" />
-                </SelectTrigger>
-                <SelectContent>
-                  {WISCONSIN_CITIES.map(city => (
-                    <SelectItem key={city} value={`${city}, WI`}>{city}, WI</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Auto-detected location display */}
+              {autoDetectedLocation && !manualOverride ? (
+                <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+                  <MapPin className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setManualOverride(true)}
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground rounded-full"
+                    type="button"
+                  >
+                    <Pencil className="h-3 w-3 mr-1" /> Edit
+                  </Button>
+                </div>
+              ) : geocoding ? (
+                <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2.5 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Detecting your location…
+                </div>
+              ) : (
+                <Select value={location} onValueChange={setLocation}>
+                  <SelectTrigger className="mt-1.5 rounded-lg">
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WISCONSIN_CITIES.map(city => (
+                      <SelectItem key={city} value={`${city}, WI`}>{city}, WI</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="rounded-xl glass p-3 flex items-center justify-between">
               <div className="text-sm">
                 <p className="font-medium">📍 GPS Location</p>
                 {geoStatus === "loading" && <p className="text-xs text-muted-foreground">Detecting…</p>}
                 {geoStatus === "done" && (
-                  <p className="text-xs text-emerald-400">
+                  <p className="text-xs text-primary">
                     Located ({latitude?.toFixed(4)}, {longitude?.toFixed(4)})
                   </p>
                 )}
