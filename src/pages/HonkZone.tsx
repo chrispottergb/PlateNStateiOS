@@ -259,7 +259,38 @@ const HonkZone = () => {
               ))}
             </div>
 
-            {/* Reports */}
+            {/* Vehicle filters */}
+            <div className="flex gap-2 flex-wrap">
+              <select
+                value={vehicleTypeFilter}
+                onChange={e => setVehicleTypeFilter(e.target.value)}
+                className="rounded-full px-3 py-1.5 text-xs font-medium glass border-none bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
+              >
+                <option value="all">🚗 All Vehicles</option>
+                {VEHICLE_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <select
+                value={vehicleColorFilter}
+                onChange={e => setVehicleColorFilter(e.target.value)}
+                className="rounded-full px-3 py-1.5 text-xs font-medium glass border-none bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
+              >
+                <option value="all">🎨 All Colors</option>
+                {VEHICLE_COLORS.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {(vehicleTypeFilter !== "all" || vehicleColorFilter !== "all") && (
+                <button
+                  onClick={() => { setVehicleTypeFilter("all"); setVehicleColorFilter("all"); }}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              )}
+            </div>
+
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {Array.from({ length: 6 }).map((_, i) => (
