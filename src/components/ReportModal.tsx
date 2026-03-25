@@ -54,6 +54,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setLatitude(null);
     setLongitude(null);
     setGeoStatus("idle");
+    setGeocoding(false);
+    setAutoDetectedLocation(null);
+    setManualOverride(false);
     setDateTime(new Date().toISOString().slice(0, 16));
   };
 
