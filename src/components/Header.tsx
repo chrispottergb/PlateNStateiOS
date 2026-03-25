@@ -22,16 +22,16 @@ const Header = () => {
     }`;
 
   return (
-    <header className="sticky top-0 z-50 glass-strong">
-      <div className="container flex h-14 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 group">
+    <header className="sticky top-0 z-50 glass-strong w-full">
+      <div className="container flex h-14 items-center justify-between gap-2 overflow-x-auto scrollbar-hide">
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="relative">
             <img src={logoIcon} alt="Plate N' State" className="h-7 w-7 transition-transform group-hover:scale-110 relative z-10" />
             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <span className="font-bold text-sm tracking-tight hidden sm:inline">Plate N' State</span>
         </Link>
-        <nav className="flex items-center gap-0.5">
+        <nav className="flex items-center gap-0.5 shrink-0">
           <Link to="/a-hole-patrol" className={navLinkClass("/a-hole-patrol")}>
             <span className="text-xs">🚨</span>
             <span className="hidden sm:inline">A-Hole Patrol</span>
