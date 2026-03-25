@@ -1,0 +1,120 @@
+import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { INFRACTIONS } from "@/lib/data";
+import { MapPin, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
+import WisconsinPlate from "./WisconsinPlate";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+
+const FUNNY_BADGES: Record<string, string> = {
+  reckless: "🏎️ Speed Demon",
+  tailgating: "🐌 Personal Space Invader",
+  running_red: "🚦 Red Means Go, Apparently",
+  no_signal: "💡 Turn Signal Allergic",
+  road_rage: "😤 Road Rager",
+  illegal_parking: "🎨 Parking Picasso",
+  phone_use: "📱 Textaholic",
+  dui: "🍺 Happy Hour Hero",
+  hit_and_run: "🏃 Ghost Driver",
+  other: "🤷 Mystery Menace",
+};
+
+const REACTIONS = [
+  { emoji: "😂", label: "LOL" },
+  { emoji: "🤦", label: "Facepalm" },
+  { emoji: "🚨", label: "Yikes" },
+  { emoji: "💀", label: "Dead" },
+];
+
+interface SocialReportCardProps {
+  report: {
+    id: string;
+    plate_number: string;
+    infraction: string;
+    location: string;
+    created_at: string;
+    upvote_count: number;
+  };
+  hasUpvoted: boolean;
+  votingId: string | null;
+  onUpvote: (id: string) => void;
+  index: number;
+}
+
+const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
+  const inf = INFRACTIONS.find((i) => i.type === report.infraction);
+  const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="glass rounded-2xl overflow-hidden hover:glow transition-all"
+    >
+      {/* Header row */}
+      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm">
+          🚗
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-foreground">Anonymous Reporter</p>
+          <p className="text-[10px] text-muted-foreground">
+            {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+          </p>
+        </div>
+        <Badge variant="secondary" className="text-[10px] rounded-full shrink-0">
+          {funnyBadge}
+        </Badge>
+      </div>
+
+      {/* Plate & infraction */}
+      <div className="px-4 py-3 space-y-2">
+        <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="block w-fit mx-auto">
+          <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+        </Link>
+        <p className="text-sm text-center font-medium text-foreground">
+          {inf?.label || report.infraction}
+        </p>
+        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+          <MapPin className="h-3 w-3" />
+          <span>{report.location}</span>
+        </div>
+      </div>
+
+      {/* Reactions */}
+      <div className="flex items-center gap-1 px-4 py-2 border-t border-border/30">
+        {REACTIONS.map((r) => (
+          <button
+            key={r.emoji}
+            className="flex items-center gap-0.5 rounded-full px-2 py-1 text-xs hover:bg-muted/50 transition-colors"
+            title={r.label}
+          >
+            <span>{r.emoji}</span>
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            variant={hasUpvoted ? "default" : "ghost"}
+            size="sm"
+            className={`h-7 px-2 gap-1 rounded-full ${hasUpvoted ? "" : "text-muted-foreground"}`}
+            disabled={votingId === report.id || hasUpvoted}
+            onClick={() => onUpvote(report.id)}
+          >
+            <ThumbsUp className="h-3 w-3" />
+            <span className="text-xs font-mono">{report.upvote_count}</span>
+          </Button>
+          <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
+            <MessageCircle className="h-3.5 w-3.5" />
+          </button>
+          <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground transition-colors">
+            <Share2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default SocialReportCard;
