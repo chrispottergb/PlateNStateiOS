@@ -22,8 +22,8 @@ const Header = () => {
     }`;
 
   return (
-    <header className="sticky top-0 z-50 glass-strong">
-      <div className="container flex h-14 items-center justify-between">
+    <header className="sticky top-0 z-50 glass-strong w-full">
+      <div className="container flex h-14 items-center justify-between gap-2 overflow-x-auto scrollbar-hide">
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="relative">
             <img src={logoIcon} alt="Plate N' State" className="h-7 w-7 transition-transform group-hover:scale-110 relative z-10" />
