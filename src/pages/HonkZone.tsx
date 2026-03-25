@@ -37,6 +37,9 @@ const FLAIR_FILTERS = [
   { key: "distracted_driving", label: "📱 Textaholics" },
 ];
 
+const VEHICLE_TYPES = ["Sedan", "SUV", "Truck", "Van", "Minivan", "Coupe", "Convertible", "Hatchback", "Wagon", "Motorcycle", "Semi/Commercial"];
+const VEHICLE_COLORS = ["Black", "White", "Silver/Gray", "Red", "Blue", "Green", "Yellow", "Orange", "Brown", "Gold"];
+
 type SortMode = "hot" | "new" | "top";
 
 interface Report {
@@ -46,6 +49,8 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
+  vehicle_type: string | null;
+  vehicle_color: string | null;
 }
 
 const HonkZone = () => {
@@ -53,6 +58,8 @@ const HonkZone = () => {
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [sortMode, setSortMode] = useState<SortMode>("hot");
   const [flairFilter, setFlairFilter] = useState("all");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState("all");
+  const [vehicleColorFilter, setVehicleColorFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"feed" | "grid">("feed");
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -75,7 +82,7 @@ const HonkZone = () => {
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
-      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count");
+      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });
@@ -124,7 +131,12 @@ const HonkZone = () => {
     } finally { setVotingId(null); }
   };
 
-  const filteredReports = flairFilter === "all" ? reports : reports.filter(r => r.infraction === flairFilter);
+  const filteredReports = reports.filter(r => {
+    if (flairFilter !== "all" && r.infraction !== flairFilter) return false;
+    if (vehicleTypeFilter !== "all" && r.vehicle_type !== vehicleTypeFilter) return false;
+    if (vehicleColorFilter !== "all" && r.vehicle_color !== vehicleColorFilter) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background noise-overlay">
@@ -247,7 +259,38 @@ const HonkZone = () => {
               ))}
             </div>
 
-            {/* Reports */}
+            {/* Vehicle filters */}
+            <div className="flex gap-2 flex-wrap">
+              <select
+                value={vehicleTypeFilter}
+                onChange={e => setVehicleTypeFilter(e.target.value)}
+                className="rounded-full px-3 py-1.5 text-xs font-medium glass border-none bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
+              >
+                <option value="all">🚗 All Vehicles</option>
+                {VEHICLE_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <select
+                value={vehicleColorFilter}
+                onChange={e => setVehicleColorFilter(e.target.value)}
+                className="rounded-full px-3 py-1.5 text-xs font-medium glass border-none bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
+              >
+                <option value="all">🎨 All Colors</option>
+                {VEHICLE_COLORS.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {(vehicleTypeFilter !== "all" || vehicleColorFilter !== "all") && (
+                <button
+                  onClick={() => { setVehicleTypeFilter("all"); setVehicleColorFilter("all"); }}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              )}
+            </div>
+
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {Array.from({ length: 6 }).map((_, i) => (
