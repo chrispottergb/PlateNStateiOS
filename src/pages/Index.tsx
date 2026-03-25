@@ -46,7 +46,7 @@ const Index = () => {
 
             {/* Two path cards */}
             <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto pt-4">
-              <Link to="/community" className="group">
+              <Link to="/honkzone" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
