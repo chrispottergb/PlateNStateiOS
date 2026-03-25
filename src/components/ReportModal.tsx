@@ -38,6 +38,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
+  const [geocoding, setGeocoding] = useState(false);
+  const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
+  const [manualOverride, setManualOverride] = useState(false);
   const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toISOString().slice(0, 16);
