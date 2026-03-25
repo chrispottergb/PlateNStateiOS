@@ -73,6 +73,29 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     if (!v) reset();
   };
 
+  const reverseGeocode = async (lat: number, lng: number) => {
+    setGeocoding(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      const addr = data.address;
+      const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
+      const state = addr?.state ? `, ${addr.state}` : "";
+      if (city) {
+        const detected = `${city}${state}`;
+        setAutoDetectedLocation(detected);
+        setLocation(detected);
+      }
+    } catch {
+      // Silently fail — user can still pick manually
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const detectLocation = () => {
     if (!navigator.geolocation) return;
     setGeoStatus("loading");
@@ -81,6 +104,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         setLatitude(pos.coords.latitude);
         setLongitude(pos.coords.longitude);
         setGeoStatus("done");
+        reverseGeocode(pos.coords.latitude, pos.coords.longitude);
       },
       () => setGeoStatus("denied"),
       { enableHighAccuracy: true, timeout: 10000 }
