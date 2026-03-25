@@ -31,7 +31,7 @@ const Header = () => {
           </div>
           <span className="font-bold text-sm tracking-tight hidden sm:inline">Plate N' State</span>
         </Link>
-        <nav className="flex items-center gap-0.5">
+        <nav className="flex items-center gap-0.5 shrink-0">
           <Link to="/a-hole-patrol" className={navLinkClass("/a-hole-patrol")}>
             <span className="text-xs">🚨</span>
             <span className="hidden sm:inline">A-Hole Patrol</span>
