@@ -84,7 +84,7 @@ const HonkZone = () => {
       setLoading(false);
     };
     fetchReports();
-    const channel = supabase.channel("honkzone-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
+    const channel = supabase.channel("patrol-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [sortMode]);
 
