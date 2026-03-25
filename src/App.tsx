@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Community from "./pages/Community";
 import Business from "./pages/Business";
+import HonkZone from "./pages/HonkZone";
+import WallOfShame from "./pages/WallOfShame";
 import PlateDetail from "./pages/PlateDetail";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
@@ -34,6 +36,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/honkzone" element={<HonkZone />} />
+            <Route path="/honkzone/wall" element={<WallOfShame />} />
             <Route path="/business" element={<Business />} />
             <Route path="/plate/:plateNumber" element={<PlateDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />

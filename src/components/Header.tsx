@@ -28,7 +28,11 @@ const Header = () => {
           <img src={logoIcon} alt="Plate N' State" className="h-7 w-7 transition-transform group-hover:scale-110" />
           <span className="font-bold text-base tracking-tight">Plate N' State</span>
         </Link>
-        <nav className="flex items-center gap-0.5">
+         <nav className="flex items-center gap-0.5">
+          <Link to="/honkzone" className={navLinkClass("/honkzone")}>
+            <span className="text-sm">📯</span>
+            <span className="hidden sm:inline">Honk Zone</span>
+          </Link>
           <Link to="/leaderboard" className={navLinkClass("/leaderboard")}>
             <Trophy className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Leaderboard</span>
