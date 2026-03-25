@@ -258,6 +258,38 @@ export type Database = {
         }
         Relationships: []
       }
+      report_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_reactions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_upvotes: {
         Row: {
           created_at: string
@@ -290,6 +322,8 @@ export type Database = {
       reports: {
         Row: {
           created_at: string
+          downvote_count: number
+          hot_take: string | null
           id: string
           infraction: string
           latitude: number | null
@@ -297,10 +331,13 @@ export type Database = {
           longitude: number | null
           plate_number: string
           reporter_id: string | null
+          tags: string[] | null
           upvote_count: number
         }
         Insert: {
           created_at?: string
+          downvote_count?: number
+          hot_take?: string | null
           id?: string
           infraction: string
           latitude?: number | null
@@ -308,10 +345,13 @@ export type Database = {
           longitude?: number | null
           plate_number: string
           reporter_id?: string | null
+          tags?: string[] | null
           upvote_count?: number
         }
         Update: {
           created_at?: string
+          downvote_count?: number
+          hot_take?: string | null
           id?: string
           infraction?: string
           latitude?: number | null
@@ -319,6 +359,7 @@ export type Database = {
           longitude?: number | null
           plate_number?: string
           reporter_id?: string | null
+          tags?: string[] | null
           upvote_count?: number
         }
         Relationships: []
