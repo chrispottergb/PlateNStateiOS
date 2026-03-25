@@ -84,7 +84,7 @@ const HonkZone = () => {
       setLoading(false);
     };
     fetchReports();
-    const channel = supabase.channel("honkzone-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
+    const channel = supabase.channel("patrol-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [sortMode]);
 
@@ -146,10 +146,10 @@ const HonkZone = () => {
             className="space-y-4"
           >
             <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5">
-              <span className="text-lg">📯</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The Honk Zone</span>
+              <span className="text-lg">🚨</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The A-Hole Patrol</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The Honk Zone</h1>
+            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The A-Hole Patrol</h1>
           </motion.div>
 
           <div className="h-6 flex items-center justify-center">
@@ -223,7 +223,7 @@ const HonkZone = () => {
                 {viewMode === "feed" ? <LayoutGrid className="h-4 w-4" /> : <LayoutList className="h-4 w-4" />}
               </button>
 
-              <Link to="/honkzone/wall">
+              <Link to="/a-hole-patrol/wall">
                 <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive">
                   <Skull className="h-3.5 w-3.5" /> Wall of Shame
                 </Button>

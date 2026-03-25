@@ -83,7 +83,7 @@ const Index = () => {
 
             {/* Two path cards */}
             <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto pt-4">
-              <Link to="/honkzone" className="group">
+              <Link to="/a-hole-patrol" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -4 }}
                   whileTap={{ scale: 0.98 }}
@@ -101,12 +101,12 @@ const Index = () => {
                         <div className="h-14 w-14 bg-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
-                    <h2 className="text-xl font-extrabold">The Honk Zone</h2>
+                    <h2 className="text-xl font-extrabold">The A-Hole Patrol</h2>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Report plates, roast bad drivers, upvote the worst offenders. Social media for road rage. 📯
+                      Report plates, roast bad drivers, upvote the worst offenders. Social media for road rage. 🚨
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
-                      Enter the Honk Zone <ArrowRight className="h-4 w-4" />
+                      Join the Patrol <ArrowRight className="h-4 w-4" />
                     </span>
                   </div>
                 </motion.div>
