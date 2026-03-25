@@ -131,7 +131,12 @@ const HonkZone = () => {
     } finally { setVotingId(null); }
   };
 
-  const filteredReports = flairFilter === "all" ? reports : reports.filter(r => r.infraction === flairFilter);
+  const filteredReports = reports.filter(r => {
+    if (flairFilter !== "all" && r.infraction !== flairFilter) return false;
+    if (vehicleTypeFilter !== "all" && r.vehicle_type !== vehicleTypeFilter) return false;
+    if (vehicleColorFilter !== "all" && r.vehicle_color !== vehicleColorFilter) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background noise-overlay">
