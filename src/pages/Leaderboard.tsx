@@ -55,7 +55,11 @@ const Leaderboard = () => {
                 <Skeleton key={i} className="h-24 rounded-xl" />
               ))
             : filtered.length === 0
-              ? <p className="text-sm text-muted-foreground text-center py-8">No reported plates yet.</p>
+              ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 space-y-3">
+                  <div className="text-5xl">🏆</div>
+                  <p className="text-lg font-extrabold">The Leaderboard is Empty</p>
+                  <p className="text-sm text-muted-foreground">No one's earned their spot on the naughty list yet. Go report some plates!</p>
+                </motion.div>
               : filtered.map((plate, i) => (
                   <motion.div
                     key={plate.plateNumber}

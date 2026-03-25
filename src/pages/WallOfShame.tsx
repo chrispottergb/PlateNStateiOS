@@ -51,7 +51,11 @@ const WallOfShame = () => {
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
             : plates.length === 0
-              ? <p className="text-sm text-muted-foreground col-span-full text-center py-12">No offenders yet. The roads are… suspiciously clean. 🤔</p>
+              ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-16 space-y-3">
+                  <div className="text-5xl">💀</div>
+                  <p className="text-lg font-extrabold">The Wall is Bare</p>
+                  <p className="text-sm text-muted-foreground">The roads are… suspiciously clean. Start reporting and fill this wall with shame. 🤔</p>
+                </motion.div>
               : plates.map((plate, i) => (
                   <motion.div key={plate.plateNumber} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                     <PlateCard plate={plate} rank={i + 1} />

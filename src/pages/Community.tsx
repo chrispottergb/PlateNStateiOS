@@ -197,7 +197,11 @@ const Community = () => {
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
             : featuredPlates.length === 0
-              ? <p className="text-sm text-muted-foreground col-span-full text-center py-8">No reports yet. Be the first!</p>
+              ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-16 space-y-3">
+                  <div className="text-5xl">😇</div>
+                  <p className="text-lg font-extrabold">No Offenders… Yet</p>
+                  <p className="text-sm text-muted-foreground">Apparently everyone's a saint. We'll wait.</p>
+                </motion.div>
               : featuredPlates.map((plate, i) => (
                   <motion.div key={plate.plateNumber} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
                     <PlateCard plate={plate} rank={i + 1} />
@@ -211,18 +215,26 @@ const Community = () => {
       <section className="container pb-20">
         <h2 className="text-xl font-extrabold mb-1">Latest Tea ☕</h2>
         <p className="text-sm text-muted-foreground mb-6">Fresh reports from the streets</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reports.map((report, i) => (
-            <SocialReportCard
-              key={report.id}
-              report={report}
-              hasUpvoted={myUpvotes.has(report.id)}
-              votingId={votingId}
-              onUpvote={handleUpvote}
-              index={i}
-            />
-          ))}
-        </div>
+        {reports.length === 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 space-y-3">
+            <div className="text-5xl">☕</div>
+            <p className="text-lg font-extrabold">No Tea to Spill</p>
+            <p className="text-sm text-muted-foreground">The streets are quiet. Report a plate to get the conversation started.</p>
+          </motion.div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reports.map((report, i) => (
+              <SocialReportCard
+                key={report.id}
+                report={report}
+                hasUpvoted={myUpvotes.has(report.id)}
+                votingId={votingId}
+                onUpvote={handleUpvote}
+                index={i}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <footer className="border-t border-border/50 py-6">
