@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
@@ -5,8 +6,8 @@ import { MapPin, ThumbsUp, MessageCircle, Share2, Car } from "lucide-react";
 import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-
+import { motion, AnimatePresence } from "framer-motion";
+import CommentThread from "./CommentThread";
 const FUNNY_BADGES: Record<string, string> = {
   reckless: "🏎️ Speed Demon",
   tailgating: "🐌 Personal Space Invader",
@@ -51,6 +52,7 @@ interface SocialReportCardProps {
 }
 
 const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
+  const [showComments, setShowComments] = useState(false);
   const inf = INFRACTIONS.find((i) => i.type === report.infraction);
   const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
 
@@ -144,7 +146,10 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
             <ThumbsUp className="h-3 w-3" />
             <span className="font-mono text-[11px]">{report.upvote_count}</span>
           </Button>
-          <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
+          <button
+            onClick={() => setShowComments(v => !v)}
+            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${showComments ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+          >
             <MessageCircle className="h-3.5 w-3.5" />
           </button>
           <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
@@ -152,6 +157,20 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           </button>
         </div>
       </div>
+
+      {/* Comment thread */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-border/20 overflow-hidden"
+          >
+            <CommentThread reportId={report.id} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
