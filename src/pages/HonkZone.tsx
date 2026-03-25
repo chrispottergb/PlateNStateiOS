@@ -58,6 +58,8 @@ const HonkZone = () => {
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [sortMode, setSortMode] = useState<SortMode>("hot");
   const [flairFilter, setFlairFilter] = useState("all");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState("all");
+  const [vehicleColorFilter, setVehicleColorFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"feed" | "grid">("feed");
   const navigate = useNavigate();
   const { user } = useAuth();
