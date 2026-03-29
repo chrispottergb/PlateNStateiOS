@@ -3,15 +3,17 @@ import { Car, AlertTriangle, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import FleetQRCodeModal from "@/components/FleetQRCodeModal";
 
 interface FleetVehicleCardProps {
   plateNumber: string;
   vehicleLabel: string | null;
   reportCount: number;
+  companyName: string;
   onRemove: () => void;
 }
 
-const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, onRemove }: FleetVehicleCardProps) => {
+const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, companyName, onRemove }: FleetVehicleCardProps) => {
   const severity = reportCount === 0 ? "clean" : reportCount <= 3 ? "low" : reportCount <= 7 ? "medium" : "high";
   const severityColors = {
     clean: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -34,11 +36,12 @@ const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, onRemove }: 
             )}
           </div>
         </Link>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Badge variant="outline" className={severityColors[severity]}>
             <AlertTriangle className="h-3 w-3 mr-1" />
             {reportCount} {reportCount === 1 ? "report" : "reports"}
           </Badge>
+          <FleetQRCodeModal plateNumber={plateNumber} vehicleLabel={vehicleLabel} companyName={companyName} />
           <Button
             variant="ghost"
             size="icon"
