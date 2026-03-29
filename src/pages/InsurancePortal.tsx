@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { INFRACTIONS } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
+import PlateUploadSection from "@/components/PlateUploadSection";
 
 interface InsuranceAccount {
   id: string;
