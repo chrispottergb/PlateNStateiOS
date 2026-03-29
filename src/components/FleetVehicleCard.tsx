@@ -13,7 +13,7 @@ interface FleetVehicleCardProps {
   onRemove: () => void;
 }
 
-const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, onRemove }: FleetVehicleCardProps) => {
+const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, companyName, onRemove }: FleetVehicleCardProps) => {
   const severity = reportCount === 0 ? "clean" : reportCount <= 3 ? "low" : reportCount <= 7 ? "medium" : "high";
   const severityColors = {
     clean: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
