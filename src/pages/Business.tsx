@@ -56,7 +56,7 @@ const Business = () => {
             icon: Landmark,
             title: "Law Enforcement",
             desc: "Advanced plate lookups, investigation tools, inter-agency data sharing, and community intelligence feeds.",
-            price: "Starting at $499/mo",
+            price: "Starting at $799/mo",
             cta: "Learn More",
             gradient: "from-accent/60 to-success/40",
           },
