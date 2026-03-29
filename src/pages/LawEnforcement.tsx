@@ -403,6 +403,13 @@ const LawEnforcement = () => {
                 </Card>
               </motion.div>
             )}
+
+            {/* Bulk Upload Section */}
+            <PlateUploadSection
+              userId={user!.id}
+              accountType="law_enforcement"
+              accountId={account.id}
+            />
           </>
         )}
       </div>

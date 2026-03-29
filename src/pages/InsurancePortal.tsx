@@ -342,6 +342,13 @@ const InsurancePortal = () => {
                 </Card>
               </motion.div>
             )}
+
+            {/* Bulk Upload Section */}
+            <PlateUploadSection
+              userId={user!.id}
+              accountType="insurance"
+              accountId={account.id}
+            />
           </>
         )}
       </div>
