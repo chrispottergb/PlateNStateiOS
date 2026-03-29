@@ -8,29 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import { INFRACTIONS } from "@/lib/data";
 
-interface InsuranceApp {
-  id: string;
-  user_id: string;
-  company_name: string;
-  contact_email: string;
-  approved: boolean;
-  created_at: string;
-}
-
-interface LEApp {
-  id: string;
-  user_id: string;
-  department_name: string;
-  badge_number: string | null;
-  contact_email: string;
-  tier: string;
-  approved: boolean;
-  created_at: string;
-}
+interface InsuranceApp { id: string; user_id: string; company_name: string; contact_email: string; approved: boolean; created_at: string; }
+interface LEApp { id: string; user_id: string; department_name: string; badge_number: string | null; contact_email: string; tier: string; approved: boolean; created_at: string; }
+interface ProfileRow { id: string; user_id: string; display_name: string | null; total_reports: number; xp: number; credits: number; joined_at: string; }
+interface ReportRow { id: string; plate_number: string; infraction: string; location: string; created_at: string; upvote_count: number; reporter_id: string | null; }
+interface CompanyRow { id: string; name: string; contact_email: string; tier: string; owner_id: string; created_at: string; }
 
 const AdminPanel = () => {
   const { user, loading: authLoading } = useAuth();
@@ -38,217 +26,248 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const [insuranceApps, setInsuranceApps] = useState<InsuranceApp[]>([]);
   const [leApps, setLeApps] = useState<LEApp[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
+  const [companies, setCompanies] = useState<CompanyRow[]>([]);
+  const [fleetCounts, setFleetCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
-  }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!adminLoading && !isAdmin && !authLoading) {
-      navigate("/");
-      toast.error("Admin access required");
-    }
-  }, [adminLoading, isAdmin, authLoading, navigate]);
-
-  useEffect(() => {
-    if (isAdmin) fetchAll();
-  }, [isAdmin]);
+  useEffect(() => { if (!authLoading && !user) navigate("/auth"); }, [authLoading, user]);
+  useEffect(() => { if (!adminLoading && !isAdmin && !authLoading) { navigate("/"); toast.error("Admin access required"); } }, [adminLoading, isAdmin, authLoading]);
+  useEffect(() => { if (isAdmin) fetchAll(); }, [isAdmin]);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [{ data: ins }, { data: le }] = await Promise.all([
+    const [insRes, leRes, profRes, repRes, compRes] = await Promise.all([
       supabase.from("insurance_accounts").select("*").order("created_at", { ascending: false }),
       supabase.from("law_enforcement_accounts").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id, user_id, display_name, total_reports, xp, credits, joined_at").order("total_reports", { ascending: false }).limit(50),
+      supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, reporter_id").order("created_at", { ascending: false }).limit(30),
+      supabase.from("companies").select("id, name, contact_email, tier, owner_id, created_at").order("created_at", { ascending: false }),
     ]);
-    if (ins) setInsuranceApps(ins);
-    if (le) setLeApps(le as LEApp[]);
+    if (insRes.data) setInsuranceApps(insRes.data);
+    if (leRes.data) setLeApps(leRes.data as LEApp[]);
+    if (profRes.data) setProfiles(profRes.data as ProfileRow[]);
+    if (repRes.data) setRecentReports(repRes.data as ReportRow[]);
+    if (compRes.data) {
+      setCompanies(compRes.data as CompanyRow[]);
+      // Fetch vehicle counts
+      const { data: vehicles } = await supabase.from("fleet_vehicles").select("company_id");
+      const counts: Record<string, number> = {};
+      (vehicles || []).forEach((v: any) => { counts[v.company_id] = (counts[v.company_id] || 0) + 1; });
+      setFleetCounts(counts);
+    }
     setLoading(false);
   };
 
   const handleInsuranceApproval = async (id: string, approved: boolean) => {
     setUpdating(id);
     const { error } = await supabase.from("insurance_accounts").update({ approved }).eq("id", id);
-    if (error) {
-      toast.error("Failed: " + error.message);
-    } else {
-      toast.success(approved ? "Approved" : "Rejected");
-      setInsuranceApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a)));
-    }
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success(approved ? "Approved" : "Rejected"); setInsuranceApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a))); }
     setUpdating(null);
   };
 
   const handleLEApproval = async (id: string, approved: boolean) => {
     setUpdating(id);
     const { error } = await supabase.from("law_enforcement_accounts").update({ approved }).eq("id", id);
-    if (error) {
-      toast.error("Failed: " + error.message);
-    } else {
-      toast.success(approved ? "Approved" : "Rejected");
-      setLeApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a)));
-    }
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success(approved ? "Approved" : "Rejected"); setLeApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a))); }
+    setUpdating(null);
+  };
+
+  const handleDeleteReport = async (id: string) => {
+    setUpdating(id);
+    const { error } = await supabase.from("reports").delete().eq("id", id);
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success("Report deleted"); setRecentReports((prev) => prev.filter((r) => r.id !== id)); }
     setUpdating(null);
   };
 
   if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container py-8 max-w-3xl space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-background"><Header /><div className="container py-8 max-w-4xl space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-24 rounded-lg" /></div></div>;
   }
-
   if (!isAdmin) return null;
 
   const insPending = insuranceApps.filter((a) => !a.approved);
-  const insApproved = insuranceApps.filter((a) => a.approved);
   const lePending = leApps.filter((a) => !a.approved);
-  const leApproved = leApps.filter((a) => a.approved);
-
-  const renderAppCard = (
-    app: { id: string; created_at: string; approved: boolean },
-    name: string,
-    email: string,
-    extra: React.ReactNode,
-    onApprove: (id: string, approved: boolean) => void
-  ) => (
-    <div key={app.id} className="flex items-center gap-4 rounded-lg bg-card p-4 shadow-sm">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-semibold text-sm">{name}</span>
-          {extra}
-          {app.approved && <Badge variant="secondary" className="text-xs">Approved</Badge>}
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Mail className="h-3 w-3" />
-          <span>{email}</span>
-          <span>·</span>
-          <span>{format(new Date(app.created_at), "MMM d, yyyy")}</span>
-        </div>
-      </div>
-      <div className="flex gap-2 shrink-0">
-        {!app.approved ? (
-          <>
-            <Button size="sm" variant="default" disabled={updating === app.id} onClick={() => onApprove(app.id, true)} className="gap-1">
-              <CheckCircle2 className="h-4 w-4" /> Approve
-            </Button>
-            <Button size="sm" variant="outline" disabled={updating === app.id} onClick={() => onApprove(app.id, false)} className="gap-1">
-              <XCircle className="h-4 w-4" /> Reject
-            </Button>
-          </>
-        ) : (
-          <Button size="sm" variant="ghost" disabled={updating === app.id} onClick={() => onApprove(app.id, false)} className="text-muted-foreground">
-            Revoke
-          </Button>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container py-8 max-w-3xl">
+      <div className="container py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-1">
           <ShieldCheck className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">Admin Panel</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-6">Manage account applications</p>
+        <p className="text-sm text-muted-foreground mb-6">Manage applications, users, reports, and fleet companies</p>
 
-        <Tabs defaultValue="insurance" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="insurance" className="gap-1.5">
-              <Building2 className="h-3.5 w-3.5" />
-              Insurance
-              {insPending.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{insPending.length}</Badge>}
+        {/* Overview Stats */}
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="rounded-xl glass-card p-4 text-center">
+            <Users className="h-5 w-5 mx-auto text-primary mb-1" />
+            <p className="text-2xl font-bold font-mono">{profiles.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Users</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <Mail className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+            <p className="text-2xl font-bold font-mono">{insPending.length + lePending.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <AlertTriangle className="h-5 w-5 mx-auto text-destructive mb-1" />
+            <p className="text-2xl font-bold font-mono">{recentReports.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <Truck className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+            <p className="text-2xl font-bold font-mono">{companies.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Fleets</p>
+          </div>
+        </div>
+
+        <Tabs defaultValue="applications" className="space-y-6">
+          <TabsList className="w-full">
+            <TabsTrigger value="applications" className="flex-1 gap-1">
+              Applications
+              {(insPending.length + lePending.length) > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{insPending.length + lePending.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="law-enforcement" className="gap-1.5">
-              <Shield className="h-3.5 w-3.5" />
-              Law Enforcement
-              {lePending.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{lePending.length}</Badge>}
-            </TabsTrigger>
+            <TabsTrigger value="users" className="flex-1">Users</TabsTrigger>
+            <TabsTrigger value="reports" className="flex-1">Reports</TabsTrigger>
+            <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="insurance" className="space-y-6">
+          {/* Applications Tab */}
+          <TabsContent value="applications" className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold mb-3">Pending</h2>
-              <div className="space-y-3">
-                {loading ? (
-                  <Skeleton className="h-20 rounded-lg" />
-                ) : insPending.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center bg-card rounded-lg">No pending applications</p>
-                ) : (
-                  insPending.map((app) =>
-                    renderAppCard(app, app.company_name, app.contact_email, <Building2 className="h-4 w-4 text-muted-foreground" />, handleInsuranceApproval)
-                  )
-                )}
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                <Building2 className="h-4 w-4" /> Insurance Applications
+              </h2>
+              <div className="space-y-2">
+                {insuranceApps.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No applications</p>
+                ) : insuranceApps.map((app) => (
+                  <div key={app.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-semibold text-sm">{app.company_name}</span>
+                        {app.approved && <Badge variant="secondary" className="text-[10px] rounded-full">Approved</Badge>}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Mail className="h-3 w-3" />{app.contact_email} · {format(new Date(app.created_at), "MMM d, yyyy")}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      {!app.approved ? (
+                        <>
+                          <Button size="sm" disabled={updating === app.id} onClick={() => handleInsuranceApproval(app.id, true)} className="gap-1 rounded-full"><CheckCircle2 className="h-4 w-4" />Approve</Button>
+                          <Button size="sm" variant="outline" disabled={updating === app.id} onClick={() => handleInsuranceApproval(app.id, false)} className="gap-1 rounded-full"><XCircle className="h-4 w-4" /></Button>
+                        </>
+                      ) : (
+                        <Button size="sm" variant="ghost" disabled={updating === app.id} onClick={() => handleInsuranceApproval(app.id, false)} className="text-muted-foreground text-xs">Revoke</Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+
             <div>
-              <h2 className="text-lg font-semibold mb-3">Approved</h2>
-              <div className="space-y-3">
-                {insApproved.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center bg-card rounded-lg">No approved accounts</p>
-                ) : (
-                  insApproved.map((app) =>
-                    renderAppCard(app, app.company_name, app.contact_email, <Building2 className="h-4 w-4 text-muted-foreground" />, handleInsuranceApproval)
-                  )
-                )}
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                <Shield className="h-4 w-4" /> Law Enforcement Applications
+              </h2>
+              <div className="space-y-2">
+                {leApps.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No applications</p>
+                ) : leApps.map((app) => (
+                  <div key={app.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-semibold text-sm">{app.department_name}</span>
+                        <Badge variant="outline" className="text-[10px] capitalize rounded-full">{app.tier}</Badge>
+                        {app.approved && <Badge variant="secondary" className="text-[10px] rounded-full">Approved</Badge>}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Mail className="h-3 w-3" />{app.contact_email} · {format(new Date(app.created_at), "MMM d, yyyy")}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      {!app.approved ? (
+                        <>
+                          <Button size="sm" disabled={updating === app.id} onClick={() => handleLEApproval(app.id, true)} className="gap-1 rounded-full"><CheckCircle2 className="h-4 w-4" />Approve</Button>
+                          <Button size="sm" variant="outline" disabled={updating === app.id} onClick={() => handleLEApproval(app.id, false)} className="gap-1 rounded-full"><XCircle className="h-4 w-4" /></Button>
+                        </>
+                      ) : (
+                        <Button size="sm" variant="ghost" disabled={updating === app.id} onClick={() => handleLEApproval(app.id, false)} className="text-muted-foreground text-xs">Revoke</Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="law-enforcement" className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold mb-3">Pending</h2>
-              <div className="space-y-3">
-                {loading ? (
-                  <Skeleton className="h-20 rounded-lg" />
-                ) : lePending.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center bg-card rounded-lg">No pending applications</p>
-                ) : (
-                  lePending.map((app) =>
-                    renderAppCard(
-                      app,
-                      app.department_name,
-                      app.contact_email,
-                      <>
-                        <Shield className="h-4 w-4 text-muted-foreground" />
-                        <Badge variant="outline" className="text-xs capitalize">{app.tier}</Badge>
-                      </>,
-                      handleLEApproval
-                    )
-                  )
-                )}
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-2">
+            {profiles.map((p) => (
+              <div key={p.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                  {(p.display_name || "D")[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{p.display_name || "Driver"}</p>
+                  <p className="text-xs text-muted-foreground">{p.total_reports} reports · {p.xp} XP · Joined {format(new Date(p.joined_at), "MMM yyyy")}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className="text-[10px] rounded-full gap-1">
+                    <Crown className="h-3 w-3" /> {p.credits} coins
+                  </Badge>
+                </div>
               </div>
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold mb-3">Approved</h2>
-              <div className="space-y-3">
-                {leApproved.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center bg-card rounded-lg">No approved accounts</p>
-                ) : (
-                  leApproved.map((app) =>
-                    renderAppCard(
-                      app,
-                      app.department_name,
-                      app.contact_email,
-                      <>
-                        <Shield className="h-4 w-4 text-muted-foreground" />
-                        <Badge variant="outline" className="text-xs capitalize">{app.tier}</Badge>
-                      </>,
-                      handleLEApproval
-                    )
-                  )
-                )}
+            ))}
+          </TabsContent>
+
+          {/* Reports Tab */}
+          <TabsContent value="reports" className="space-y-2">
+            {recentReports.map((r) => {
+              const inf = INFRACTIONS.find(i => i.type === r.infraction);
+              return (
+                <div key={r.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-mono font-bold text-sm">{r.plate_number}</span>
+                      <Badge variant="secondary" className="text-[10px] rounded-full">{inf?.label || r.infraction}</Badge>
+                      {r.upvote_count >= 3 && <Badge className="text-[10px] rounded-full">Verified</Badge>}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{r.location} · {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1" disabled={updating === r.id} onClick={() => handleDeleteReport(r.id)}>
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </Button>
+                </div>
+              );
+            })}
+          </TabsContent>
+
+          {/* Fleets Tab */}
+          <TabsContent value="fleets" className="space-y-2">
+            {companies.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No fleet companies registered</p>
+            ) : companies.map((c) => (
+              <div key={c.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground shrink-0">
+                  <Truck className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-semibold text-sm">{c.name}</span>
+                    <Badge variant="outline" className="text-[10px] capitalize rounded-full">{c.tier}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{c.contact_email} · {fleetCounts[c.id] || 0} vehicles · {format(new Date(c.created_at), "MMM yyyy")}</p>
+                </div>
               </div>
-            </div>
+            ))}
           </TabsContent>
         </Tabs>
       </div>

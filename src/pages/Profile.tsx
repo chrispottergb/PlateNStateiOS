@@ -2,23 +2,48 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { INFRACTIONS } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, User, Calendar, Coins, ArrowDownRight, RefreshCw, Flame, Zap, Award, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import WisconsinPlate from "@/components/WisconsinPlate";
 
 const BADGE_DEFS: Record<string, { label: string; icon: string; description: string }> = {
   first_report: { label: "First Report", icon: "🛡️", description: "Filed your first report" },
   ten_reports: { label: "Road Watcher", icon: "👁️", description: "Filed 10 reports" },
   fifty_reports: { label: "Guardian", icon: "⚔️", description: "Filed 50 reports" },
-  first_verified: { label: "Verified", icon: "✅", description: "First report verified by community" },
-  streak_7: { label: "On Fire", icon: "🔥", description: "7-day reporting streak" },
-  streak_30: { label: "Unstoppable", icon: "💎", description: "30-day reporting streak" },
+  first_verified: { label: "Verified", icon: "✅", description: "First report verified" },
+  streak_7: { label: "On Fire", icon: "🔥", description: "7-day streak" },
+  streak_30: { label: "Unstoppable", icon: "💎", description: "30-day streak" },
   hundred_xp: { label: "Rising Star", icon: "⭐", description: "Earned 100 XP" },
   thousand_xp: { label: "Legend", icon: "🏆", description: "Earned 1000 XP" },
+};
+
+const ALL_BADGE_KEYS = Object.keys(BADGE_DEFS);
+
+const LEVEL_TITLES = [
+  "Rookie Reporter", "Street Scout", "Road Watcher", "Traffic Tracker",
+  "Lane Enforcer", "Signal Sentinel", "Highway Hero", "Patrol Pro",
+  "Asphalt Avenger", "Road Guardian", "Traffic Titan", "Enforcement Elite",
+  "Road Ruler", "Supreme Snitch", "Legend of the Lane"
+];
+
+const getLevel = (xp: number) => {
+  const level = Math.floor(xp / 100) + 1;
+  return Math.min(level, LEVEL_TITLES.length);
+};
+
+const getLevelTitle = (xp: number) => LEVEL_TITLES[Math.min(getLevel(xp) - 1, LEVEL_TITLES.length - 1)];
+const getXpForNextLevel = (xp: number) => getLevel(xp) * 100;
+const getXpProgress = (xp: number) => {
+  const currentLevelXp = (getLevel(xp) - 1) * 100;
+  const nextLevelXp = getLevel(xp) * 100;
+  return ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
 };
 
 interface Report {
@@ -28,14 +53,6 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
-}
-
-interface Transaction {
-  id: string;
-  amount: number;
-  type: string;
-  description: string | null;
-  created_at: string;
 }
 
 interface UserBadge {
@@ -49,7 +66,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [reports, setReports] = useState<Report[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [badges, setBadges] = useState<UserBadge[]>([]);
 
   useEffect(() => {
@@ -59,17 +75,14 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [profileRes, reportsRes, txRes, badgesRes] = await Promise.all([
+      const [profileRes, reportsRes, badgesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("credit_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user.id).order("earned_at", { ascending: false }),
       ]);
       if (profileRes.data) setProfile(profileRes.data);
       if (reportsRes.data) setReports(reportsRes.data);
-      if (txRes.data) setTransactions(txRes.data);
       if (badgesRes.data) setBadges(badgesRes.data as UserBadge[]);
-
       if (profileRes.data) autoAwardBadges(profileRes.data, badgesRes.data as UserBadge[] || []);
     };
     fetchData();
@@ -78,7 +91,6 @@ const Profile = () => {
   const autoAwardBadges = async (p: any, existing: UserBadge[]) => {
     const earned = new Set(existing.map((b) => b.badge_key));
     const toAward: string[] = [];
-
     if (p.total_reports >= 1 && !earned.has("first_report")) toAward.push("first_report");
     if (p.total_reports >= 10 && !earned.has("ten_reports")) toAward.push("ten_reports");
     if (p.total_reports >= 50 && !earned.has("fifty_reports")) toAward.push("fifty_reports");
@@ -86,15 +98,9 @@ const Profile = () => {
     if (p.streak_days >= 30 && !earned.has("streak_30")) toAward.push("streak_30");
     if (p.xp >= 100 && !earned.has("hundred_xp")) toAward.push("hundred_xp");
     if (p.xp >= 1000 && !earned.has("thousand_xp")) toAward.push("thousand_xp");
-
     if (toAward.length > 0 && user) {
-      await supabase.from("user_badges").insert(
-        toAward.map((key) => ({ user_id: user.id, badge_key: key }))
-      );
-      setBadges((prev) => [
-        ...toAward.map((key) => ({ badge_key: key, earned_at: new Date().toISOString() })),
-        ...prev,
-      ]);
+      await supabase.from("user_badges").insert(toAward.map((key) => ({ user_id: user.id, badge_key: key })));
+      setBadges((prev) => [...toAward.map((key) => ({ badge_key: key, earned_at: new Date().toISOString() })), ...prev]);
     }
   };
 
@@ -107,143 +113,123 @@ const Profile = () => {
     );
   }
 
-  const txIcon = (type: string, amount: number) => {
-    if (type === "monthly_refresh") return <RefreshCw className="h-4 w-4" />;
-    if (type === "upvote_bonus") return <ArrowUpRight className="h-4 w-4" />;
-    if (type === "streak_bonus") return <Flame className="h-4 w-4" />;
-    return <ArrowDownRight className="h-4 w-4" />;
-  };
+  const earnedKeys = new Set(badges.map(b => b.badge_key));
+  const level = getLevel(profile.xp);
+  const xpProgress = getXpProgress(profile.xp);
+  const nextLevelXp = getXpForNextLevel(profile.xp);
+  const xpNeeded = nextLevelXp - profile.xp;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container py-10 max-w-2xl">
-        {/* Profile card */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl glass p-6 mb-8"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <User className="h-7 w-7" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">{profile.display_name || "Driver"}</h1>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                Joined {format(new Date(profile.joined_at), "MMM yyyy")}
-              </div>
-            </div>
+        {/* Profile Header */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto mb-3 text-2xl font-bold">
+            {(profile.display_name || "D")[0].toUpperCase()}
           </div>
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.total_reports}</p>
-              <p className="text-xs text-muted-foreground">Reports</p>
+          <h1 className="text-2xl font-bold">{profile.display_name || "Driver"}</h1>
+          <p className="text-sm text-muted-foreground flex items-center gap-1 justify-center">
+            <Calendar className="h-3 w-3" /> Reporting for duty since {format(new Date(profile.joined_at), "MMMM yyyy")}
+          </p>
+        </motion.div>
+
+        {/* Stat Cards */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-3 gap-3 mb-6">
+          <div className="rounded-xl glass-card p-4 text-center">
+            <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.total_reports}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <Flame className={`h-5 w-5 ${profile.streak_days > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
+              <p className="text-2xl font-bold font-mono">{profile.streak_days}</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
-              <div className="flex items-center justify-center gap-1">
-                <Coins className="h-5 w-5 text-amber-500" />
-                <p className="text-2xl font-bold font-mono">{credits ?? profile.credits}</p>
-              </div>
-              <p className="text-xs text-muted-foreground">Coins</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Day Streak</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <Coins className="h-5 w-5 text-amber-500" />
+              <p className="text-2xl font-bold font-mono">{credits ?? profile.credits}</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
-              <div className="flex items-center justify-center gap-1">
-                <Zap className="h-5 w-5 text-primary" />
-                <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.xp}</p>
-              </div>
-              <p className="text-xs text-muted-foreground">XP</p>
-            </div>
-            <div className="rounded-xl bg-muted/50 p-3">
-              <div className="flex items-center justify-center gap-1">
-                <Flame className={`h-5 w-5 ${profile.streak_days > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
-                <p className="text-2xl font-bold font-mono">{profile.streak_days}</p>
-              </div>
-              <p className="text-xs text-muted-foreground">Day Streak</p>
-            </div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Coins</p>
           </div>
         </motion.div>
 
-        {/* Badges */}
-        {badges.length > 0 && (
-          <>
-            <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary" /> Badges
-            </h2>
-            <div className="flex flex-wrap gap-2 mb-8">
-              {badges.map((b) => {
-                const def = BADGE_DEFS[b.badge_key];
-                if (!def) return null;
-                return (
-                  <div
-                    key={b.badge_key}
-                    className="rounded-xl glass px-3 py-2 flex items-center gap-2"
-                    title={def.description}
-                  >
-                    <span className="text-lg">{def.icon}</span>
-                    <div>
-                      <p className="text-xs font-semibold">{def.label}</p>
-                      <p className="text-[10px] text-muted-foreground">{def.description}</p>
+        {/* Level Progress */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl glass-card p-5 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold">Level {level} — {getLevelTitle(profile.xp)}</span>
+            </div>
+            <span className="text-xs text-muted-foreground font-mono">{profile.xp} / {nextLevelXp} XP</span>
+          </div>
+          <Progress value={xpProgress} className="h-2.5 [&>div]:bg-primary" />
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            {xpNeeded} XP until "{LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length - 1)]}"
+          </p>
+        </motion.div>
+
+        {/* Achievements */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+            <Award className="h-4 w-4" /> Achievements
+          </h2>
+          <div className="grid grid-cols-4 gap-2 mb-6">
+            {ALL_BADGE_KEYS.map(key => {
+              const def = BADGE_DEFS[key];
+              const earned = earnedKeys.has(key);
+              return (
+                <div
+                  key={key}
+                  className={`rounded-xl p-3 text-center transition-all ${
+                    earned ? "glass-card border-primary/30" : "bg-muted/30 opacity-40"
+                  }`}
+                  title={def.description}
+                >
+                  <span className="text-2xl block mb-1">{def.icon}</span>
+                  <p className="text-[10px] font-semibold truncate">{def.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Recent Reports */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Recent Reports</h2>
+          <div className="space-y-2 mb-4">
+            {reports.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 text-center">No reports yet. Start reporting bad drivers!</p>
+            )}
+            {reports.map((report) => {
+              const inf = INFRACTIONS.find((i) => i.type === report.infraction);
+              return (
+                <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} key={report.id} className="block">
+                  <div className="flex items-center gap-3 rounded-xl glass-card p-3 hover:border-primary/30 transition-all">
+                    <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5">{inf?.label || report.infraction}</Badge>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> {report.location}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <Badge variant="outline" className="text-[10px] text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
                     </div>
                   </div>
-                );
-              })}
+                </Link>
+              );
+            })}
+          </div>
+          {reports.length > 0 && (
+            <div className="text-center">
+              <Button variant="outline" size="sm" className="rounded-full">View Full History</Button>
             </div>
-          </>
-        )}
-
-        {/* Reports */}
-        <h2 className="text-lg font-bold mb-3">Your Reports</h2>
-        <div className="space-y-2 mb-8">
-          {reports.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4 text-center">No reports yet. Start reporting bad drivers!</p>
           )}
-          {reports.map((report) => {
-            const inf = INFRACTIONS.find((i) => i.type === report.infraction);
-            return (
-              <div key={report.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
-                <span className="font-mono text-sm font-bold tracking-wider min-w-[90px]">{report.plate_number}</span>
-                <Badge variant="secondary" className="shrink-0 text-xs rounded-full">{inf?.label || report.infraction}</Badge>
-                {report.upvote_count > 0 && (
-                  <Badge variant="outline" className="shrink-0 text-xs gap-1 rounded-full">
-                    👍 {report.upvote_count}
-                  </Badge>
-                )}
-                <div className="ml-auto text-right shrink-0">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" /> {report.location}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Coin History */}
-        <h2 className="text-lg font-bold mb-3">Coin History</h2>
-        <div className="space-y-2">
-          {transactions.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet.</p>
-          )}
-          {transactions.map((tx) => (
-            <div key={tx.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${tx.amount > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-destructive/10 text-destructive"}`}>
-                {txIcon(tx.type, tx.amount)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{tx.description || tx.type}</p>
-                <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}</p>
-              </div>
-              <span className={`font-mono text-sm font-bold ${tx.amount > 0 ? "text-emerald-400" : "text-destructive"}`}>
-                {tx.amount > 0 ? "+" : ""}{tx.amount}
-              </span>
-            </div>
-          ))}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
