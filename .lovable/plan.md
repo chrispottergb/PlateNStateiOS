@@ -1,76 +1,129 @@
 
 
-# Bulk Database Upload for Law Enforcement & Insurance Portals
+# UI Redesign + Enhanced Admin Panel + Dedicated Portal Dashboards
 
 ## Overview
-Allow approved LE and insurance accounts to upload CSV/Excel files containing their vehicle/plate databases. These get stored, cross-referenced against existing reports, and produce risk summaries — essentially a bulk version of the existing single-plate lookup.
+Redesign key pages to match the uploaded reference mockups (mobile-first, clean card-based layouts with Wisconsin plate components), build out dedicated "inside" dashboards for approved Insurance and Law Enforcement accounts, and expand the Admin Panel with more management capabilities.
 
-## What's Needed
+## What Changes
 
-### 1. Database Changes
+### 1. Plate Detail Page Redesign (`src/pages/PlateDetail.tsx`)
+Match the "Plate Detail" mockup:
+- Large centered WisconsinPlate component with prominent display
+- Safety Score pill below plate (colored by severity, e.g. "SAFETY SCORE: 42 / CRITICAL OFFENDER")
+- Three stat cards in a row: Reports, Rank, Verified
+- "Top Infractions" section with colored badge chips showing counts
+- Report History with sort toggle (Newest), each entry showing infraction icon, location, time ago, comment quote, upvote + comment counts
+- Sticky bottom "Report This Plate Again" CTA button
 
-**New table: `uploaded_plate_lists`**
-- `id` (uuid, PK)
-- `account_type` (text — 'law_enforcement' or 'insurance')
-- `account_id` (uuid — references the LE or insurance account)
-- `user_id` (uuid — uploader)
-- `name` (text — e.g. "Q1 Fleet Roster")
-- `file_name` (text)
-- `plate_count` (integer)
-- `status` (text — 'processing', 'complete', 'error')
-- `created_at` (timestamptz)
+### 2. Report Flow Modal Redesign (`src/components/ReportModal.tsx`)
+Match the "Report Flow Modal" mockup:
+- "Report a Plate" title with step indicator ("Step 1 of 6: The Basics")
+- WisconsinPlate-styled input field for plate number
+- "Identify the getaway vehicle" with "Distinguishing Features" toggle chips (Visible, Tinted, Loud, Bumper, Lifted)
+- "What was the crime?" section with emoji-decorated infraction cards showing points
+- "Where did this go down?" with Auto-Detect button
+- "Roast 'em" hot take textarea with placeholder "Your mom said use your blinker..."
+- Bottom: Cancel + "Submit Report (1 Coin)" button
 
-**New table: `uploaded_plates`**
-- `id` (uuid, PK)
-- `list_id` (uuid — FK to uploaded_plate_lists)
-- `plate_number` (text)
-- `label` (text, nullable — e.g. vehicle ID, policy number)
-- `total_reports` (integer, default 0)
-- `verified_reports` (integer, default 0)
-- `risk_score` (integer, default 0)
-- `last_scanned_at` (timestamptz)
+### 3. User Profile Page Redesign (`src/pages/Profile.tsx`)
+Match the "User Profile Badges" mockup:
+- "Your Profile" header with avatar circle (initials), "Reporting for duty since [date]"
+- Three stat cards: Reports, Day Streak, Coins
+- Level progress bar (e.g. "Level 12 - Road Guardian", "850 / 1000 XP", "150 XP until 'Asphalt Avenger'")
+- "Achievements" grid with icon cards (earned = solid border, unearned = faded)
+- "Recent Reports" list with WisconsinPlate mini, infraction, location, XP earned, time
+- "View Full History" button
 
-RLS policies: users can only read/insert their own lists; select on uploaded_plates scoped to list ownership.
+### 4. Wall of Shame Redesign (`src/pages/WallOfShame.tsx`)
+Match the "Wall of Shame" mockup:
+- Skull emoji title header with subtitle "Wisconsin's most 'gifted' drivers"
+- "WORST OF THE WEEK" spotlight card with gradient background, plate, points, top sin, city
+- "The Naughty List" grid (2-col) with rank badges, point counts, WisconsinPlate components, infraction labels, report counts
+- Bottom CTA: "+ Report an A-Hole"
 
-### 2. Storage Bucket
-Create a private `plate-uploads` storage bucket for the raw CSV/Excel files, with RLS so only the uploader can access their files.
+### 5. Watch Map Redesign (`src/pages/WatchMap.tsx`)
+Match the "Watch Map" mockup:
+- Search bar at top ("Search Wisconsin plates...")
+- Location pin button (top right)
+- Filter chips row (Last 24h, etc.)
+- Report popup cards showing plate, time, infraction with severity color, location, "View Full Details" link
+- Color-coded map markers (Red = Reckless, Orange = Speeding, Blue = Other)
+- Bottom bar: legend + live count ("1,284 Live"), "Wisconsin Active" badge
+- FAB (+) button for quick report
 
-### 3. Edge Function: `process-plate-upload`
-- Triggered after file upload
-- Parses CSV (columns: plate_number, label/optional)
-- Validates plate format, deduplicates
-- Inserts rows into `uploaded_plates`
-- Cross-references each plate against `reports` table using the same risk scoring logic from `batch_plate_screening`
-- Updates `uploaded_plate_lists.status` to 'complete'
-- Enforces upload limits by tier (e.g. Department: 500 plates, Precinct: 2500, Agency: unlimited)
+### 6. Fleet Dashboard Redesign (`src/pages/Fleet.tsx`)
+Match the "Fleet Dashboard" mockup:
+- "Fleet Dashboard" header with company name + tier, settings gear icon
+- Alert banner for new serious infractions (red accent, clickable)
+- Three stat cards: Total Vehicles, Fleet Score (calculated), Active Alerts
+- "7-Day Incident Trend" line chart with "Live Update" badge
+- "Monitored Vehicles" section with search bar + filter icon
+- Vehicle cards showing WisconsinPlate, label + make, report count, risk badge (High/Moderate/Low)
+- Bottom CTA: "Generate Weekly Fleet Report"
 
-### 4. Frontend — Upload UI (both portals)
-Add an "Upload Database" tab/section to both the Law Enforcement and Insurance portal pages (only visible when approved):
-- **Drag-and-drop file zone** accepting .csv and .xlsx
-- Upload naming field ("Q1 Policy Holders")
-- Progress indicator during processing
-- **Results dashboard** showing:
-  - Total plates scanned
-  - Flagged plates (risk > 0) with sortable table
-  - Risk distribution chart (clean / low / moderate / high / severe)
-  - Export results as CSV
-- **Upload history** — list of past uploads with date, plate count, and flagged count
+### 7. Business/Enterprise Hub Redesign (`src/pages/Business.tsx`)
+Match the "Enterprise Hub" mockup:
+- "ENTERPRISE SOLUTIONS" badge, large heading "Plate N' State for Business"
+- Stats bar: 500+ Clients, 99.9% Uptime, SOC2 Compliant
+- Three portal cards with icons, category badges (Fleet/Risk/Agency), descriptions, prices, CTA buttons
+- Testimonial card with quote + attribution
+- "Wisconsin Certified Data Provider" footer badge
 
-### 5. DB Function: `scan_uploaded_plates`
-A server-side function that re-scans an existing upload against current report data (so agencies can refresh results without re-uploading).
+### 8. Auth Page Redesign (`src/pages/Auth.tsx`)
+Match the "Auth Portal" mockup:
+- Logo icon + "Plate N' State" branding with tagline "Because honking isn't enough™"
+- Glassmorphism card with Sign In / Sign Up toggle tabs
+- Styled email + password inputs with icons
+- "Forgot Password?" link
+- "Enter the Patrol →" submit button (blue gradient)
+- Social login buttons (Google, Apple, GitHub icons)
+- "New to the neighborhood? Join the Snitches" toggle text
+- "Enterprise? Use the Business Portal" link at bottom
+
+### 9. Insurance Portal Dashboard (approved view in `src/pages/InsurancePortal.tsx`)
+Enhance the existing approved state into a full dashboard:
+- Company header with approval badge
+- Dashboard stats: Total Lookups, Risk Flags, Avg Score
+- Tabbed interface: "Single Lookup" | "Bulk Upload" | "Upload History"
+- Improved results cards with risk gauge visualizations
+
+### 10. Law Enforcement Portal Dashboard (approved view in `src/pages/LawEnforcement.tsx`)
+Enhance the existing approved state:
+- Department header with tier badge
+- Dashboard stats: Lookups Used / Limit, Flagged Plates, Active Cases
+- Tabbed interface: "Plate Lookup" | "Bulk Upload" | "Upload History"
+- Enhanced result display with GPS coordinates, evidence timestamps
+
+### 11. Enhanced Admin Panel (`src/pages/AdminPanel.tsx`)
+Expand beyond just approvals:
+- Dashboard overview tab with counts: Total Users, Pending Apps, Total Reports, Active Fleets
+- "Applications" tab (existing approve/reject, improved layout)
+- "Users" tab: browse profiles, view reports count, manage roles (promote to admin/moderator)
+- "Reports" tab: recent reports feed, ability to flag/remove inappropriate reports
+- "Fleet Companies" tab: view all registered companies, their tiers, vehicle counts
+- Add database migration for admin delete capability on reports
 
 ## Technical Details
 
-- File parsing happens in the edge function (using `csv-parse` for CSV, `xlsx` for Excel)
-- Max file size: 5MB (enforced client-side and in storage policy)
-- Plate format validation: uppercase alphanumeric, 2-8 characters
-- Processing is async — UI polls `uploaded_plate_lists.status` until complete
-- Tier-based upload limits enforced in the edge function by checking the account's tier
+### New Database Migration
+- Add RLS policy for admins to delete reports
+- Add RLS policy for admins to SELECT all profiles
+- Add RLS policy for admins to SELECT all companies
 
-## Files to Create/Modify
-- **Migration**: new tables + storage bucket + RLS + `scan_uploaded_plates` function
-- **Edge function**: `supabase/functions/process-plate-upload/index.ts`
-- **New component**: `src/components/PlateUploadSection.tsx` (shared between both portals)
-- **Modified**: `src/pages/LawEnforcement.tsx` — add upload tab
-- **Modified**: `src/pages/InsurancePortal.tsx` — add upload tab
+### Files Modified
+- `src/pages/PlateDetail.tsx` - full redesign
+- `src/components/ReportModal.tsx` - visual refresh to match mockup
+- `src/pages/Profile.tsx` - redesign with level system
+- `src/pages/WallOfShame.tsx` - redesign with spotlight card
+- `src/pages/WatchMap.tsx` - UI refresh with search + legend
+- `src/pages/Fleet.tsx` - dashboard redesign with chart
+- `src/pages/Business.tsx` - enterprise hub redesign
+- `src/pages/Auth.tsx` - visual refresh
+- `src/pages/InsurancePortal.tsx` - enhanced dashboard
+- `src/pages/LawEnforcement.tsx` - enhanced dashboard
+- `src/pages/AdminPanel.tsx` - expanded with users/reports/fleet tabs
+
+### New Dependencies
+- `recharts` (already likely available via shadcn chart) for Fleet incident trend chart
 
