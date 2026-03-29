@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import WisconsinPlate from "@/components/WisconsinPlate";
+import PlateUploadSection from "@/components/PlateUploadSection";
 
 type LETier = "department" | "precinct" | "agency";
 
