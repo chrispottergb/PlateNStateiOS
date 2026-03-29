@@ -4,7 +4,31 @@ export type InfractionType =
   | "ran_red_light"
   | "bad_parking"
   | "aggressive_lane_change"
-  | "distracted_driving";
+  | "distracted_driving"
+  | "no_turn_signal"
+  | "rolling_stop"
+  | "double_parking"
+  | "blocking_intersection"
+  | "road_rage"
+  | "wrong_way"
+  | "illegal_uturn"
+  | "running_stop_sign"
+  | "cutting_off"
+  | "brake_checking"
+  | "driving_too_slow"
+  | "high_beams"
+  | "honking_excessively"
+  | "littering"
+  | "passing_school_bus"
+  | "not_yielding_pedestrian"
+  | "shoulder_driving"
+  | "texting_driving"
+  | "dui_suspected"
+  | "suspicious_vehicle"
+  | "hit_and_run"
+  | "expired_tags"
+  | "loud_exhaust"
+  | "left_lane_camping";
 
 export interface InfractionDef {
   type: InfractionType;
