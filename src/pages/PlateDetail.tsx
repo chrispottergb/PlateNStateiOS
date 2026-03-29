@@ -6,15 +6,32 @@ import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp } from "lucide-react";
-import { format } from "date-fns";
+import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+
+const getSeverityLabel = (score: number) => {
+  if (score >= 40) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
+  if (score >= 25) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
+  if (score >= 15) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 border-amber-500/30" };
+  return { label: "LOW RISK", color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" };
+};
 
 const PlateDetail = () => {
   const { plateNumber } = useParams<{ plateNumber: string }>();
   const decoded = decodeURIComponent(plateNumber || "");
   const { plate, reports, loading } = usePlateDetail(decoded);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
+  const sortedReports = [...reports].sort((a, b) =>
+    sortOrder === "newest"
+      ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+
+  const verifiedCount = reports.filter(r => r.upvote_count >= 3).length;
 
   if (loading) {
     return (
@@ -34,7 +51,7 @@ const PlateDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container py-16 text-center">
-          <h1 className="font-mono text-3xl font-bold mb-4">{decoded}</h1>
+          <WisconsinPlate plateNumber={decoded} size="lg" className="mx-auto mb-6" />
           <p className="text-muted-foreground mb-6">No reports found for this plate.</p>
           <ReportModal
             trigger={
@@ -49,88 +66,154 @@ const PlateDetail = () => {
     );
   }
 
+  const severity = getSeverityLabel(plate.totalScore);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       <Header />
       <div className="container py-8 max-w-2xl">
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
 
+        {/* Plate Hero */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl glass p-6 mb-6"
+          className="text-center mb-6"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <WisconsinPlate plateNumber={plate.plateNumber} size="lg" className="mb-3" />
-              <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-                <span>{plate.reportCount} reports</span>
-                <span>·</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> {plate.lastLocation}
-                </span>
-              </div>
-            </div>
-            <div className={`flex flex-col items-center rounded-xl px-5 py-3 ${getScoreBg(plate.totalScore)}`}>
-              <span className={`text-4xl font-bold font-mono ${getScoreColor(plate.totalScore)}`}>
-                {plate.totalScore}
-              </span>
-              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">score</span>
-            </div>
+          <WisconsinPlate plateNumber={plate.plateNumber} size="lg" className="mx-auto mb-4" />
+          
+          {/* Safety Score Pill */}
+          <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${severity.color}`}>
+            <Shield className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Safety Score: {plate.totalScore}</span>
+            <span className="text-[10px] font-medium opacity-80">/ {severity.label}</span>
           </div>
+        </motion.div>
 
-          {/* Infraction Breakdown */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {INFRACTIONS.filter(inf => plate.infractions[inf.type] > 0).map(inf => (
-              <div key={inf.type} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
-                <span className="text-sm font-medium">{inf.label}</span>
-                <Badge variant="secondary" className="ml-auto text-xs rounded-full">{plate.infractions[inf.type]}</Badge>
-              </div>
-            ))}
+        {/* Stat Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="grid grid-cols-3 gap-3 mb-6"
+        >
+          <div className="rounded-xl glass-card p-4 text-center">
+            <BarChart3 className="h-5 w-5 mx-auto text-primary mb-1" />
+            <p className="text-2xl font-bold font-mono">{plate.reportCount}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
           </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <AlertTriangle className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+            <p className={`text-2xl font-bold font-mono ${getScoreColor(plate.totalScore)}`}>{plate.totalScore}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Score</p>
+          </div>
+          <div className="rounded-xl glass-card p-4 text-center">
+            <CheckCircle2 className="h-5 w-5 mx-auto text-emerald-500 mb-1" />
+            <p className="text-2xl font-bold font-mono">{verifiedCount}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Verified</p>
+          </div>
+        </motion.div>
 
-          <div className="mt-4">
-            <ReportModal
-              trigger={
-                <Button size="sm" className="gap-1.5 w-full sm:w-auto rounded-full glow">
-                  <AlertTriangle className="h-4 w-4" /> Report Again
-                </Button>
-              }
-              initialPlate={plate.plateNumber}
-            />
+        {/* Top Infractions */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Top Infractions</h2>
+          <div className="flex flex-wrap gap-2">
+            {INFRACTIONS.filter(inf => plate.infractions[inf.type] > 0)
+              .sort((a, b) => plate.infractions[b.type] - plate.infractions[a.type])
+              .map(inf => (
+                <Badge
+                  key={inf.type}
+                  variant="secondary"
+                  className="rounded-full px-3 py-1.5 text-xs gap-1.5"
+                >
+                  <span>{inf.label}</span>
+                  <span className="bg-primary/20 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-bold">{plate.infractions[inf.type]}</span>
+                </Badge>
+              ))}
           </div>
         </motion.div>
 
         {/* Report History */}
-        <h2 className="text-lg font-bold mb-3">Report History</h2>
-        <div className="space-y-2">
-          {reports.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">No reports recorded.</p>
-          )}
-          {reports.map(report => {
-            const inf = INFRACTIONS.find(i => i.type === report.infraction);
-            return (
-              <div key={report.id} className="flex items-center gap-3 rounded-xl glass px-4 py-3">
-                <Badge variant="secondary" className="shrink-0 rounded-full">{inf?.label || report.infraction}</Badge>
-                <span className="text-xs text-muted-foreground">+{inf?.points ?? 3} pts</span>
-                <div className="ml-auto text-right shrink-0 flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
-                  </span>
-                  <div>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" /> {report.location}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" /> {format(new Date(report.created_at), "MMM d, h:mm a")}
-                    </span>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Report History</h2>
+            <button
+              onClick={() => setSortOrder(o => o === "newest" ? "oldest" : "newest")}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <SortDesc className="h-3.5 w-3.5" />
+              {sortOrder === "newest" ? "Newest" : "Oldest"}
+            </button>
+          </div>
+          <div className="space-y-2">
+            {sortedReports.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No reports recorded.</p>
+            )}
+            {sortedReports.map((report, i) => {
+              const inf = INFRACTIONS.find(i => i.type === report.infraction);
+              return (
+                <motion.div
+                  key={report.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="rounded-xl glass-card p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
+                        <span className="text-[10px] text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
+                        {report.upvote_count >= 3 && (
+                          <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30 gap-0.5">
+                            <CheckCircle2 className="h-2.5 w-2.5" /> Verified
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> {report.location}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Sticky Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/80 backdrop-blur-xl border-t border-border/50">
+        <div className="container max-w-2xl">
+          <ReportModal
+            trigger={
+              <Button className="w-full gap-2 rounded-full glow h-12 text-base">
+                <AlertTriangle className="h-5 w-5" /> Report This Plate Again
+              </Button>
+            }
+            initialPlate={plate.plateNumber}
+          />
         </div>
       </div>
     </div>
