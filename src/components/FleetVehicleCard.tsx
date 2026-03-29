@@ -36,11 +36,12 @@ const FleetVehicleCard = ({ plateNumber, vehicleLabel, reportCount, companyName,
             )}
           </div>
         </Link>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Badge variant="outline" className={severityColors[severity]}>
             <AlertTriangle className="h-3 w-3 mr-1" />
             {reportCount} {reportCount === 1 ? "report" : "reports"}
           </Badge>
+          <FleetQRCodeModal plateNumber={plateNumber} vehicleLabel={vehicleLabel} companyName={companyName} />
           <Button
             variant="ghost"
             size="icon"

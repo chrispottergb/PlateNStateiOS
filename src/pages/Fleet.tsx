@@ -334,6 +334,7 @@ const Fleet = () => {
                     plateNumber={v.plate_number}
                     vehicleLabel={v.vehicle_label}
                     reportCount={v.report_count}
+                    companyName={company.name}
                     onRemove={() => handleRemoveVehicle(v.id)}
                   />
                 ))
