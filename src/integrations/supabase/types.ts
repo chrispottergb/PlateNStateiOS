@@ -451,6 +451,83 @@ export type Database = {
         }
         Relationships: []
       }
+      uploaded_plate_lists: {
+        Row: {
+          account_id: string
+          account_type: string
+          created_at: string
+          file_name: string
+          id: string
+          name: string
+          plate_count: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          account_type: string
+          created_at?: string
+          file_name: string
+          id?: string
+          name: string
+          plate_count?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          account_type?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          name?: string
+          plate_count?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      uploaded_plates: {
+        Row: {
+          id: string
+          label: string | null
+          last_scanned_at: string | null
+          list_id: string
+          plate_number: string
+          risk_score: number
+          total_reports: number
+          verified_reports: number
+        }
+        Insert: {
+          id?: string
+          label?: string | null
+          last_scanned_at?: string | null
+          list_id: string
+          plate_number: string
+          risk_score?: number
+          total_reports?: number
+          verified_reports?: number
+        }
+        Update: {
+          id?: string
+          label?: string | null
+          last_scanned_at?: string | null
+          list_id?: string
+          plate_number?: string
+          risk_score?: number
+          total_reports?: number
+          verified_reports?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploaded_plates_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "uploaded_plate_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           badge_key: string
@@ -509,6 +586,7 @@ export type Database = {
       }
       is_approved_insurance: { Args: { p_user_id: string }; Returns: boolean }
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
+      scan_uploaded_plates: { Args: { p_list_id: string }; Returns: undefined }
       spend_credit_on_report:
         | {
             Args: {
