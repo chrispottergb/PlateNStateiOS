@@ -21,14 +21,9 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
         reportCount: 0,
         lastLocation: r.location,
         lastReported: r.created_at,
-        infractions: {
-          tailgating: 0,
-          speeding: 0,
-          ran_red_light: 0,
-          bad_parking: 0,
-          aggressive_lane_change: 0,
-          distracted_driving: 0,
-        },
+        infractions: Object.fromEntries(
+          INFRACTIONS.map((i) => [i.type, 0])
+        ) as Record<InfractionType, number>,
       };
       map.set(r.plate_number, rec);
     }
