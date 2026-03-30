@@ -1,4 +1,4 @@
-import { Truck, Landmark, ShieldCheck, ArrowRight, Briefcase, CheckCircle2, Quote, Award } from "lucide-react";
+import { Truck, Landmark, ShieldCheck, ArrowRight, Briefcase, Award } from "lucide-react";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";

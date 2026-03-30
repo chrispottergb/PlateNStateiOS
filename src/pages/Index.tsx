@@ -163,19 +163,21 @@ const Index = () => {
             </div>
 
             {/* Stats row */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-8 sm:gap-12 pt-6"
-            >
-              {STATS.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
+            {liveStats.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-8 sm:gap-12 pt-6"
+              >
+                {liveStats.map((stat, i) => (
+                  <div key={stat.label} className="text-center">
+                    <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </motion.div>
+            )}
           </motion.div>
         </div>
 
