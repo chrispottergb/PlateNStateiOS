@@ -126,11 +126,37 @@ const Fleet = () => {
     (v.vehicle_label || "").toLowerCase().includes(vehicleSearch.toLowerCase())
   );
 
-  // Mock 7-day trend data
-  const trendData = Array.from({ length: 7 }, (_, i) => ({
-    day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i],
-    incidents: Math.floor(Math.random() * Math.max(1, totalReports / 3)),
-  }));
+  // Real 7-day trend data from fleet vehicle reports
+  const [trendData, setTrendData] = useState<{ day: string; incidents: number }[]>([]);
+  useEffect(() => {
+    if (!vehicles.length) return;
+    const fetchTrend = async () => {
+      const plateNumbers = vehicles.map(v => v.plate_number);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+      const { data } = await supabase
+        .from("reports")
+        .select("created_at")
+        .in("plate_number", plateNumbers)
+        .gte("created_at", sevenDaysAgo.toISOString());
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const counts: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        counts[d.toISOString().slice(0, 10)] = 0;
+      }
+      (data ?? []).forEach(r => {
+        const key = r.created_at.slice(0, 10);
+        if (key in counts) counts[key]++;
+      });
+      setTrendData(Object.entries(counts).map(([date, incidents]) => ({
+        day: days[new Date(date).getDay()],
+        incidents,
+      })));
+    };
+    fetchTrend();
+  }, [vehicles]);
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,4 +1,4 @@
-import { Truck, Landmark, ShieldCheck, ArrowRight, Briefcase, CheckCircle2, Quote, Award } from "lucide-react";
+import { Truck, Landmark, ShieldCheck, ArrowRight, Briefcase, Award } from "lucide-react";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -63,23 +63,6 @@ const Business = () => {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="container pb-10 max-w-3xl mx-auto relative z-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="glass-card p-6 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">500+</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Clients</p>
-          </div>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">99.9%</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Uptime</p>
-          </div>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">SOC2</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Compliant</p>
-          </div>
-        </motion.div>
-      </section>
 
       {/* Portal Cards */}
       <section className="container pb-16 grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto relative z-10">
@@ -108,16 +91,6 @@ const Business = () => {
         ))}
       </section>
 
-      {/* Testimonial */}
-      <section className="container pb-16 max-w-2xl mx-auto text-center relative z-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="glass-card p-8 space-y-4">
-          <Quote className="h-8 w-8 text-primary/30 mx-auto" />
-          <p className="text-muted-foreground text-sm italic leading-relaxed">
-            "Plate N' State helped our department identify 3x more repeat offenders in the first quarter alone. The community intelligence is unmatched."
-          </p>
-          <p className="text-xs text-muted-foreground font-semibold">— Sheriff's Dept., Dane County</p>
-        </motion.div>
-      </section>
 
       {/* Footer Badge */}
       <footer className="border-t border-border/30 py-6">

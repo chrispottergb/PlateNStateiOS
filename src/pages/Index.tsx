@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const FUNNY_TAGLINES = [
   "Because honking isn't enough™",
@@ -13,14 +14,34 @@ const FUNNY_TAGLINES = [
   "Dashcam drama, crowdsourced 🍿",
 ];
 
-const STATS = [
-  { label: "Reports Filed", value: "10K+", icon: Zap },
-  { label: "Active Users", value: "5K+", icon: Users },
-  { label: "Cities Covered", value: "50+", icon: MapPin },
+const STAT_ICONS = [
+  { label: "Reports Filed", icon: Zap },
+  { label: "Active Reporters", icon: Users },
+  { label: "Cities Covered", icon: MapPin },
 ];
 
 const Index = () => {
   const [taglineIndex, setTaglineIndex] = useState(0);
+  const [liveStats, setLiveStats] = useState<{ label: string; value: string }[]>([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [reportsRes, profilesRes, locationsRes] = await Promise.all([
+        supabase.from("reports").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).gt("total_reports", 0),
+        supabase.from("reports").select("location"),
+      ]);
+      const reportCount = reportsRes.count ?? 0;
+      const reporterCount = profilesRes.count ?? 0;
+      const uniqueCities = new Set((locationsRes.data ?? []).map(r => r.location.split(",")[0].trim())).size;
+      setLiveStats([
+        { label: "Reports Filed", value: reportCount.toLocaleString() },
+        { label: "Active Reporters", value: reporterCount.toLocaleString() },
+        { label: "Cities Covered", value: uniqueCities.toLocaleString() },
+      ]);
+    };
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => setTaglineIndex(p => (p + 1) % FUNNY_TAGLINES.length), 3500);
@@ -142,19 +163,21 @@ const Index = () => {
             </div>
 
             {/* Stats row */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-8 sm:gap-12 pt-6"
-            >
-              {STATS.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
+            {liveStats.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-8 sm:gap-12 pt-6"
+              >
+                {liveStats.map((stat, i) => (
+                  <div key={stat.label} className="text-center">
+                    <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </motion.div>
+            )}
           </motion.div>
         </div>
 
