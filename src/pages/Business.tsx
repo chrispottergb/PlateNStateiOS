@@ -91,16 +91,6 @@ const Business = () => {
         ))}
       </section>
 
-      {/* Testimonial */}
-      <section className="container pb-16 max-w-2xl mx-auto text-center relative z-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="glass-card p-8 space-y-4">
-          <Quote className="h-8 w-8 text-primary/30 mx-auto" />
-          <p className="text-muted-foreground text-sm italic leading-relaxed">
-            "Plate N' State helped our department identify 3x more repeat offenders in the first quarter alone. The community intelligence is unmatched."
-          </p>
-          <p className="text-xs text-muted-foreground font-semibold">— Sheriff's Dept., Dane County</p>
-        </motion.div>
-      </section>
 
       {/* Footer Badge */}
       <footer className="border-t border-border/30 py-6">
