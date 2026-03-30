@@ -63,23 +63,6 @@ const Business = () => {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="container pb-10 max-w-3xl mx-auto relative z-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="glass-card p-6 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">500+</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Clients</p>
-          </div>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">99.9%</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Uptime</p>
-          </div>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold gradient-text">SOC2</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Compliant</p>
-          </div>
-        </motion.div>
-      </section>
 
       {/* Portal Cards */}
       <section className="container pb-16 grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto relative z-10">
