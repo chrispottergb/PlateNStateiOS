@@ -14,10 +14,10 @@ const FUNNY_TAGLINES = [
   "Dashcam drama, crowdsourced 🍿",
 ];
 
-const STATS = [
-  { label: "Reports Filed", value: "10K+", icon: Zap },
-  { label: "Active Users", value: "5K+", icon: Users },
-  { label: "Cities Covered", value: "50+", icon: MapPin },
+const STAT_ICONS = [
+  { label: "Reports Filed", icon: Zap },
+  { label: "Active Reporters", icon: Users },
+  { label: "Cities Covered", icon: MapPin },
 ];
 
 const Index = () => {
