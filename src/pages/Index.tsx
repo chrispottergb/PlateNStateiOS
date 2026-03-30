@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const FUNNY_TAGLINES = [
   "Because honking isn't enough™",
