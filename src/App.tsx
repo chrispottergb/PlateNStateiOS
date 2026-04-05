@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/law-enforcement" element={<LawEnforcement />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
