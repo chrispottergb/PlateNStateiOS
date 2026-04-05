@@ -21,6 +21,7 @@ import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
 import LawEnforcement from "./pages/LawEnforcement";
+import ResetPassword from "./pages/ResetPassword";
 
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/screening" element={<BatchScreening />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/law-enforcement" element={<LawEnforcement />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

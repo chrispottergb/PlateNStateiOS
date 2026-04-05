@@ -1,0 +1,124 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
+import { Lock, ArrowRight, CheckCircle } from "lucide-react";
+import logoIcon from "@/assets/logo-icon.png";
+import authBg from "@/assets/auth-bg.jpg";
+
+const ResetPassword = () => {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get("type") === "recovery") {
+      setIsRecovery(true);
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      return;
+    }
+    if (password.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      setSuccess(true);
+      toast({ title: "Password updated!", description: "You can now sign in with your new password." });
+      setTimeout(() => navigate("/auth"), 2000);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen relative flex items-center justify-center">
+      <div className="absolute inset-0">
+        <img src={authBg} alt="" className="w-full h-full object-cover opacity-30" />
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+      </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm relative z-10 px-4">
+        <div className="text-center mb-8">
+          <img src={logoIcon} alt="Plate N' State" className="h-14 w-14 mx-auto mb-3" />
+          <h1 className="text-2xl font-extrabold">Reset Password</h1>
+          <p className="text-xs text-muted-foreground mt-1">Enter your new password below</p>
+        </div>
+
+        <div className="glass-card p-6 glow-lg">
+          {success ? (
+            <div className="text-center py-4 space-y-3">
+              <CheckCircle className="h-12 w-12 text-primary mx-auto" />
+              <p className="text-sm font-medium">Password updated successfully!</p>
+              <p className="text-xs text-muted-foreground">Redirecting to sign in…</p>
+            </div>
+          ) : !isRecovery ? (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">Invalid or expired reset link. Please request a new one.</p>
+              <Button className="mt-4 rounded-full" onClick={() => navigate("/auth")}>Back to Sign In</Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="New password"
+                  required
+                  minLength={6}
+                  className="pl-10 rounded-xl h-11"
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                  minLength={6}
+                  className="pl-10 rounded-xl h-11"
+                />
+              </div>
+              <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading}>
+                {loading ? "Updating..." : "Set New Password"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </form>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default ResetPassword;
