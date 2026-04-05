@@ -21,6 +21,7 @@ import BatchScreening from "./pages/BatchScreening";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
 import LawEnforcement from "./pages/LawEnforcement";
+import ResetPassword from "./pages/ResetPassword";
 
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 
