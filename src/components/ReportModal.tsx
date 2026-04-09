@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, MapPin, Pencil, Car, Palette, Wrench, User, Zap } from "lucide-react";
+import PlateScanner from "@/components/PlateScanner";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -259,6 +260,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
             {/* Plate input */}
             <div>
               <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate</Label>
+              <PlateScanner onResult={(plate, state) => {
+                setPlateNumber(plate);
+              }} />
               <Input
                 id="quick-plate"
                 value={plateNumber}
@@ -266,8 +270,8 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                 placeholder="ABC 1234"
                 className="mt-1.5 font-mono text-xl tracking-widest text-center rounded-lg h-12"
                 maxLength={8}
-                autoFocus
               />
+              <p className="text-xs text-muted-foreground mt-1">Or scan/upload a photo above</p>
             </div>
 
             {/* Infraction chips */}
@@ -370,6 +374,9 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="plate" className="text-sm font-medium">License Plate Number</Label>
+                  <PlateScanner onResult={(plate, state) => {
+                    setPlateNumber(plate);
+                  }} />
                   <Input
                     id="plate"
                     value={plateNumber}
@@ -377,9 +384,8 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                     placeholder="ABC 1234"
                     className="mt-1.5 font-mono text-lg tracking-wider text-center rounded-lg"
                     maxLength={8}
-                    autoFocus
                   />
-                  <p className="text-xs text-muted-foreground mt-1.5">Enter a license plate number</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Scan a plate or type it manually</p>
                 </div>
               </div>
             )}
