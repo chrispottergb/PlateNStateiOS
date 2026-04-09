@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, MapPin, Pencil, Car, Palette, Wrench, User, Zap } from "lucide-react";
+import PlateScanner from "@/components/PlateScanner";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
