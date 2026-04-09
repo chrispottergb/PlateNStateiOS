@@ -23,26 +23,20 @@ const STAT_ICONS = [
 
 const Index = () => {
   const [taglineIndex, setTaglineIndex] = useState(0);
-  const [liveStats, setLiveStats] = useState<{ label: string; value: string }[]>([]);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      const [reportsRes, profilesRes, locationsRes] = await Promise.all([
-        supabase.from("reports").select("id", { count: "exact", head: true }),
-        supabase.from("profiles").select("id", { count: "exact", head: true }).gt("total_reports", 0),
-        supabase.from("reports").select("location"),
-      ]);
-      const reportCount = reportsRes.count ?? 0;
-      const reporterCount = profilesRes.count ?? 0;
-      const uniqueCities = new Set((locationsRes.data ?? []).map(r => r.location.split(",")[0].trim())).size;
-      setLiveStats([
-        { label: "Reports Filed", value: reportCount.toLocaleString() },
-        { label: "Active Reporters", value: reporterCount.toLocaleString() },
-        { label: "Cities Covered", value: uniqueCities.toLocaleString() },
-      ]);
-    };
-    fetchStats();
-  }, []);
+  const { data: liveStats = [] } = useQuery({
+    queryKey: ["homepage-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_homepage_stats");
+      if (error) throw error;
+      const stats = data as { report_count: number; reporter_count: number; city_count: number };
+      return [
+        { label: "Reports Filed", value: stats.report_count.toLocaleString() },
+        { label: "Active Reporters", value: stats.reporter_count.toLocaleString() },
+        { label: "Cities Covered", value: stats.city_count.toLocaleString() },
+      ];
+    },
+    staleTime: 60_000,
+  });
 
   useEffect(() => {
     const interval = setInterval(() => setTaglineIndex(p => (p + 1) % FUNNY_TAGLINES.length), 3500);
