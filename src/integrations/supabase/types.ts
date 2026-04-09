@@ -573,6 +573,7 @@ export type Database = {
     }
     Functions: {
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
+      get_homepage_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
