@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
-import { Car, CheckCircle, Shield } from "lucide-react";
+import PlateScanner from "@/components/PlateScanner";
+import { Car, CheckCircle, Shield, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
@@ -15,6 +16,7 @@ const ClaimPlate = () => {
   const { user } = useAuth();
   const [plateNumber, setPlateNumber] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -76,6 +78,15 @@ const ClaimPlate = () => {
     }
   };
 
+  const handleScanResult = (plate: string, state: string | null) => {
+    setPlateNumber(plate);
+    setShowScanner(false);
+    toast({
+      title: "Plate detected!",
+      description: state ? `Detected ${plate} (${state})` : `Detected ${plate}`,
+    });
+  };
+
   if (!user) {
     navigate("/auth");
     return null;
@@ -98,19 +109,44 @@ const ClaimPlate = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleClaim} className="flex gap-2">
-                <Input
-                  value={plateNumber}
-                  onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-                  placeholder="ABC 1234"
-                  className="font-mono text-lg tracking-wider"
-                  maxLength={8}
-                  required
-                />
-                <Button type="submit" disabled={loading || plateNumber.trim().length < 3}>
-                  {loading ? "..." : "Claim"}
-                </Button>
-              </form>
+              {showScanner ? (
+                <div className="space-y-3">
+                  <PlateScanner onResult={handleScanResult} />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowScanner(false)}
+                    className="w-full"
+                  >
+                    Cancel Scan
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleClaim} className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      value={plateNumber}
+                      onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
+                      placeholder="ABC 1234"
+                      className="font-mono text-lg tracking-wider"
+                      maxLength={8}
+                      required
+                    />
+                    <Button type="submit" disabled={loading || plateNumber.trim().length < 3}>
+                      {loading ? "..." : "Claim"}
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowScanner(true)}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Scan Plate Instead
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -123,7 +159,7 @@ const ClaimPlate = () => {
                 <Card key={plate.id} className="border-0 shadow-sm">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-green-500" />
                       <span className="font-mono text-lg font-bold tracking-wider">
                         {plate.plate_number}
                       </span>
