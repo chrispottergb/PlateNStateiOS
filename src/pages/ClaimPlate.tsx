@@ -159,7 +159,7 @@ const ClaimPlate = () => {
                 <Card key={plate.id} className="border-0 shadow-sm">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-green-500" />
                       <span className="font-mono text-lg font-bold tracking-wider">
                         {plate.plate_number}
                       </span>
