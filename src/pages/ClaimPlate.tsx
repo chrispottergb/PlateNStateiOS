@@ -16,6 +16,7 @@ const ClaimPlate = () => {
   const { user } = useAuth();
   const [plateNumber, setPlateNumber] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
