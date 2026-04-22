@@ -109,19 +109,44 @@ const ClaimPlate = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleClaim} className="flex gap-2">
-                <Input
-                  value={plateNumber}
-                  onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-                  placeholder="ABC 1234"
-                  className="font-mono text-lg tracking-wider"
-                  maxLength={8}
-                  required
-                />
-                <Button type="submit" disabled={loading || plateNumber.trim().length < 3}>
-                  {loading ? "..." : "Claim"}
-                </Button>
-              </form>
+              {showScanner ? (
+                <div className="space-y-3">
+                  <PlateScanner onResult={handleScanResult} />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowScanner(false)}
+                    className="w-full"
+                  >
+                    Cancel Scan
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleClaim} className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      value={plateNumber}
+                      onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
+                      placeholder="ABC 1234"
+                      className="font-mono text-lg tracking-wider"
+                      maxLength={8}
+                      required
+                    />
+                    <Button type="submit" disabled={loading || plateNumber.trim().length < 3}>
+                      {loading ? "..." : "Claim"}
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowScanner(true)}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Scan Plate Instead
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </motion.div>
