@@ -78,6 +78,15 @@ const ClaimPlate = () => {
     }
   };
 
+  const handleScanResult = (plate: string, state: string | null) => {
+    setPlateNumber(plate);
+    setShowScanner(false);
+    toast({
+      title: "Plate detected!",
+      description: state ? `Detected ${plate} (${state})` : `Detected ${plate}`,
+    });
+  };
+
   if (!user) {
     navigate("/auth");
     return null;
