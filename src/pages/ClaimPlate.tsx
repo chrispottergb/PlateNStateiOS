@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
-import { Car, CheckCircle, Shield } from "lucide-react";
+import PlateScanner from "@/components/PlateScanner";
+import { Car, CheckCircle, Shield, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
