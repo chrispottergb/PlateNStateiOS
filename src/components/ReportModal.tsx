@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { INFRACTIONS, WISCONSIN_CITIES } from "@/lib/data";
+import { INFRACTIONS } from "@/lib/data";
+import { US_STATES, getStateByCode, stateNameToCode } from "@/lib/usStates";
 import { InfractionType } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, CarFront, Gauge, CircleAlert, ParkingSquare, ArrowLeftRight, Smartphone, Coins } from "lucide-react";
@@ -80,6 +81,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
   const [geocoding, setGeocoding] = useState(false);
   const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState(false);
+  const [stateCode, setStateCode] = useState<string>("WI");
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
 
@@ -105,6 +107,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setGeocoding(false);
     setAutoDetectedLocation(null);
     setManualOverride(false);
+    setStateCode("WI");
     setDateTime(new Date().toISOString().slice(0, 16));
     setVehicleType("");
     setVehicleColor("");
@@ -137,9 +140,11 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       const data = await res.json();
       const addr = data.address;
       const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
-      const state = addr?.state ? `, ${addr.state}` : "";
+      const stName = addr?.state || "";
+      const code = stateNameToCode(stName);
+      if (code) setStateCode(code);
       if (city) {
-        const detected = `${city}${state}`;
+        const detected = `${city}${code ? `, ${code}` : ""}`;
         setAutoDetectedLocation(detected);
         setLocation(detected);
       }
