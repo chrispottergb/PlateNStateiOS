@@ -17,6 +17,7 @@ export type Database = {
       claimed_plates: {
         Row: {
           claimed_at: string
+          free_dispute_used: boolean
           id: string
           paid: boolean
           paid_at: string | null
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           claimed_at?: string
+          free_dispute_used?: boolean
           id?: string
           paid?: boolean
           paid_at?: string | null
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           claimed_at?: string
+          free_dispute_used?: boolean
           id?: string
           paid?: boolean
           paid_at?: string | null
@@ -322,6 +325,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      report_disputes: {
+        Row: {
+          created_at: string
+          disputer_id: string
+          id: string
+          note: string | null
+          paid: boolean
+          plate_number: string
+          reason: string
+          report_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          disputer_id: string
+          id?: string
+          note?: string | null
+          paid?: boolean
+          plate_number: string
+          reason: string
+          report_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          disputer_id?: string
+          id?: string
+          note?: string | null
+          paid?: boolean
+          plate_number?: string
+          reason?: string
+          report_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: []
       }
       report_reactions: {
         Row: {
@@ -729,6 +777,7 @@ export type Database = {
     }
     Functions: {
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
+      dispute_eligibility: { Args: { p_report_id: string }; Returns: Json }
       get_homepage_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
@@ -745,6 +794,10 @@ export type Database = {
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       plate_blacklist_tier: { Args: { p_plate: string }; Returns: string }
       plate_display: { Args: { p_plate: string }; Returns: string }
+      resolve_dispute: {
+        Args: { p_decision: string; p_dispute_id: string }
+        Returns: undefined
+      }
       scan_uploaded_plates: { Args: { p_list_id: string }; Returns: undefined }
       spend_credit_on_report:
         | {
@@ -782,6 +835,10 @@ export type Database = {
             }
             Returns: string
           }
+      submit_dispute: {
+        Args: { p_note?: string; p_reason: string; p_report_id: string }
+        Returns: Json
+      }
       upvote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
     Enums: {
