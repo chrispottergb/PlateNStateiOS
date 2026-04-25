@@ -276,6 +276,32 @@ const AdminPanel = () => {
           </TabsContent>
 
           {/* Fleets Tab */}
+          {/* Disputes Tab */}
+          <TabsContent value="disputes" className="space-y-2">
+            {disputes.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No pending disputes</p>
+            ) : disputes.map((d) => (
+              <div key={d.id} className="rounded-xl glass-card p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-amber-500" />
+                  <span className="font-mono font-bold text-sm">{d.plate_number}</span>
+                  <Badge variant="secondary" className="text-[10px] rounded-full capitalize">{d.reason.replace(/_/g, " ")}</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}</span>
+                </div>
+                {d.note && <p className="text-xs text-muted-foreground italic">"{d.note}"</p>}
+                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{d.report_id}</span></p>
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "upheld")} className="gap-1 rounded-full">
+                    <CheckCircle2 className="h-4 w-4" /> Uphold (remove post)
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "denied")} className="gap-1 rounded-full">
+                    <XCircle className="h-4 w-4" /> Deny
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
           <TabsContent value="fleets" className="space-y-2">
             {companies.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No fleet companies registered</p>
