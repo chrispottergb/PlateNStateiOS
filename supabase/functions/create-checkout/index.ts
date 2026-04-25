@@ -11,6 +11,7 @@ const ALLOWED_PRICES = new Set([
   "plate_claim_one_time",
   "plate_privacy_monthly",
   "plate_total_block_monthly",
+  "report_dispute_fee",
 ]);
 
 const supabaseAdmin: any = createClient(
