@@ -67,6 +67,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -75,14 +76,16 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [profileRes, reportsRes, badgesRes] = await Promise.all([
+      const [profileRes, reportsRes, badgesRes, disputesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
         supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user.id).order("earned_at", { ascending: false }),
+        supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
       if (profileRes.data) setProfile(profileRes.data);
       if (reportsRes.data) setReports(reportsRes.data);
       if (badgesRes.data) setBadges(badgesRes.data as UserBadge[]);
+      if (disputesRes.data) setDisputes(disputesRes.data);
       if (profileRes.data) autoAwardBadges(profileRes.data, badgesRes.data as UserBadge[] || []);
     };
     fetchData();
