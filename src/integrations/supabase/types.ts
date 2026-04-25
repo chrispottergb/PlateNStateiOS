@@ -22,6 +22,7 @@ export type Database = {
           paid: boolean
           paid_at: string | null
           plate_number: string
+          state: string | null
           stripe_session_id: string | null
           user_id: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           paid?: boolean
           paid_at?: string | null
           plate_number: string
+          state?: string | null
           stripe_session_id?: string | null
           user_id: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           paid?: boolean
           paid_at?: string | null
           plate_number?: string
+          state?: string | null
           stripe_session_id?: string | null
           user_id?: string
         }
@@ -107,6 +110,7 @@ export type Database = {
           company_id: string
           id: string
           plate_number: string
+          state: string | null
           vehicle_label: string | null
         }
         Insert: {
@@ -114,6 +118,7 @@ export type Database = {
           company_id: string
           id?: string
           plate_number: string
+          state?: string | null
           vehicle_label?: string | null
         }
         Update: {
@@ -121,6 +126,7 @@ export type Database = {
           company_id?: string
           id?: string
           plate_number?: string
+          state?: string | null
           vehicle_label?: string | null
         }
         Relationships: [
@@ -202,6 +208,7 @@ export type Database = {
           plate_number: string
           read: boolean
           report_id: string | null
+          state: string | null
           user_id: string
         }
         Insert: {
@@ -212,6 +219,7 @@ export type Database = {
           plate_number: string
           read?: boolean
           report_id?: string | null
+          state?: string | null
           user_id: string
         }
         Update: {
@@ -222,6 +230,7 @@ export type Database = {
           plate_number?: string
           read?: boolean
           report_id?: string | null
+          state?: string | null
           user_id?: string
         }
         Relationships: [
@@ -245,6 +254,7 @@ export type Database = {
         Row: {
           credits: number
           display_name: string | null
+          home_state: string | null
           id: string
           joined_at: string
           last_report_date: string | null
@@ -256,6 +266,7 @@ export type Database = {
         Insert: {
           credits?: number
           display_name?: string | null
+          home_state?: string | null
           id?: string
           joined_at?: string
           last_report_date?: string | null
@@ -267,6 +278,7 @@ export type Database = {
         Update: {
           credits?: number
           display_name?: string | null
+          home_state?: string | null
           id?: string
           joined_at?: string
           last_report_date?: string | null
@@ -460,6 +472,7 @@ export type Database = {
           longitude: number | null
           plate_number: string
           reporter_id: string | null
+          state: string | null
           tags: string[] | null
           upvote_count: number
           vehicle_color: string | null
@@ -481,6 +494,7 @@ export type Database = {
           longitude?: number | null
           plate_number: string
           reporter_id?: string | null
+          state?: string | null
           tags?: string[] | null
           upvote_count?: number
           vehicle_color?: string | null
@@ -502,6 +516,7 @@ export type Database = {
           longitude?: number | null
           plate_number?: string
           reporter_id?: string | null
+          state?: string | null
           tags?: string[] | null
           upvote_count?: number
           vehicle_color?: string | null
@@ -547,6 +562,7 @@ export type Database = {
           plate_number: string | null
           price_id: string
           product_id: string
+          state: string | null
           status: string
           stripe_customer_id: string
           stripe_subscription_id: string
@@ -563,6 +579,7 @@ export type Database = {
           plate_number?: string | null
           price_id: string
           product_id: string
+          state?: string | null
           status?: string
           stripe_customer_id: string
           stripe_subscription_id: string
@@ -579,6 +596,7 @@ export type Database = {
           plate_number?: string | null
           price_id?: string
           product_id?: string
+          state?: string | null
           status?: string
           stripe_customer_id?: string
           stripe_subscription_id?: string
@@ -631,6 +649,7 @@ export type Database = {
           list_id: string
           plate_number: string
           risk_score: number
+          state: string | null
           total_reports: number
           verified_reports: number
         }
@@ -641,6 +660,7 @@ export type Database = {
           list_id: string
           plate_number: string
           risk_score?: number
+          state?: string | null
           total_reports?: number
           verified_reports?: number
         }
@@ -651,6 +671,7 @@ export type Database = {
           list_id?: string
           plate_number?: string
           risk_score?: number
+          state?: string | null
           total_reports?: number
           verified_reports?: number
         }
