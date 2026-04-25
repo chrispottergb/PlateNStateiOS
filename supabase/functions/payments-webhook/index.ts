@@ -13,14 +13,22 @@ function getSupabase(): any {
 }
 
 async function handleCheckoutCompleted(session: any, env: StripeEnv) {
-  // Only process one-time claim purchases here. Subscriptions are handled
-  // by customer.subscription.* events.
   if (session.mode !== "payment") return;
   const meta = session.metadata ?? {};
   const userId = meta.userId;
-  const plateNumber = meta.plateNumber;
   const priceLookup = meta.priceLookup;
 
+  // Dispute payment
+  if (meta.type === "dispute" && meta.disputeId) {
+    await getSupabase()
+      .from("report_disputes")
+      .update({ paid: true, stripe_session_id: session.id })
+      .eq("id", meta.disputeId)
+      .eq("disputer_id", userId);
+    return;
+  }
+
+  const plateNumber = meta.plateNumber;
   if (!userId || !plateNumber) {
     console.warn("checkout.session.completed missing metadata", session.id);
     return;
