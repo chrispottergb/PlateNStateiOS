@@ -9,20 +9,29 @@ interface CheckoutDialogProps {
   onClose: () => void;
   title: string;
   priceId: string;
-  plateNumber: string;
+  plateNumber?: string;
+  disputeId?: string;
+  returnUrl?: string;
 }
 
-export function CheckoutDialog({ open, onClose, title, priceId, plateNumber }: CheckoutDialogProps) {
+export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, disputeId, returnUrl }: CheckoutDialogProps) {
   const fetchClientSecret = useCallback(async (): Promise<string> => {
-    const returnUrl = `${window.location.origin}/claim?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
-    const { data, error } = await supabase.functions.invoke("create-checkout", {
-      body: { priceId, plateNumber, returnUrl, environment: getStripeEnvironment() },
-    });
+    const finalReturnUrl =
+      returnUrl ?? `${window.location.origin}/claim?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    const body: Record<string, unknown> = {
+      priceId,
+      returnUrl: finalReturnUrl,
+      environment: getStripeEnvironment(),
+    };
+    if (disputeId) body.disputeId = disputeId;
+    if (plateNumber) body.plateNumber = plateNumber;
+
+    const { data, error } = await supabase.functions.invoke("create-checkout", { body });
     if (error || !data?.clientSecret) {
       throw new Error(error?.message || data?.error || "Failed to start checkout");
     }
     return data.clientSecret;
-  }, [priceId, plateNumber]);
+  }, [priceId, plateNumber, disputeId, returnUrl]);
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 

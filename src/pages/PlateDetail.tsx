@@ -6,11 +6,13 @@ import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc } from "lucide-react";
+import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc, Flag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { DisputeReportDialog } from "@/components/DisputeReportDialog";
 
 const getSeverityLabel = (score: number) => {
   if (score >= 40) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
@@ -24,6 +26,25 @@ const PlateDetail = () => {
   const decoded = decodeURIComponent(plateNumber || "");
   const { plate, reports, loading } = usePlateDetail(decoded);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [isOwner, setIsOwner] = useState(false);
+  const [disputeReportId, setDisputeReportId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !decoded) { setIsOwner(false); return; }
+      const { data } = await supabase
+        .from("claimed_plates")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("plate_number", decoded.toUpperCase())
+        .eq("paid", true)
+        .maybeSingle();
+      if (active) setIsOwner(!!data);
+    })();
+    return () => { active = false; };
+  }, [decoded]);
 
   const sortedReports = [...reports].sort((a, b) =>
     sortOrder === "newest"
@@ -194,6 +215,16 @@ const PlateDetail = () => {
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
                       </span>
+                      {isOwner && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => setDisputeReportId(report.id)}
+                        >
+                          <Flag className="h-3 w-3" /> Dispute
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -216,6 +247,14 @@ const PlateDetail = () => {
           />
         </div>
       </div>
+      {disputeReportId && (
+        <DisputeReportDialog
+          open={!!disputeReportId}
+          onClose={() => setDisputeReportId(null)}
+          reportId={disputeReportId}
+          plateNumber={plate.plateNumber}
+        />
+      )}
     </div>
   );
 };

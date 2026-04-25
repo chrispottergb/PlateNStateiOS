@@ -67,6 +67,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -75,14 +76,16 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [profileRes, reportsRes, badgesRes] = await Promise.all([
+      const [profileRes, reportsRes, badgesRes, disputesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
         supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user.id).order("earned_at", { ascending: false }),
+        supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
       if (profileRes.data) setProfile(profileRes.data);
       if (reportsRes.data) setReports(reportsRes.data);
       if (badgesRes.data) setBadges(badgesRes.data as UserBadge[]);
+      if (disputesRes.data) setDisputes(disputesRes.data);
       if (profileRes.data) autoAwardBadges(profileRes.data, badgesRes.data as UserBadge[] || []);
     };
     fetchData();
@@ -230,6 +233,38 @@ const Profile = () => {
             </div>
           )}
         </motion.div>
+        {/* My Disputes */}
+        {disputes.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mt-8">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+              <Flag className="h-4 w-4" /> My Disputes
+            </h2>
+            <div className="space-y-2">
+              {disputes.map((d) => {
+                const statusColor =
+                  d.status === "upheld" ? "text-emerald-600 border-emerald-500/30" :
+                  d.status === "denied" ? "text-destructive border-destructive/30" :
+                  d.paid ? "text-amber-500 border-amber-500/30" : "text-muted-foreground border-border";
+                const statusLabel =
+                  d.status === "upheld" ? "Upheld — post removed" :
+                  d.status === "denied" ? "Denied" :
+                  d.paid ? "Pending review" : "Awaiting payment";
+                return (
+                  <div key={d.id} className="rounded-xl glass-card p-3 flex items-center gap-3">
+                    <WisconsinPlate plateNumber={d.plate_number} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5 capitalize">{d.reason.replace(/_/g, " ")}</Badge>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className={`text-[10px] rounded-full ${statusColor}`}>{statusLabel}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

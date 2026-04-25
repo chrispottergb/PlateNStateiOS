@@ -11,6 +11,7 @@ const ALLOWED_PRICES = new Set([
   "plate_claim_one_time",
   "plate_privacy_monthly",
   "plate_total_block_monthly",
+  "report_dispute_fee",
 ]);
 
 const supabaseAdmin: any = createClient(
@@ -36,16 +37,10 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { priceId, plateNumber, returnUrl, environment } = body ?? {};
+    const { priceId, plateNumber, disputeId, returnUrl, environment } = body ?? {};
 
     if (typeof priceId !== "string" || !ALLOWED_PRICES.has(priceId)) {
       return new Response(JSON.stringify({ error: "Invalid priceId" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (typeof plateNumber !== "string" || plateNumber.trim().length < 3) {
-      return new Response(JSON.stringify({ error: "Invalid plateNumber" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -64,33 +59,69 @@ Deno.serve(async (req) => {
     }
 
     const env: StripeEnv = environment;
-    const cleanPlate = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const isDispute = priceId === "report_dispute_fee";
+    let cleanPlate = "";
+    let verifiedDisputeId = "";
 
-    // For claim, ensure the plate isn't already claimed by someone else
-    if (priceId === "plate_claim_one_time") {
-      const { data: existing } = await supabaseAdmin
-        .from("claimed_plates")
-        .select("user_id, paid")
-        .eq("plate_number", cleanPlate)
+    if (isDispute) {
+      if (typeof disputeId !== "string" || disputeId.length < 10) {
+        return new Response(JSON.stringify({ error: "Invalid disputeId" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Verify the dispute belongs to this user and is unpaid+pending
+      const { data: dispute } = await supabaseAdmin
+        .from("report_disputes")
+        .select("id, disputer_id, paid, status")
+        .eq("id", disputeId)
         .maybeSingle();
-      if (existing && existing.user_id !== user.id && existing.paid) {
-        return new Response(JSON.stringify({ error: "Plate already claimed by another user" }), {
+      if (!dispute || dispute.disputer_id !== user.id) {
+        return new Response(JSON.stringify({ error: "Dispute not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (dispute.paid) {
+        return new Response(JSON.stringify({ error: "Dispute already paid" }), {
           status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      verifiedDisputeId = dispute.id;
     } else {
-      // Blacklist tiers require the user to own the plate first
-      const { data: claim } = await supabaseAdmin
-        .from("claimed_plates")
-        .select("user_id, paid")
-        .eq("plate_number", cleanPlate)
-        .maybeSingle();
-      if (!claim || claim.user_id !== user.id || !claim.paid) {
-        return new Response(JSON.stringify({ error: "You must claim this plate before subscribing" }), {
-          status: 403,
+      if (typeof plateNumber !== "string" || plateNumber.trim().length < 3) {
+        return new Response(JSON.stringify({ error: "Invalid plateNumber" }), {
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+      cleanPlate = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+      if (priceId === "plate_claim_one_time") {
+        const { data: existing } = await supabaseAdmin
+          .from("claimed_plates")
+          .select("user_id, paid")
+          .eq("plate_number", cleanPlate)
+          .maybeSingle();
+        if (existing && existing.user_id !== user.id && existing.paid) {
+          return new Response(JSON.stringify({ error: "Plate already claimed by another user" }), {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        const { data: claim } = await supabaseAdmin
+          .from("claimed_plates")
+          .select("user_id, paid")
+          .eq("plate_number", cleanPlate)
+          .maybeSingle();
+        if (!claim || claim.user_id !== user.id || !claim.paid) {
+          return new Response(JSON.stringify({ error: "You must claim this plate before subscribing" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
     }
 
@@ -109,9 +140,9 @@ Deno.serve(async (req) => {
       managed_payments: { enabled: true },
       metadata: {
         userId: user.id,
-        plateNumber: cleanPlate,
         priceLookup: priceId,
         managed_payments: "true",
+        ...(isDispute ? { type: "dispute", disputeId: verifiedDisputeId } : { plateNumber: cleanPlate }),
       },
     };
     if (isRecurring) {

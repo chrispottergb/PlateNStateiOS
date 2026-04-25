@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown } from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
@@ -30,6 +30,7 @@ const AdminPanel = () => {
   const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
   const [fleetCounts, setFleetCounts] = useState<Record<string, number>>({});
+  const [disputes, setDisputes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
@@ -58,7 +59,27 @@ const AdminPanel = () => {
       (vehicles || []).forEach((v: any) => { counts[v.company_id] = (counts[v.company_id] || 0) + 1; });
       setFleetCounts(counts);
     }
+    // Pending paid disputes
+    const { data: dispRes } = await supabase
+      .from("report_disputes")
+      .select("id, report_id, plate_number, reason, note, status, paid, created_at")
+      .eq("paid", true)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    setDisputes(dispRes || []);
+
     setLoading(false);
+  };
+
+  const handleResolveDispute = async (id: string, decision: "upheld" | "denied") => {
+    setUpdating(id);
+    const { error } = await supabase.rpc("resolve_dispute", { p_dispute_id: id, p_decision: decision });
+    if (error) toast.error("Failed: " + error.message);
+    else {
+      toast.success(decision === "upheld" ? "Dispute upheld — post removed" : "Dispute denied");
+      setDisputes((prev) => prev.filter((d) => d.id !== id));
+    }
+    setUpdating(null);
   };
 
   const handleInsuranceApproval = async (id: string, approved: boolean) => {
@@ -135,6 +156,10 @@ const AdminPanel = () => {
             </TabsTrigger>
             <TabsTrigger value="users" className="flex-1">Users</TabsTrigger>
             <TabsTrigger value="reports" className="flex-1">Reports</TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 gap-1">
+              Disputes
+              {disputes.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{disputes.length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
           </TabsList>
 
@@ -251,6 +276,32 @@ const AdminPanel = () => {
           </TabsContent>
 
           {/* Fleets Tab */}
+          {/* Disputes Tab */}
+          <TabsContent value="disputes" className="space-y-2">
+            {disputes.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No pending disputes</p>
+            ) : disputes.map((d) => (
+              <div key={d.id} className="rounded-xl glass-card p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-amber-500" />
+                  <span className="font-mono font-bold text-sm">{d.plate_number}</span>
+                  <Badge variant="secondary" className="text-[10px] rounded-full capitalize">{d.reason.replace(/_/g, " ")}</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}</span>
+                </div>
+                {d.note && <p className="text-xs text-muted-foreground italic">"{d.note}"</p>}
+                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{d.report_id}</span></p>
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "upheld")} className="gap-1 rounded-full">
+                    <CheckCircle2 className="h-4 w-4" /> Uphold (remove post)
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "denied")} className="gap-1 rounded-full">
+                    <XCircle className="h-4 w-4" /> Deny
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
           <TabsContent value="fleets" className="space-y-2">
             {companies.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No fleet companies registered</p>
