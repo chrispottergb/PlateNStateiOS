@@ -215,6 +215,16 @@ const PlateDetail = () => {
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
                       </span>
+                      {isOwner && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => setDisputeReportId(report.id)}
+                        >
+                          <Flag className="h-3 w-3" /> Dispute
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
