@@ -18,19 +18,28 @@ export type Database = {
         Row: {
           claimed_at: string
           id: string
+          paid: boolean
+          paid_at: string | null
           plate_number: string
+          stripe_session_id: string | null
           user_id: string
         }
         Insert: {
           claimed_at?: string
           id?: string
+          paid?: boolean
+          paid_at?: string | null
           plate_number: string
+          stripe_session_id?: string | null
           user_id: string
         }
         Update: {
           claimed_at?: string
           id?: string
+          paid?: boolean
+          paid_at?: string | null
           plate_number?: string
+          stripe_session_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -220,6 +229,13 @@ export type Database = {
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -298,6 +314,13 @@ export type Database = {
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       report_reactions: {
@@ -330,6 +353,13 @@ export type Database = {
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "report_reactions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       report_upvotes: {
@@ -357,6 +387,13 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_upvotes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
             referencedColumns: ["id"]
           },
         ]
@@ -447,6 +484,57 @@ export type Database = {
           id?: string
           name?: string
           plates?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          plate_number: string | null
+          price_id: string
+          product_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          plate_number?: string | null
+          price_id: string
+          product_id: string
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          plate_number?: string | null
+          price_id?: string
+          product_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -569,7 +657,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      reports_public: {
+        Row: {
+          blacklist_tier: string | null
+          comment: string | null
+          created_at: string | null
+          downvote_count: number | null
+          driver_gender: string | null
+          hot_take: string | null
+          id: string | null
+          infraction: string | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          plate_number: string | null
+          reporter_id: string | null
+          tags: string[] | null
+          upvote_count: number | null
+          vehicle_color: string | null
+          vehicle_features: string[] | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string | null
+        }
+        Insert: {
+          blacklist_tier?: never
+          comment?: string | null
+          created_at?: string | null
+          downvote_count?: number | null
+          driver_gender?: string | null
+          hot_take?: string | null
+          id?: string | null
+          infraction?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          plate_number?: never
+          reporter_id?: string | null
+          tags?: string[] | null
+          upvote_count?: number | null
+          vehicle_color?: string | null
+          vehicle_features?: string[] | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+        }
+        Update: {
+          blacklist_tier?: never
+          comment?: string | null
+          created_at?: string | null
+          downvote_count?: number | null
+          driver_gender?: string | null
+          hot_take?: string | null
+          id?: string | null
+          infraction?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          plate_number?: never
+          reporter_id?: string | null
+          tags?: string[] | null
+          upvote_count?: number | null
+          vehicle_color?: string | null
+          vehicle_features?: string[] | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
@@ -587,6 +743,8 @@ export type Database = {
       }
       is_approved_insurance: { Args: { p_user_id: string }; Returns: boolean }
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
+      plate_blacklist_tier: { Args: { p_plate: string }; Returns: string }
+      plate_display: { Args: { p_plate: string }; Returns: string }
       scan_uploaded_plates: { Args: { p_list_id: string }; Returns: undefined }
       spend_credit_on_report:
         | {
