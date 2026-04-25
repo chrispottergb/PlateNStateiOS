@@ -6,11 +6,13 @@ import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc } from "lucide-react";
+import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc, Flag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { DisputeReportDialog } from "@/components/DisputeReportDialog";
 
 const getSeverityLabel = (score: number) => {
   if (score >= 40) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
