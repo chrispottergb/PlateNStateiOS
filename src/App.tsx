@@ -5,59 +5,87 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import Community from "./pages/Community";
-import Business from "./pages/Business";
-import HonkZone from "./pages/HonkZone";
-import WallOfShame from "./pages/WallOfShame";
-import PlateDetail from "./pages/PlateDetail";
-import Leaderboard from "./pages/Leaderboard";
-import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
-import ClaimPlate from "./pages/ClaimPlate";
-import Fleet from "./pages/Fleet";
-import InsurancePortal from "./pages/InsurancePortal";
-import BatchScreening from "./pages/BatchScreening";
-import NotFound from "./pages/NotFound";
-import AdminPanel from "./pages/AdminPanel";
-import LawEnforcement from "./pages/LawEnforcement";
-import ResetPassword from "./pages/ResetPassword";
 
+// Lazy-load heavy / less-frequently-hit routes to keep initial bundle small for high-traffic landing
+const Community = lazy(() => import("./pages/Community"));
+const Business = lazy(() => import("./pages/Business"));
+const HonkZone = lazy(() => import("./pages/HonkZone"));
+const WallOfShame = lazy(() => import("./pages/WallOfShame"));
+const PlateDetail = lazy(() => import("./pages/PlateDetail"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ClaimPlate = lazy(() => import("./pages/ClaimPlate"));
+const Fleet = lazy(() => import("./pages/Fleet"));
+const InsurancePortal = lazy(() => import("./pages/InsurancePortal"));
+const BatchScreening = lazy(() => import("./pages/BatchScreening"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const LawEnforcement = lazy(() => import("./pages/LawEnforcement"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 
-const queryClient = new QueryClient();
+// Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: (failureCount, err: any) => {
+        // Don't retry auth/permission errors
+        const code = err?.code || err?.status;
+        if (code === 401 || code === 403 || code === 404) return false;
+        return failureCount < 2;
+      },
+    },
+    mutations: { retry: 0 },
+  },
+});
+
+const RouteFallback = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
+    Loading…
+  </div>
+);
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/a-hole-patrol" element={<HonkZone />} />
-            <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
-            <Route path="/business" element={<Business />} />
-            <Route path="/plate/:plateNumber" element={<PlateDetail />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/claim" element={<ClaimPlate />} />
-            <Route path="/fleet" element={<Fleet />} />
-            <Route path="/map" element={<Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading map…</div>}><WatchMap /></Suspense>} />
-            <Route path="/insurance" element={<InsurancePortal />} />
-            <Route path="/screening" element={<BatchScreening />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/law-enforcement" element={<LawEnforcement />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/a-hole-patrol" element={<HonkZone />} />
+                <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
+                <Route path="/business" element={<Business />} />
+                <Route path="/plate/:plateNumber" element={<PlateDetail />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/claim" element={<ClaimPlate />} />
+                <Route path="/fleet" element={<Fleet />} />
+                <Route path="/map" element={<WatchMap />} />
+                <Route path="/insurance" element={<InsurancePortal />} />
+                <Route path="/screening" element={<BatchScreening />} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/law-enforcement" element={<LawEnforcement />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -97,7 +97,7 @@ const Business = () => {
         <div className="container text-center">
           <Badge variant="outline" className="rounded-full px-4 py-1.5 gap-1.5 text-xs">
             <Award className="h-3.5 w-3.5 text-primary" />
-            Wisconsin Certified Data Provider
+            Nationwide Certified Data Provider
           </Badge>
         </div>
       </footer>
