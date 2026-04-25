@@ -1,92 +1,107 @@
+## Privacy Principles (enforced everywhere)
 
+- Claiming a plate links a `user_id` to a plate **only** so notifications and disputes can be routed. It never publishes the owner's identity.
+- Reports are attached to the **plate string**, not to the claimant. No "violation history per person" is ever computed or stored.
+- Disputes store **only** the fields needed to action a post: `report_id`, `plate_number`, `reason` (enum), optional short note, status, timestamps. **No** owner name, address, license, VIN, insurance, or any PII.
+- Resolved/denied disputes are kept as moderation audit only (status + timestamps). The dispute row never exposes the claimant publicly — RLS limits visibility to the disputer and admins.
+- Posts (reports) are kept regardless of dispute outcome history. If a dispute is **upheld**, the post is removed; the dispute row stays for moderation accounting but contains no personal data.
 
-# Google Play Readiness for Plate N' State
+## Pricing & Eligibility
 
-## The Short Answer
-Google Play is the **easier** of the two stores. No Mac required, $25 one-time fee (vs Apple's $99/year), faster reviews (hours, not days), and Google is far more lenient about wrapped web apps. Same Capacitor setup as iOS — just skip the Apple-specific steps.
+- Each **claimed plate** gets **1 free dispute lifetime** (tracked per `claimed_plates` row).
+- After the free one is used, every additional dispute = **$5.99 one-time** (Stripe Embedded Checkout).
+- Only the user who currently owns the active claim on that plate can dispute reports against it.
+- A given report can only be disputed once per claimant (no resubmissions on denial — admin decision is final per post).
 
-## Two Paths to Play Store
+## Dispute Reasons (enum, no free-form PII)
 
-### Path A: Capacitor (recommended — same code as iOS path)
-Wrap the existing web app in a real native Android shell. This is what was outlined in the previous plan.
+- `not_my_vehicle` — wrong plate / different vehicle
+- `inaccurate_details` — wrong infraction, location, or time
+- `duplicate` — same incident already reported
+- `harassment_or_abuse` — targeted/abusive content
+- `other` — short note (max 280 chars, sanitized; user warned not to share personal info)
 
-### Path B: Trusted Web Activity (TWA / Bubblewrap)
-Google-only shortcut: take the deployed PWA URL and wrap it in a thin Android shell using Google's `bubblewrap` CLI. Faster to ship, but tied to your live URL — if `platenstate.lovable.app` goes down, the app shows an error. No iOS equivalent.
+## Database Changes (migration)
 
-Recommendation: **Path A (Capacitor)** so the same codebase ships to both stores later.
+New table `report_disputes`:
+```
+id uuid pk
+report_id uuid not null
+plate_number text not null
+disputer_id uuid not null         -- the claimant, never shown publicly
+reason text not null              -- enum above
+note text                         -- optional, 280 char cap, no PII guidance
+status text not null default 'pending'   -- pending | upheld | denied
+paid boolean not null default false
+stripe_session_id text
+created_at timestamptz default now()
+resolved_at timestamptz
+resolved_by uuid                  -- admin user_id
+unique (report_id, disputer_id)
+```
 
-## What We Build in Lovable (Path A)
+Add to `claimed_plates`:
+```
+free_dispute_used boolean not null default false
+```
 
-Same as the iOS plan, nothing Android-specific to add at the code level:
-1. Install Capacitor core + Android platform packages
-2. Create `capacitor.config.ts` (`appId: app.lovable.8d04b41e82334288b74dacb66aee32f6`, `appName: platenstate`)
-3. Swap web APIs for Capacitor plugins with web fallbacks:
-   - Camera (plate scanner) → `@capacitor/camera`
-   - Geolocation (report locations) → `@capacitor/geolocation`
-   - Push notifications → `@capacitor/push-notifications` (uses Firebase Cloud Messaging on Android)
-4. Splash screen + status bar plugins themed dark
-5. Deep-link config for Google OAuth return
-6. Add Supabase redirect URL for the Android scheme
+RLS:
+- SELECT: disputer (own rows) OR admin. **Public cannot read disputes.**
+- INSERT: only via SECURITY DEFINER RPC `submit_dispute(report_id, reason, note)` which:
+  1. Verifies caller owns the active claim on that plate.
+  2. Checks `free_dispute_used`. If free → insert dispute (paid=true since no charge), flip flag, return `{paid:false, dispute_id}`.
+  3. If not free → insert pending dispute (paid=false), return `{requires_payment:true, dispute_id}`. Frontend then opens Stripe Embedded Checkout with `dispute_id` in metadata.
+- UPDATE: admin only, via RPC `resolve_dispute(dispute_id, decision)` which sets status, `resolved_at`, `resolved_by`, and **if upheld**, deletes the underlying report.
+- DELETE: none.
 
-## What You Do Locally (one-time)
+Indexes: `(report_id)`, `(plate_number, status)`, `(disputer_id, created_at desc)`.
 
-Android needs **no Mac** — works on Windows, Linux, or macOS.
+## Stripe
 
-1. Export project to GitHub → `git pull` locally
-2. Install **Android Studio** (free, includes the Android SDK + emulator)
-3. `npm install`
-4. `npx cap add android`
-5. `npm run build && npx cap sync`
-6. `npx cap open android` → opens Android Studio
-7. In Android Studio:
-   - Set application ID, version code, version name
-   - Add app icon (Image Asset wizard handles all densities)
-   - Generate a **signing key** (`keytool` — one command, store the `.jks` file safely)
-   - **Build → Generate Signed Bundle → AAB** (Android App Bundle, required by Play)
-8. Upload the `.aab` to Play Console
+- Create one-time product `report_dispute` priced at `$5.99` (price_id `report_dispute_fee`) via `payments--create_product`.
+- Reuse `create-checkout` edge function — pass `priceId: "report_dispute_fee"` plus `metadata: { dispute_id, type: "dispute" }`.
+- Extend `payments-webhook` `checkout.session.completed` handler: if `metadata.type === "dispute"`, mark `report_disputes.paid = true, stripe_session_id = ...` for that `dispute_id`.
+- `verify_jwt = false` already set on these functions.
 
-## Play Console Setup
+## Frontend Changes
 
-1. Pay $25 one-time at [play.google.com/console](https://play.google.com/console)
-2. Create app listing:
-   - Title, short + full description
-   - Feature graphic (1024×500), phone screenshots (min 2), icon (512×512)
-   - Privacy policy URL (**required** — even more strictly enforced than Apple)
-   - Content rating questionnaire
-   - Data safety form (declare camera, location, account data usage)
-   - Target audience (likely 18+ given content)
-3. Upload signed AAB to **Internal testing** track first
-4. Add testers by email → they install via a Play Store link
-5. Promote to **Closed testing** → **Open testing** → **Production**
+**New component `DisputeDialog.tsx`** (opened from a report card on a plate the viewer has claimed):
+- Reason dropdown + optional note (with inline warning: "Do not include personal information").
+- Shows whether this dispute is free or $5.99, with a clear "Pay & Submit" vs "Submit Free Dispute" button.
+- On paid path, mounts `<StripeEmbeddedCheckout>` after RPC returns `requires_payment`.
 
-New developer accounts (since 2023) must complete **closed testing with 12+ testers for 14 days** before being allowed into production. Plan for ~2-3 weeks from first upload to public launch.
+**`PlateDetail.tsx`**: when the viewer is the active claimant, render a small "Dispute" button on each report card (hidden otherwise). Show a subtle "Free dispute available" or "$5.99 per dispute" hint.
 
-## Android-Specific Things to Watch
+**`Profile.tsx`**: new "My Disputes" section — list of own disputes (status badges only, no owner data shown for anyone), filterable by status.
 
-| Item | Detail |
-|---|---|
-| Permissions | Each native plugin auto-adds entries to `AndroidManifest.xml` (camera, location, notifications). Review before submission. |
-| Target SDK | Play requires apps target a recent Android API level (currently 34). Capacitor's Android template already does this. |
-| Data Safety form | Must declare every data type collected (email, plate photos, location). Mismatch = rejection. |
-| Content rating | "User-generated content" flag is required because of reports/comments. |
-| 64-bit requirement | AAB format handles this automatically. |
-| Google sign-in | Needs the SHA-1 of your signing key added to the Supabase Google OAuth config. |
+**`AdminPanel.tsx`**: new "Disputes" tab — pending queue with report preview, reason, optional note, and Uphold / Deny buttons. Uphold deletes the report; deny keeps it. Both record `resolved_at`/`resolved_by`.
 
-## Cost & Timeline
+**`NotificationBell.tsx`**: render dispute outcome notifications (`"Your dispute was upheld — the post has been removed"` / `"Your dispute was denied"`). Notifications carry **no** identifying info about the original reporter.
 
-- **Cost**: $25 one-time. No annual fee.
-- **Review time**: First submission 1-7 days. Updates often within hours.
-- **Closed-testing requirement**: 14 days + 12 testers for new accounts before production access.
-- **Realistic timeline**: ~3 weeks from "approve this plan" to live on Play Store.
+## Files
 
-## What I'll Do If You Approve
+**New**
+- `supabase/migrations/<ts>_report_disputes.sql` — table, RPCs, RLS, indexes, `claimed_plates.free_dispute_used`.
+- `src/components/DisputeDialog.tsx`
+- `src/hooks/useDisputeEligibility.ts`
 
-The Capacitor setup is identical for iOS and Android — installing it once gets you both. If you only want Android right now, we still install the same packages; you just skip `npx cap add ios` locally. Approve and I'll:
+**Edited**
+- `supabase/functions/create-checkout/index.ts` — accept dispute metadata.
+- `supabase/functions/payments-webhook/index.ts` — handle `type=dispute` completions.
+- `src/pages/PlateDetail.tsx` — owner-only dispute buttons.
+- `src/pages/Profile.tsx` — My Disputes section.
+- `src/pages/AdminPanel.tsx` — Disputes tab.
+- `src/components/NotificationBell.tsx` — dispute notification rendering.
 
-1. Install Capacitor + Android plugin packages
-2. Create `capacitor.config.ts`
-3. Convert plate scanner camera + geolocation to Capacitor plugins (with web fallbacks so the Lovable preview still works)
-4. Add splash, status bar, deep-link configs
-5. Update Supabase auth redirect URLs to include the app scheme
-6. Document the exact local Android Studio + Play Console steps in a `MOBILE.md` file in the repo
+## Order of Implementation
 
+1. Create Stripe product + price (`report_dispute_fee`, $5.99 one-time).
+2. Migration: table, RLS, RPCs, `claimed_plates.free_dispute_used`.
+3. Webhook + checkout edge function updates.
+4. `DisputeDialog` + eligibility hook.
+5. Wire into `PlateDetail` (owner-only buttons).
+6. Admin Disputes tab.
+7. Profile "My Disputes" section.
+8. Notification rendering.
+
+Approve to proceed?
