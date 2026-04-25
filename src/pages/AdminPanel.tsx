@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown } from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
