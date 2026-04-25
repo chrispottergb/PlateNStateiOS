@@ -156,6 +156,10 @@ const AdminPanel = () => {
             </TabsTrigger>
             <TabsTrigger value="users" className="flex-1">Users</TabsTrigger>
             <TabsTrigger value="reports" className="flex-1">Reports</TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 gap-1">
+              Disputes
+              {disputes.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{disputes.length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
           </TabsList>
 
