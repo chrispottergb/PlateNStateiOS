@@ -22,7 +22,7 @@ const FUNNY_TAGLINES = [
   "Passive-aggressive, but make it civic duty",
   "Your mom said use your blinker 💡",
   "Dashcam drama, crowdsourced 🍿",
-  "Making Wisconsin roads slightly less terrifying",
+  "Making American roads slightly less terrifying",
   "Report now, laugh later 😂",
 ];
 

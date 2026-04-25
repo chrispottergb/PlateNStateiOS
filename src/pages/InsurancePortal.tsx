@@ -214,7 +214,7 @@ const InsurancePortal = () => {
                         <div className="flex items-center justify-between mb-4">
                           <div>
                             <p className="font-mono text-2xl font-bold">{lookupResult.plate_number}</p>
-                            <p className="text-sm text-muted-foreground">Wisconsin License Plate</p>
+                            <p className="text-sm text-muted-foreground">US License Plate</p>
                           </div>
                           <div className="text-right">
                             <p className={`text-3xl font-bold ${riskColor(lookupResult.risk_score)}`}>{lookupResult.risk_score}</p>
