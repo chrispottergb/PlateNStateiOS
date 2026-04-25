@@ -59,7 +59,27 @@ const AdminPanel = () => {
       (vehicles || []).forEach((v: any) => { counts[v.company_id] = (counts[v.company_id] || 0) + 1; });
       setFleetCounts(counts);
     }
+    // Pending paid disputes
+    const { data: dispRes } = await supabase
+      .from("report_disputes")
+      .select("id, report_id, plate_number, reason, note, status, paid, created_at")
+      .eq("paid", true)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    setDisputes(dispRes || []);
+
     setLoading(false);
+  };
+
+  const handleResolveDispute = async (id: string, decision: "upheld" | "denied") => {
+    setUpdating(id);
+    const { error } = await supabase.rpc("resolve_dispute", { p_dispute_id: id, p_decision: decision });
+    if (error) toast.error("Failed: " + error.message);
+    else {
+      toast.success(decision === "upheld" ? "Dispute upheld — post removed" : "Dispute denied");
+      setDisputes((prev) => prev.filter((d) => d.id !== id));
+    }
+    setUpdating(null);
   };
 
   const handleInsuranceApproval = async (id: string, approved: boolean) => {
