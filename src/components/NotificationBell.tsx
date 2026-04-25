@@ -36,11 +36,13 @@ const NotificationBell = () => {
             <p className="text-sm text-muted-foreground text-center py-6">No notifications yet</p>
           ) : (
             notifications.map((n) => {
+              const isDispute = n.infraction === "dispute_upheld" || n.infraction === "dispute_denied";
               const inf = INFRACTIONS.find((i) => i.type === n.infraction);
+              const linkTo = isDispute ? "/profile" : `/plate/${encodeURIComponent(n.plate_number)}`;
               return (
                 <Link
                   key={n.id}
-                  to={`/plate/${encodeURIComponent(n.plate_number)}`}
+                  to={linkTo}
                   className={`block px-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-colors ${
                     !n.read ? "bg-primary/5" : ""
                   }`}
@@ -48,13 +50,23 @@ const NotificationBell = () => {
                   <div className="flex items-start gap-2">
                     <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? "bg-primary" : "bg-transparent"}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm">
-                        <span className="font-mono font-bold">{n.plate_number}</span>{" "}
-                        was reported for{" "}
-                        <span className="font-medium">{inf?.label || n.infraction.replace(/_/g, " ")}</span>
-                      </p>
+                      {isDispute ? (
+                        <p className="text-sm">
+                          Your dispute for <span className="font-mono font-bold">{n.plate_number}</span> was{" "}
+                          <span className={`font-medium ${n.infraction === "dispute_upheld" ? "text-emerald-600" : "text-destructive"}`}>
+                            {n.infraction === "dispute_upheld" ? "upheld — the post has been removed" : "denied"}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-sm">
+                          <span className="font-mono font-bold">{n.plate_number}</span>{" "}
+                          was reported for{" "}
+                          <span className="font-medium">{inf?.label || n.infraction.replace(/_/g, " ")}</span>
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {n.location} · {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        {!isDispute && <>{n.location} · </>}
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                       </p>
                     </div>
                   </div>
