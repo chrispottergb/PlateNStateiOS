@@ -532,16 +532,24 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
                       Detecting your location…
                     </div>
                   ) : (
-                    <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger className="mt-1.5 rounded-lg">
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WISCONSIN_CITIES.map(city => (
-                          <SelectItem key={city} value={`${city}, WI`}>{city}, WI</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-1.5 grid grid-cols-[110px_1fr] gap-2">
+                      <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                        <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {US_STATES.map(s => (
+                            <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={location} onValueChange={setLocation}>
+                        <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent>
+                          {getStateByCode(stateCode).cities.map(city => (
+                            <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
                 </div>
                 <div className="rounded-xl glass p-3 flex items-center justify-between">
