@@ -138,7 +138,7 @@ const WatchMap = () => {
               <AlertTriangle className="h-5 w-5 text-destructive" />
               Neighborhood Watch
             </h1>
-            <p className="text-xs text-muted-foreground">Real-time incident reports across Wisconsin</p>
+            <p className="text-xs text-muted-foreground">Real-time incident reports across all 50 US states</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={fetchReports} className="rounded-full">
@@ -153,7 +153,7 @@ const WatchMap = () => {
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-            placeholder="Search Wisconsin plates..."
+            placeholder="Search plates across all 50 states..."
             className="pl-9 rounded-full font-mono"
             maxLength={8}
           />
@@ -194,7 +194,7 @@ const WatchMap = () => {
         <div className="absolute top-3 right-3 z-[1000]">
           <Badge className="bg-emerald-500/90 text-white shadow-md text-xs px-2.5 py-1 rounded-full gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-            Wisconsin Active
+            Live Across 50 States
           </Badge>
         </div>
 
