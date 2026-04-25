@@ -247,6 +247,14 @@ const PlateDetail = () => {
           />
         </div>
       </div>
+      {disputeReportId && (
+        <DisputeReportDialog
+          open={!!disputeReportId}
+          onClose={() => setDisputeReportId(null)}
+          reportId={disputeReportId}
+          plateNumber={plate.plateNumber}
+        />
+      )}
     </div>
   );
 };
