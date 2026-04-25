@@ -13,7 +13,7 @@ const ALLOWED_PRICES = new Set([
   "plate_total_block_monthly",
 ]);
 
-const supabaseAdmin = createClient(
+const supabaseAdmin: any = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
