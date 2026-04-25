@@ -26,6 +26,25 @@ const PlateDetail = () => {
   const decoded = decodeURIComponent(plateNumber || "");
   const { plate, reports, loading } = usePlateDetail(decoded);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [isOwner, setIsOwner] = useState(false);
+  const [disputeReportId, setDisputeReportId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !decoded) { setIsOwner(false); return; }
+      const { data } = await supabase
+        .from("claimed_plates")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("plate_number", decoded.toUpperCase())
+        .eq("paid", true)
+        .maybeSingle();
+      if (active) setIsOwner(!!data);
+    })();
+    return () => { active = false; };
+  }, [decoded]);
 
   const sortedReports = [...reports].sort((a, b) =>
     sortOrder === "newest"
