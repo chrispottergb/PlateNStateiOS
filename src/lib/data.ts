@@ -41,6 +41,7 @@ export const BADGES: BadgeDef[] = [
   { type: "streak_7", label: "7-Day Streak", description: "Reported 7 days in a row", icon: "Flame", threshold: 7 },
 ];
 
+// Kept for backwards compatibility — new code should use US_STATES from src/lib/usStates.ts
 export const WISCONSIN_CITIES = [
   "Milwaukee", "Madison", "Green Bay", "Kenosha", "Racine",
   "Appleton", "Waukesha", "Oshkosh", "Eau Claire", "Janesville",
