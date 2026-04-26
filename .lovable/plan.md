@@ -1,107 +1,77 @@
-## Privacy Principles (enforced everywhere)
+## Production Hardening II
 
-- Claiming a plate links a `user_id` to a plate **only** so notifications and disputes can be routed. It never publishes the owner's identity.
-- Reports are attached to the **plate string**, not to the claimant. No "violation history per person" is ever computed or stored.
-- Disputes store **only** the fields needed to action a post: `report_id`, `plate_number`, `reason` (enum), optional short note, status, timestamps. **No** owner name, address, license, VIN, insurance, or any PII.
-- Resolved/denied disputes are kept as moderation audit only (status + timestamps). The dispute row never exposes the claimant publicly — RLS limits visibility to the disputer and admins.
-- Posts (reports) are kept regardless of dispute outcome history. If a dispute is **upheld**, the post is removed; the dispute row stays for moderation accounting but contains no personal data.
+A single coherent pass covering rate limiting, multi-state RPC, materialized read view, a health endpoint, security headers, captcha + Sentry stubs, and a k6 load-test harness. Items that require a Lovable Cloud / external provider to do real work (auth password rules, pg_cron, hCaptcha, Sentry, Cloudflare/Vercel publish target, k6 VPS) ship as code + documented click-paths so they "turn on" the moment credentials are pasted.
 
-## Pricing & Eligibility
+### 1. Auth hardening (Lovable Cloud)
+Try to enable HIBP leaked-password protection, min length 10, require ≥1 number via the Cloud auth config tool. Whatever can't be set programmatically gets the exact dashboard click-path written into `SCALING_TODO.md` (Cloud → Users → Auth Settings → Password rules).
 
-- Each **claimed plate** gets **1 free dispute lifetime** (tracked per `claimed_plates` row).
-- After the free one is used, every additional dispute = **$5.99 one-time** (Stripe Embedded Checkout).
-- Only the user who currently owns the active claim on that plate can dispute reports against it.
-- A given report can only be disputed once per claimant (no resubmissions on denial — admin decision is final per post).
+### 2. Connection pooling audit
+Edge functions currently use `SUPABASE_URL` + service role via the JS SDK (HTTP PostgREST), so port 5432/6543 doesn't apply to them. Document this in `SCALING_TODO.md` and add the env-var pattern (`SUPABASE_DB_POOL_URL=postgres://...:6543/postgres?pgbouncer=true`) for any future direct-pg use, plus confirmation that all current functions go through PostgREST.
 
-## Dispute Reasons (enum, no free-form PII)
+### 3. Server-side rate limiting (Postgres token bucket)
+New migration:
+- `rate_limits(key text PK, tokens int, last_refill timestamptz)`
+- `check_rate_limit(p_key text, p_capacity int, p_refill_per_sec numeric) RETURNS boolean` — atomic UPSERT, refills tokens since last_refill, decrements one, returns false if empty.
 
-- `not_my_vehicle` — wrong plate / different vehicle
-- `inaccurate_details` — wrong infraction, location, or time
-- `duplicate` — same incident already reported
-- `harassment_or_abuse` — targeted/abusive content
-- `other` — short note (max 280 chars, sanitized; user warned not to share personal info)
+Wire into:
+- `spend_credit_on_report`: `reporter:<uid>` (10/min) and `report_ip:<ip>` (60/min). Adds `p_ip text DEFAULT NULL`.
+- `submit_dispute`: `dispute:<uid>` (5/min).
+- `scan-plate` and `process-plate-upload` edge functions: `scan_ip:<ip>` / `upload_ip:<ip>` (60/min) using `x-forwarded-for` first hop. Reject with HTTP 429 + `{ error: "Too many requests, slow down" }`.
 
-## Database Changes (migration)
+ReportModal passes IP via a small `getClientIp()` helper (best-effort from a public IP echo; falls back to null and lets the per-user limit do the work).
 
-New table `report_disputes`:
-```
-id uuid pk
-report_id uuid not null
-plate_number text not null
-disputer_id uuid not null         -- the claimant, never shown publicly
-reason text not null              -- enum above
-note text                         -- optional, 280 char cap, no PII guidance
-status text not null default 'pending'   -- pending | upheld | denied
-paid boolean not null default false
-stripe_session_id text
-created_at timestamptz default now()
-resolved_at timestamptz
-resolved_by uuid                  -- admin user_id
-unique (report_id, disputer_id)
-```
+### 4. Multi-state RPC follow-up
+Extend `spend_credit_on_report` with `p_state text DEFAULT 'WI'`, validate against `^[A-Z]{2}$` and a 51-entry whitelist (50 states + DC), insert into `reports.state`. `ReportModal` already has `stateCode` — pass it in.
 
-Add to `claimed_plates`:
-```
-free_dispute_used boolean not null default false
-```
+### 5. Wall of Shame materialized view
+- `wall_of_shame_mv` (state, plate_number, report_count, total_score, last_reported_at, top_infraction) with unique index on (state, plate_number).
+- `refresh_wall_of_shame()` SECURITY DEFINER → `REFRESH MATERIALIZED VIEW CONCURRENTLY`.
+- Try to enable `pg_cron` + `pg_net` and schedule every 5 min; if not available, document the exact `cron.schedule(...)` snippet in `SCALING_TODO.md`.
+- New `useWallOfShame(state)` hook reads from the MV; `WallOfShame.tsx` uses it instead of `usePlateRecords` aggregation.
 
-RLS:
-- SELECT: disputer (own rows) OR admin. **Public cannot read disputes.**
-- INSERT: only via SECURITY DEFINER RPC `submit_dispute(report_id, reason, note)` which:
-  1. Verifies caller owns the active claim on that plate.
-  2. Checks `free_dispute_used`. If free → insert dispute (paid=true since no charge), flip flag, return `{paid:false, dispute_id}`.
-  3. If not free → insert pending dispute (paid=false), return `{requires_payment:true, dispute_id}`. Frontend then opens Stripe Embedded Checkout with `dispute_id` in metadata.
-- UPDATE: admin only, via RPC `resolve_dispute(dispute_id, decision)` which sets status, `resolved_at`, `resolved_by`, and **if upheld**, deletes the underlying report.
-- DELETE: none.
+### 6. Health endpoint
+`supabase/functions/health/index.ts` — `select 1` via service client, returns `{ ok, ts, db: 'up'|'down' }`. `verify_jwt = false` block in `supabase/config.toml`. URL documented in `SCALING_TODO.md`.
 
-Indexes: `(report_id)`, `(plate_number, status)`, `(disputer_id, created_at desc)`.
+### 7. Security headers
+Both `_headers` (Cloudflare Pages / Netlify) and `vercel.json` at repo root with the full CSP / HSTS / XFO / Permissions-Policy / COOP set. `SCALING_TODO.md` notes that Lovable Cloud's published site doesn't currently honor either file, so these are for users self-hosting on Vercel/Netlify/Cloudflare; on `lovable.app` the meta-tag subset in `index.html` remains the live policy.
 
-## Stripe
+### 8. Captcha hook (graceful no-op)
+- `src/hooks/useCaptcha.ts` returning `{ token, refresh, ready }`. If `VITE_HCAPTCHA_SITE_KEY` is unset, `ready=true` and `token=null` (no-op).
+- Wired into `Auth.tsx` signup and `ReportModal` submit; both pass the (possibly null) token to the RPC/edge call.
+- Edge functions check `HCAPTCHA_SECRET`; if unset → log warning + skip; if set → POST to hCaptcha verify endpoint and reject on failure.
 
-- Create one-time product `report_dispute` priced at `$5.99` (price_id `report_dispute_fee`) via `payments--create_product`.
-- Reuse `create-checkout` edge function — pass `priceId: "report_dispute_fee"` plus `metadata: { dispute_id, type: "dispute" }`.
-- Extend `payments-webhook` `checkout.session.completed` handler: if `metadata.type === "dispute"`, mark `report_disputes.paid = true, stripe_session_id = ...` for that `dispute_id`.
-- `verify_jwt = false` already set on these functions.
+### 9. Sentry stubs
+- `bun add @sentry/react`.
+- `main.tsx` calls `Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN })` only when DSN present.
+- `ErrorBoundary.componentDidCatch` calls `Sentry.captureException` if initialized.
+- Edge-function helper `_shared/sentry.ts` dynamic-imports `@sentry/deno` only when `SENTRY_DSN` is set; `scan-plate` and `process-plate-upload` use it in their catch blocks.
 
-## Frontend Changes
+### 10. k6 load test
+- `loadtest/scaling.js` — 90/10 read/write, scenarios hitting `/`, `/a-hole-patrol`, plate detail (random sampled), recent-reports REST. Stages match the spec (1k/10k/100k VUs).
+- `loadtest/README.md` — install, env vars (`BASE_URL`, `SUPABASE_ANON_KEY`), how to run from a Hetzner/DO VPS with at least 4 vCPU, why a laptop will melt at 100k VUs.
 
-**New component `DisputeDialog.tsx`** (opened from a report card on a plate the viewer has claimed):
-- Reason dropdown + optional note (with inline warning: "Do not include personal information").
-- Shows whether this dispute is free or $5.99, with a clear "Pay & Submit" vs "Submit Free Dispute" button.
-- On paid path, mounts `<StripeEmbeddedCheckout>` after RPC returns `requires_payment`.
+### Verification
+After all edits: `bun tsc --noEmit` and `bun run build`. Fix any failures before finishing.
 
-**`PlateDetail.tsx`**: when the viewer is the active claimant, render a small "Dispute" button on each report card (hidden otherwise). Show a subtle "Free dispute available" or "$5.99 per dispute" hint.
+### Technical notes
 
-**`Profile.tsx`**: new "My Disputes" section — list of own disputes (status badges only, no owner data shown for anyone), filterable by status.
+- **Migration ordering**: one migration creates `rate_limits` + `check_rate_limit` first, then function replacements (`spend_credit_on_report`, `submit_dispute`, MV + refresh fn) reference it.
+- **Dropping the existing `spend_credit_on_report` overload**: PG function overloads resolve by signature, so adding `p_state` to the 12-arg version is a `CREATE OR REPLACE` — back-compat preserved because `p_state` defaults to `'WI'`.
+- **`REFRESH MATERIALIZED VIEW CONCURRENTLY`** requires the unique index — included.
+- **IP from x-forwarded-for**: take the first comma-separated entry, trim, fallback to `req.headers.get("cf-connecting-ip")`, then `null`.
+- **hCaptcha edge verification** uses Deno `fetch` to `https://hcaptcha.com/siteverify` with `URLSearchParams`.
+- **`@sentry/deno`** is imported via `https://esm.sh/@sentry/deno` only when DSN is present, so cold start cost is zero in the unconfigured state.
 
-**`AdminPanel.tsx`**: new "Disputes" tab — pending queue with report preview, reason, optional note, and Uphold / Deny buttons. Uphold deletes the report; deny keeps it. Both record `resolved_at`/`resolved_by`.
+### What will be blocked on you (summary)
 
-**`NotificationBell.tsx`**: render dispute outcome notifications (`"Your dispute was upheld — the post has been removed"` / `"Your dispute was denied"`). Notifications carry **no** identifying info about the original reporter.
+| Item | What I need from you | Where to put it |
+|---|---|---|
+| HIBP password rules | Toggle in Cloud → Users → Auth Settings (if `configure_auth` can't set it) | Dashboard |
+| Sentry | DSN | `VITE_SENTRY_DSN` (frontend env), `SENTRY_DSN` (edge secret) |
+| hCaptcha | Site key + secret | `VITE_HCAPTCHA_SITE_KEY` (frontend env), `HCAPTCHA_SECRET` (edge secret) |
+| Security headers actually enforced | Move publish to Vercel/Netlify/Cloudflare or front `lovable.app` with Cloudflare | DNS / hosting choice |
+| FCM push | Server key + sender ID + Capacitor config | `FCM_SERVER_KEY`, `FCM_SENDER_ID` |
+| k6 100k VU run | A VPS (≥4 vCPU, 8 GB) | Run `BASE_URL=… k6 run loadtest/scaling.js` |
+| pg_cron MV refresh | If extension not enabled, run snippet from `SCALING_TODO.md` | Dashboard SQL editor |
 
-## Files
-
-**New**
-- `supabase/migrations/<ts>_report_disputes.sql` — table, RPCs, RLS, indexes, `claimed_plates.free_dispute_used`.
-- `src/components/DisputeDialog.tsx`
-- `src/hooks/useDisputeEligibility.ts`
-
-**Edited**
-- `supabase/functions/create-checkout/index.ts` — accept dispute metadata.
-- `supabase/functions/payments-webhook/index.ts` — handle `type=dispute` completions.
-- `src/pages/PlateDetail.tsx` — owner-only dispute buttons.
-- `src/pages/Profile.tsx` — My Disputes section.
-- `src/pages/AdminPanel.tsx` — Disputes tab.
-- `src/components/NotificationBell.tsx` — dispute notification rendering.
-
-## Order of Implementation
-
-1. Create Stripe product + price (`report_dispute_fee`, $5.99 one-time).
-2. Migration: table, RLS, RPCs, `claimed_plates.free_dispute_used`.
-3. Webhook + checkout edge function updates.
-4. `DisputeDialog` + eligibility hook.
-5. Wire into `PlateDetail` (owner-only buttons).
-6. Admin Disputes tab.
-7. Profile "My Disputes" section.
-8. Notification rendering.
-
-Approve to proceed?
+Final commit message: **"Production hardening II: rate limiting, p_state, materialized view, health, headers, captcha+sentry stubs"**.
