@@ -289,6 +289,24 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          key: string
+          last_refill: string
+          tokens: number
+        }
+        Insert: {
+          key: string
+          last_refill?: string
+          tokens: number
+        }
+        Update: {
+          key?: string
+          last_refill?: string
+          tokens?: number
+        }
+        Relationships: []
+      }
       report_comments: {
         Row: {
           content: string
@@ -795,9 +813,24 @@ export type Database = {
         }
         Relationships: []
       }
+      wall_of_shame_mv: {
+        Row: {
+          last_reported_at: string | null
+          plate_number: string | null
+          report_count: number | null
+          state: string | null
+          top_infraction: string | null
+          total_score: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
+      check_rate_limit: {
+        Args: { p_capacity: number; p_key: string; p_refill_per_sec: number }
+        Returns: boolean
+      }
       dispute_eligibility: { Args: { p_report_id: string }; Returns: Json }
       get_homepage_stats: { Args: never; Returns: Json }
       has_role: {
@@ -815,6 +848,7 @@ export type Database = {
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       plate_blacklist_tier: { Args: { p_plate: string }; Returns: string }
       plate_display: { Args: { p_plate: string }; Returns: string }
+      refresh_wall_of_shame: { Args: never; Returns: undefined }
       resolve_dispute: {
         Args: { p_decision: string; p_dispute_id: string }
         Returns: undefined
@@ -848,6 +882,25 @@ export type Database = {
               p_location: string
               p_longitude?: number
               p_plate_number: string
+              p_vehicle_color?: string
+              p_vehicle_features?: string[]
+              p_vehicle_make?: string
+              p_vehicle_model?: string
+              p_vehicle_type?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_comment?: string
+              p_driver_gender?: string
+              p_infraction: string
+              p_ip?: string
+              p_latitude?: number
+              p_location: string
+              p_longitude?: number
+              p_plate_number: string
+              p_state?: string
               p_vehicle_color?: string
               p_vehicle_features?: string[]
               p_vehicle_make?: string
