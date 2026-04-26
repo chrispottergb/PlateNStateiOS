@@ -833,6 +833,17 @@ export type Database = {
       }
       dispute_eligibility: { Args: { p_report_id: string }; Returns: Json }
       get_homepage_stats: { Args: never; Returns: Json }
+      get_wall_of_shame: {
+        Args: { p_limit?: number; p_state?: string }
+        Returns: {
+          last_reported_at: string
+          plate_number: string
+          report_count: number
+          state: string
+          top_infraction: string
+          total_score: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
