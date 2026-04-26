@@ -197,6 +197,8 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       if (error) {
         if (error.message.includes("Insufficient credits")) {
           toast.error("Not enough coins!", { description: "You've used all your monthly coins. Credits refresh on the 1st." });
+        } else if (error.message.includes("DUPLICATE_REPORT")) {
+          toast.error("Already reported", { description: "You've already reported this plate in the last 24 hours. Try again tomorrow." });
         } else {
           toast.error("Failed to submit report", { description: error.message });
         }
