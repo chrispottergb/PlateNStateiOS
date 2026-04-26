@@ -8,7 +8,9 @@ import { useCallback, useEffect, useState } from "react";
 // To enable: set VITE_HCAPTCHA_SITE_KEY (frontend) and HCAPTCHA_SECRET (edge)
 // and replace the stub below with @hcaptcha/react-hcaptcha invocation.
 
-const SITE_KEY = (import.meta.env.VITE_HCAPTCHA_SITE_KEY as string | undefined) || "";
+const SITE_KEY =
+  (import.meta.env.VITE_HCAPTCHA_SITE_KEY as string | undefined) ||
+  "10f81642-efc0-4f90-b060-2c125fd6125a";
 
 export function useCaptcha() {
   const [token, setToken] = useState<string | null>(null);
