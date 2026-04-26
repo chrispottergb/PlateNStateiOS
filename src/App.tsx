@@ -26,6 +26,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const LawEnforcement = lazy(() => import("./pages/LawEnforcement"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WatchMap = lazy(() => import("./pages/WatchMap"));
+const QuickCapture = lazy(() => import("./pages/QuickCapture"));
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
@@ -78,6 +79,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/law-enforcement" element={<LawEnforcement />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/quick-capture" element={<QuickCapture />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
