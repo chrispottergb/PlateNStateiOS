@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { captureException, verifyCaptcha, getClientIp } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +16,29 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { image } = await req.json();
+    // Per-IP rate limit: 60/min via Postgres token bucket
+    const ip = getClientIp(req);
+    if (ip) {
+      const url = Deno.env.get("SUPABASE_URL")!;
+      const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const admin = createClient(url, key);
+      const { data: ok } = await admin.rpc("check_rate_limit", {
+        p_key: `scan_ip:${ip}`, p_capacity: 60, p_refill_per_sec: 1,
+      } as any);
+      if (ok === false) {
+        return new Response(JSON.stringify({ error: "Too many requests, slow down" }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    const body = await req.json();
+    const { image, captcha_token } = body;
+    if (!(await verifyCaptcha(captcha_token))) {
+      return new Response(JSON.stringify({ error: "Captcha failed" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!image || typeof image !== "string") {
       return new Response(JSON.stringify({ error: "Missing image data" }), {
         status: 400,
@@ -126,6 +149,7 @@ Deno.serve(async (req) => {
     }
   } catch (err: any) {
     console.error("scan-plate error:", err);
+    await captureException(err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

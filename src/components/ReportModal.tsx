@@ -16,6 +16,8 @@ import { AlertTriangle, ArrowLeft, ArrowRight, Check, CarFront, Gauge, CircleAle
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCaptcha } from "@/hooks/useCaptcha";
+import { getClientIp } from "@/lib/clientIp";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-6 w-6" />,
@@ -176,10 +178,14 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     );
   };
 
+  const captcha = useCaptcha();
   const handleSubmit = async () => {
     if (!user || !infraction) return;
     setSubmitting(true);
     try {
+      const ip = await getClientIp();
+      // captcha.token is null when no site key configured (graceful no-op)
+      void captcha.token;
       const { error } = await supabase.rpc("spend_credit_on_report", {
         p_plate_number: plateNumber,
         p_infraction: infraction,
@@ -193,12 +199,18 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
         p_driver_gender: driverGenderFemale ? "female" : null,
         p_comment: comment || null,
+        p_state: stateCode,
+        p_ip: ip,
       } as any);
       if (error) {
         if (error.message.includes("Insufficient credits")) {
           toast.error("Not enough coins!", { description: "You've used all your monthly coins. Credits refresh on the 1st." });
         } else if (error.message.includes("DUPLICATE_REPORT")) {
           toast.error("Already reported", { description: "You've already reported this plate in the last 24 hours. Try again tomorrow." });
+        } else if (error.message.includes("RATE_LIMITED")) {
+          toast.error("Too many requests, slow down", { description: "Please wait a moment before submitting again." });
+        } else if (error.message.includes("INVALID_STATE")) {
+          toast.error("Invalid state", { description: "Pick a valid US state for the report." });
         } else {
           toast.error("Failed to submit report", { description: error.message });
         }

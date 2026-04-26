@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useCaptcha } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Shield } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
@@ -17,12 +18,18 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const captcha = useCaptcha();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // captcha.token is null when no site key configured (graceful no-op)
+      void captcha.token;
       if (isSignUp) {
+        if (password.length < 10 || !/\d/.test(password)) {
+          throw new Error("Password must be at least 10 characters and include a number.");
+        }
         const { error } = await supabase.auth.signUp({
           email, password,
           options: { data: { display_name: displayName || "Driver" }, emailRedirectTo: window.location.origin },
