@@ -3,7 +3,9 @@ import * as Sentry from "@sentry/react";
 import App from "./App.tsx";
 import "./index.css";
 
-const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+const SENTRY_DSN =
+  (import.meta.env.VITE_SENTRY_DSN as string | undefined) ||
+  "https://1d165f2133f4bf6041e6f57df4d5e85a@o4511284186251264.ingest.us.sentry.io/4511284289536000";
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
