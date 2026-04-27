@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReportModal from "@/components/ReportModal";
+import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 
 /**
  * /quick-capture
@@ -21,6 +22,7 @@ const QuickCapture = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const reportTriggerRef = useRef<HTMLButtonElement>(null);
   const scanningRef = useRef(false);
+  const captcha = useCaptcha();
 
   const [ready, setReady] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -74,8 +76,12 @@ const QuickCapture = () => {
       ctx.drawImage(video, 0, 0);
       const base64 = canvas.toDataURL("image/jpeg", 0.85);
 
+      const captchaToken = await captcha.execute();
+      if (captcha.enabled && !captchaToken) {
+        throw new Error("Captcha verification failed. Please try again.");
+      }
       const { data, error } = await supabase.functions.invoke("scan-plate", {
-        body: { image: base64 },
+        body: { image: base64, captcha_token: captchaToken },
       });
       if (error) throw error;
 
@@ -100,7 +106,7 @@ const QuickCapture = () => {
       scanningRef.current = false;
       setScanning(false);
     }
-  }, []);
+  }, [captcha]);
 
   // Mount: start camera
   useEffect(() => {
