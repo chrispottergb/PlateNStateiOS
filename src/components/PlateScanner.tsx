@@ -121,6 +121,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
         onChange={handleFileUpload}
       />
       <canvas ref={canvasRef} className="hidden" />
+      <CaptchaWidget captcha={captcha} />
 
       {cameraActive ? (
         <div className="relative rounded-lg overflow-hidden border border-border bg-black">
