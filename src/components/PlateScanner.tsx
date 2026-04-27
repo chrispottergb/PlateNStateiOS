@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 
 interface PlateScannerProps {
   onResult: (plateNumber: string, state: string | null) => void;
@@ -18,12 +19,17 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const captcha = useCaptcha();
 
   const processImage = useCallback(async (base64: string) => {
     setScanning(true);
     try {
+      const captchaToken = await captcha.execute();
+      if (captcha.enabled && !captchaToken) {
+        throw new Error("Captcha verification failed. Please try again.");
+      }
       const { data, error } = await supabase.functions.invoke("scan-plate", {
-        body: { image: base64 },
+        body: { image: base64, captcha_token: captchaToken },
       });
 
       if (error) throw error;
@@ -45,7 +51,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       setPreview(null);
       stopCamera();
     }
-  }, [onResult]);
+  }, [onResult, captcha]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,6 +121,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
         onChange={handleFileUpload}
       />
       <canvas ref={canvasRef} className="hidden" />
+      <CaptchaWidget captcha={captcha} />
 
       {cameraActive ? (
         <div className="relative rounded-lg overflow-hidden border border-border bg-black">

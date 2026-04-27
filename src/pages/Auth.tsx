@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useCaptcha } from "@/hooks/useCaptcha";
+import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Shield } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
@@ -24,20 +24,30 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // captcha.token is null when no site key configured (graceful no-op)
-      void captcha.token;
+      // Run captcha challenge (resolves null if not enabled)
+      const captchaToken = await captcha.execute();
+      if (captcha.enabled && !captchaToken) {
+        throw new Error("Captcha verification failed. Please try again.");
+      }
       if (isSignUp) {
         if (password.length < 10 || !/\d/.test(password)) {
           throw new Error("Password must be at least 10 characters and include a number.");
         }
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { data: { display_name: displayName || "Driver" }, emailRedirectTo: window.location.origin },
+          options: {
+            data: { display_name: displayName || "Driver" },
+            emailRedirectTo: window.location.origin,
+            captchaToken: captchaToken ?? undefined,
+          },
         });
         if (error) throw error;
         toast({ title: "Check your email", description: "We sent you a verification link to confirm your account." });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email, password,
+          options: { captchaToken: captchaToken ?? undefined },
+        });
         if (error) throw error;
         navigate("/");
       }
@@ -87,6 +97,7 @@ const Auth = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <CaptchaWidget captcha={captcha} />
             {isSignUp && (
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
