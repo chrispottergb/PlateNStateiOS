@@ -81,6 +81,7 @@ const App = () => (
                 <Route path="/law-enforcement" element={<LawEnforcement />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/quick-capture" element={<QuickCapture />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
