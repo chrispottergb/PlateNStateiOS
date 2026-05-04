@@ -27,6 +27,7 @@ const LawEnforcement = lazy(() => import("./pages/LawEnforcement"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 const QuickCapture = lazy(() => import("./pages/QuickCapture"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
