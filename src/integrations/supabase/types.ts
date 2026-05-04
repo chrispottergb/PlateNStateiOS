@@ -826,6 +826,7 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_old_reports: { Args: never; Returns: undefined }
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
       check_rate_limit: {
         Args: { p_capacity: number; p_key: string; p_refill_per_sec: number }
@@ -859,6 +860,8 @@ export type Database = {
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       plate_blacklist_tier: { Args: { p_plate: string }; Returns: string }
       plate_display: { Args: { p_plate: string }; Returns: string }
+      purge_old_notifications: { Args: never; Returns: undefined }
+      purge_stale_rate_limits: { Args: never; Returns: undefined }
       refresh_wall_of_shame: { Args: never; Returns: undefined }
       resolve_dispute: {
         Args: { p_decision: string; p_dispute_id: string }
