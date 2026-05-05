@@ -9,7 +9,12 @@ const SENTRY_DSN =
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+    ],
     tracesSampleRate: 0.1,
+    // Only propagate trace headers to our own Supabase project — not third-party CDNs
+    tracePropagationTargets: [/^https:\/\/diaydeyqbcseufpbwpki\.supabase\.co/],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
   });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface WallOfShameRow {
@@ -10,33 +10,21 @@ export interface WallOfShameRow {
   top_infraction: string | null;
 }
 
-/**
- * Reads from the `wall_of_shame_mv` materialized view via the
- * `get_wall_of_shame` RPC (refreshed every 5 min by pg_cron).
- */
+// MV refreshes every 5 min via pg_cron — cache client-side for the same window
+// so 1000 concurrent users don't fire 1000 identical DB queries per page load.
 export function useWallOfShame(state?: string | null, limit = 20) {
-  const [rows, setRows] = useState<WallOfShameRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["wall-of-shame", state ?? null, limit],
+    queryFn: async () => {
       const { data, error } = await supabase.rpc("get_wall_of_shame", {
         p_state: state ?? null,
         p_limit: limit,
       } as any);
-      if (cancelled) return;
-      if (error) {
-        console.error("[useWallOfShame]", error);
-        setRows([]);
-      } else {
-        setRows((data as WallOfShameRow[]) ?? []);
-      }
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [state, limit]);
+      if (error) throw error;
+      return (data as WallOfShameRow[]) ?? [];
+    },
+    staleTime: 5 * 60_000,
+  });
 
-  return { rows, loading };
+  return { rows: data ?? [], loading: isLoading };
 }

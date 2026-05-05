@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
+import { isNative, pickImageFromLibrary } from "@/lib/native";
 
 interface PlateScannerProps {
   onResult: (plateNumber: string, state: string | null) => void;
@@ -71,6 +72,17 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
     reader.readAsDataURL(file);
     e.target.value = "";
   };
+
+  const handleNativePick = useCallback(async () => {
+    try {
+      const base64 = await pickImageFromLibrary();
+      if (!base64) return;
+      setPreview(base64);
+      processImage(base64);
+    } catch (err: any) {
+      toast.error("Could not open photo library", { description: err.message });
+    }
+  }, [processImage]);
 
   const startCamera = async () => {
     try {
@@ -179,7 +191,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
           <Button
             variant="outline"
             className="flex-1 h-11 rounded-lg"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={isNative ? handleNativePick : () => fileInputRef.current?.click()}
           >
             <Upload className="h-4 w-4 mr-2" />
             Upload Photo

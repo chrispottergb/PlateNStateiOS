@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { getPosition } from "@/lib/native";
 import { Loader2, MapPin, Pencil, Car, Palette, Wrench, User, Zap } from "lucide-react";
 import PlateScanner from "@/components/PlateScanner";
 import { useNavigate } from "react-router-dom";
@@ -157,20 +158,18 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     }
   };
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) return;
+  const detectLocation = useCallback(async () => {
     setGeoStatus("loading");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
-        setGeoStatus("done");
-        reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-      },
-      () => setGeoStatus("denied"),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
+    const pos = await getPosition();
+    if (pos) {
+      setLatitude(pos.latitude);
+      setLongitude(pos.longitude);
+      setGeoStatus("done");
+      reverseGeocode(pos.latitude, pos.longitude);
+    } else {
+      setGeoStatus("denied");
+    }
+  }, []);
 
   const toggleFeature = (feature: string) => {
     setVehicleFeatures(prev =>
@@ -197,7 +196,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
         p_vehicle_make: vehicleMake || null,
         p_vehicle_model: vehicleModel || null,
         p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
-        p_driver_gender: driverGenderFemale ? "female" : null,
+        p_driver_gender: null, // restricted — not sent from client
         p_comment: comment || null,
         p_state: stateCode,
         p_ip: ip,

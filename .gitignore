@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# Environment — never commit real keys
+.env
+.env.*
+!.env.example
+
+# Android signing key — back this up securely, never commit
+*.jks
+*.keystore
+
+# Native project build output
+android/
+ios/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
