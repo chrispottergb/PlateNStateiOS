@@ -14,9 +14,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeReportDialog } from "@/components/DisputeReportDialog";
 
-const getSeverityLabel = (score: number) => {
+const HIGH_RISK_INFRACTIONS = new Set([
+  "road_rage", "hit_and_run", "dui_suspected", "wrong_way",
+  "passing_school_bus", "brake_checking", "ran_red_light",
+]);
+
+const getSeverityLabel = (score: number, hasHighRiskInfraction = false) => {
   if (score >= 40) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
-  if (score >= 25) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
+  if (score >= 25 || hasHighRiskInfraction) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
   if (score >= 15) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 border-amber-500/30" };
   return { label: "LOW RISK", color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" };
 };
