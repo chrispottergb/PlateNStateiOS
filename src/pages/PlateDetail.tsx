@@ -92,7 +92,8 @@ const PlateDetail = () => {
     );
   }
 
-  const severity = getSeverityLabel(plate.totalScore);
+  const hasHighRisk = reports.some((r) => HIGH_RISK_INFRACTIONS.has(r.infraction));
+  const severity = getSeverityLabel(plate.totalScore, hasHighRisk);
 
   return (
     <div className="min-h-screen bg-background pb-24">
