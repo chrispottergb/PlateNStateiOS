@@ -11,7 +11,7 @@ export const INFRACTIONS: InfractionDef[] = [
   { type: "rolling_stop", label: "Rolling Stop", icon: "OctagonAlert", points: 3 },
   { type: "double_parking", label: "Double Parking", icon: "ParkingSquare", points: 3 },
   { type: "blocking_intersection", label: "Blocking Intersection", icon: "Ban", points: 4 },
-  { type: "road_rage", label: "Road Rage", icon: "Angry", points: 5 },
+  { type: "road_rage", label: "Road Rage", icon: "Angry", points: 8 },
   { type: "wrong_way", label: "Wrong Way Driver", icon: "ArrowUpDown", points: 5 },
   { type: "illegal_uturn", label: "Illegal U-Turn", icon: "Undo2", points: 3 },
   { type: "running_stop_sign", label: "Running Stop Sign", icon: "Octagon", points: 4 },
