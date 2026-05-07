@@ -44,13 +44,33 @@ const WatchMap = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const geocodeCache = useRef<Map<string, [number, number] | null>>(new Map());
+
+  const geocodeLocation = async (location: string): Promise<[number, number] | null> => {
+    if (!location) return null;
+    const key = location.trim().toLowerCase();
+    if (geocodeCache.current.has(key)) return geocodeCache.current.get(key)!;
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(location)}`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      if (data && data[0]) {
+        const coords: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        geocodeCache.current.set(key, coords);
+        return coords;
+      }
+    } catch {}
+    geocodeCache.current.set(key, null);
+    return null;
+  };
+
   const fetchReports = async () => {
     setLoading(true);
     let query = supabase
       .from("reports")
       .select("id, plate_number, infraction, location, latitude, longitude, created_at")
-      .not("latitude", "is", null)
-      .not("longitude", "is", null)
       .order("created_at", { ascending: false })
       .limit(200);
 
@@ -61,8 +81,21 @@ const WatchMap = () => {
     }
 
     const { data } = await query;
-    setReports((data as Report[]) || []);
+    const rows = (data as Report[]) || [];
+    setReports(rows);
     setLoading(false);
+
+    // Geocode any rows missing coordinates (throttled, sequential)
+    const missing = rows.filter((r) => !r.latitude || !r.longitude);
+    for (const r of missing) {
+      const coords = await geocodeLocation(r.location);
+      if (coords) {
+        setReports((prev) =>
+          prev.map((p) => (p.id === r.id ? { ...p, latitude: coords[0], longitude: coords[1] } : p))
+        );
+      }
+      await new Promise((res) => setTimeout(res, 1100)); // Nominatim 1 req/sec
+    }
   };
 
   useEffect(() => { fetchReports(); }, [filter]);
