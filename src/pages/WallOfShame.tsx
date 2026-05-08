@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Skull, ArrowLeft, AlertTriangle, MapPin, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -10,9 +10,13 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useHomeState } from "@/hooks/useHomeState";
 
 const WallOfShame = () => {
-  const { rows, loading } = useWallOfShame(null, 20);
+  const { homeState } = useHomeState();
+  const [showAllStates, setShowAllStates] = useState(false);
+  const activeState = showAllStates ? null : homeState;
+  const { rows, loading } = useWallOfShame(activeState, 20);
 
   const driverOfTheWeek = useMemo(() => {
     if (!rows.length) return null;
@@ -45,6 +49,28 @@ const WallOfShame = () => {
             <p className="text-sm text-muted-foreground">The most "gifted" drivers — refreshed every 5 min</p>
           </div>
         </div>
+
+        {homeState && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Showing:</span>
+            <Button
+              size="sm"
+              variant={!showAllStates ? "default" : "outline"}
+              className="rounded-full h-7 px-3 text-xs"
+              onClick={() => setShowAllStates(false)}
+            >
+              <MapPin className="h-3 w-3 mr-1" /> {homeState}
+            </Button>
+            <Button
+              size="sm"
+              variant={showAllStates ? "default" : "outline"}
+              className="rounded-full h-7 px-3 text-xs"
+              onClick={() => setShowAllStates(true)}
+            >
+              All 50 States
+            </Button>
+          </div>
+        )}
 
         {driverOfTheWeek && (
           <motion.div
