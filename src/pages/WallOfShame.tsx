@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useHomeState } from "@/hooks/useHomeState";
-import { useState } from "react";
 
 const WallOfShame = () => {
   const { homeState } = useHomeState();
