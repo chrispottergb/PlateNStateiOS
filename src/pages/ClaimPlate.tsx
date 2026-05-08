@@ -35,6 +35,7 @@ const ClaimPlate = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { toast } = useToast();
+  const { homeState, setHomeState } = useHomeState();
 
   const { data: claimedPlates, refetch: refetchClaims } = useQuery({
     queryKey: ["my-claimed-plates", user?.id],
