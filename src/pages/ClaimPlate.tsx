@@ -14,6 +14,7 @@ import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2 } from "lu
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { useHomeState } from "@/hooks/useHomeState";
 
 type CheckoutTarget = {
   priceId: "plate_claim_one_time" | "plate_privacy_monthly" | "plate_total_block_monthly";
