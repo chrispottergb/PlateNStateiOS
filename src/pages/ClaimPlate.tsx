@@ -71,15 +71,22 @@ const ClaimPlate = () => {
   useEffect(() => {
     if (params.get("checkout") === "success") {
       toast({ title: "Payment received", description: "Updating your account…" });
-      setTimeout(() => {
-        refetchClaims();
-        refetchSubs();
+      setTimeout(async () => {
+        const { data: refreshed } = await refetchClaims();
+        await refetchSubs();
+        // Set home state from most recently claimed plate if not already set
+        if (!homeState && refreshed && refreshed.length > 0) {
+          const newest = [...refreshed].sort((a, b) =>
+            new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime()
+          )[0];
+          if (newest?.state) setHomeState(newest.state);
+        }
       }, 1500);
       params.delete("checkout");
       params.delete("session_id");
       setParams(params, { replace: true });
     }
-  }, [params, setParams, refetchClaims, refetchSubs, toast]);
+  }, [params, setParams, refetchClaims, refetchSubs, toast, homeState, setHomeState]);
 
   if (!user) {
     navigate("/auth");
