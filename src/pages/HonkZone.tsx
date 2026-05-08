@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList } from "lucide-react";
+import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import SocialReportCard from "@/components/SocialReportCard";
@@ -192,6 +192,12 @@ const HonkZone = () => {
               <Button type="submit" size="icon" variant="secondary" className="rounded-full shrink-0">
                 <Search className="h-4 w-4" />
               </Button>
+              <Link to="/claim">
+                <Button type="button" variant="outline" size="sm" className="rounded-full shrink-0 gap-1.5 h-10">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">Claim Plate</span>
+                </Button>
+              </Link>
             </form>
           </div>
         </div>
