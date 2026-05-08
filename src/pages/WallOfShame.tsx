@@ -50,6 +50,28 @@ const WallOfShame = () => {
           </div>
         </div>
 
+        {homeState && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Showing:</span>
+            <Button
+              size="sm"
+              variant={!showAllStates ? "default" : "outline"}
+              className="rounded-full h-7 px-3 text-xs"
+              onClick={() => setShowAllStates(false)}
+            >
+              <MapPin className="h-3 w-3 mr-1" /> {homeState}
+            </Button>
+            <Button
+              size="sm"
+              variant={showAllStates ? "default" : "outline"}
+              className="rounded-full h-7 px-3 text-xs"
+              onClick={() => setShowAllStates(true)}
+            >
+              All 50 States
+            </Button>
+          </div>
+        )}
+
         {driverOfTheWeek && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
