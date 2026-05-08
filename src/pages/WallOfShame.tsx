@@ -10,9 +10,14 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useHomeState } from "@/hooks/useHomeState";
+import { useState } from "react";
 
 const WallOfShame = () => {
-  const { rows, loading } = useWallOfShame(null, 20);
+  const { homeState } = useHomeState();
+  const [showAllStates, setShowAllStates] = useState(false);
+  const activeState = showAllStates ? null : homeState;
+  const { rows, loading } = useWallOfShame(activeState, 20);
 
   const driverOfTheWeek = useMemo(() => {
     if (!rows.length) return null;
