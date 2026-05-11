@@ -104,6 +104,36 @@ export type Database = {
         }
         Relationships: []
       }
+      data_deletion_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+          resolved_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       fleet_vehicles: {
         Row: {
           added_at: string
