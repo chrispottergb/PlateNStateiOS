@@ -186,6 +186,8 @@ const Index = () => {
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <span className="text-border">|</span>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <span className="text-border">|</span>
+            <Link to="/delete-account" className="hover:text-foreground transition-colors">Delete My Data</Link>
           </div>
         </div>
       </footer>
