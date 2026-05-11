@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, Shield } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
 
@@ -206,20 +206,38 @@ const Auth = () => {
             )}
 
             {isSignUp && (
-              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={e => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
-                />
-                <span>
-                  I agree to the{" "}
-                  <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>
-                  {" "}and{" "}
-                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
-                </span>
-              </label>
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">Quick summary:</span> reports you submit are public,
+                  must be based on what you saw firsthand, and you waive liability for how the community uses them.
+                  Don't harass anyone. We'll anonymize your reporter ID after 30 days.
+                </p>
+                <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={e => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                  />
+                  <span>
+                    I have read and agree to the{" "}
+                    <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">full Terms of Service</Link>
+                    {" "}and{" "}
+                    <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>,
+                    including the release of liability.
+                  </span>
+                </label>
+                {acceptedTerms && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Thanks — consent recorded for version 2026-05-11.
+                  </motion.div>
+                )}
+              </div>
             )}
 
             <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading || (isSignUp && !acceptedTerms)}>
