@@ -25,11 +25,23 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
     try {
       // Simulate processing latency
       await new Promise(r => setTimeout(r, 900));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Please sign in to complete checkout.");
       const body: Record<string, unknown> = { priceId };
       if (plateNumber) body.plateNumber = plateNumber;
       if (disputeId) body.disputeId = disputeId;
       const { data, error } = await supabase.functions.invoke("mock-checkout", { body });
-      if (error || data?.error) throw new Error(error?.message || data?.error || "Checkout failed");
+      if (error) {
+        // Try to extract the JSON error body from a non-2xx response
+        let detail = error.message;
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx?.json) detail = (await ctx.json())?.error ?? detail;
+          else if (ctx?.text) detail = (await ctx.text()) || detail;
+        } catch { /* ignore */ }
+        throw new Error(detail || "Checkout failed");
+      }
+      if (data?.error) throw new Error(data.error);
       setDone(true);
       toast({ title: "Payment successful (test)", description: "Your account has been updated." });
       setTimeout(() => {

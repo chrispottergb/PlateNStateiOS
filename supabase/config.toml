@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.scan-plate]
 verify_jwt = false
+
+[functions.mock-checkout]
+verify_jwt = false

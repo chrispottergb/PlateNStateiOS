@@ -1,10 +1,13 @@
-## Add "Claim Plate" pill button next to plate search
+## Plan
 
-**File:** `src/pages/HonkZone.tsx`
+1. **Make the mock checkout function callable from the app**
+   - Add a `mock-checkout` function entry to `supabase/config.toml` with JWT verification disabled at the platform layer.
+   - Keep the existing in-code authentication check so only signed-in users can complete the mock payment.
 
-1. Add `ShieldCheck` to the existing `lucide-react` import on line 3.
-2. Inside the search row at line 184, immediately after the `<Button type="submit">` (line 194) and still inside the `<form>`, add a `<Link to="/claim">` rendering a pill `<Button>`:
-   - `variant="outline"`, `size="sm"`, classes `rounded-full shrink-0 gap-1.5`
-   - `<ShieldCheck className="h-4 w-4" />` plus a label `<span className="hidden sm:inline">Claim Plate</span>` so the label hides on narrow screens and the button stays compact next to the search input.
+2. **Improve the checkout error shown to users**
+   - Update `CheckoutDialog` to surface backend error details when available instead of only showing the generic “Failed to load edge function”.
+   - Include the selected plate state in the mock checkout request when available, so paid claims keep the correct state.
 
-No other files change.
+3. **Deploy and verify**
+   - Deploy `mock-checkout` again.
+   - Test it through the function endpoint and confirm POST requests reach the function instead of stopping after OPTIONS preflight.
