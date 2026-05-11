@@ -71,7 +71,46 @@ const Terms = () => {
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">8. Changes to Terms</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">8. Release of Liability & Assumption of Risk</h2>
+            <p className="mb-2">
+              TO THE FULLEST EXTENT PERMITTED BY LAW, by using Plate N' State you (the "User")
+              hereby RELEASE, WAIVE, DISCHARGE, AND COVENANT NOT TO SUE Plate N' State, its
+              owners, operators, officers, employees, contractors, agents, affiliates, and
+              licensors (collectively, the "Released Parties") from any and all liability,
+              claims, demands, actions, or causes of action whatsoever, whether known or unknown,
+              arising out of or related to your use of the platform, including but not limited to:
+            </p>
+            <ul className="list-disc pl-6 space-y-1 mb-2">
+              <li>Content submitted, viewed, or relied upon on the platform, including reports, comments, photos, and plate data, whether accurate or inaccurate;</li>
+              <li>Any interaction, dispute, confrontation, harassment, retaliation, property damage, bodily injury, emotional distress, or death arising between Users or third parties as a result of platform activity;</li>
+              <li>Decisions made based on risk scores, safety scores, screenings, or any other data presented through the platform;</li>
+              <li>Use of the camera, scanning, or ALPR features, including any incident occurring while the User is operating a motor vehicle in violation of the passenger-only acknowledgment;</li>
+              <li>Defamation, invasion of privacy, or reputational harm claims arising from User-submitted content;</li>
+              <li>Service interruptions, data loss, unauthorized access, or security incidents.</li>
+            </ul>
+            <p className="mb-2">
+              The User expressly assumes all risks associated with using Plate N' State and
+              acknowledges that the platform is provided "AS IS" and "AS AVAILABLE" without
+              warranties of any kind, express or implied. The Released Parties shall not be
+              liable for any direct, indirect, incidental, consequential, special, exemplary,
+              or punitive damages, even if advised of the possibility of such damages.
+            </p>
+            <p className="mb-2">
+              The User agrees to INDEMNIFY, DEFEND, AND HOLD HARMLESS the Released Parties from
+              any third-party claims, losses, liabilities, damages, costs, or expenses
+              (including reasonable attorneys' fees) arising out of the User's submissions,
+              conduct, or breach of these Terms.
+            </p>
+            <p>
+              This release is intended to be as broad and inclusive as permitted by applicable
+              law. If any portion is held invalid, the remainder shall continue in full legal
+              force and effect. The User acknowledges they have read this release, understand
+              it, and accept it voluntarily by using the platform.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">9. Changes to Terms</h2>
             <p>
               We may update these terms from time to time. Continued use after changes constitutes
               acceptance of the revised terms.
@@ -79,7 +118,7 @@ const Terms = () => {
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">9. Contact</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">10. Contact</h2>
             <p>
               Questions about these terms: <a className="text-primary" href="mailto:legal@platenstate.com">legal@platenstate.com</a>
             </p>
