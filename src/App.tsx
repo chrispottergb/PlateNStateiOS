@@ -30,6 +30,7 @@ const WatchMap = lazy(() => import("./pages/WatchMap"));
 const QuickCapture = lazy(() => import("./pages/QuickCapture"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
@@ -86,6 +87,8 @@ const App = () => (
                 <Route path="/quick-capture" element={<QuickCapture />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/delete-account" element={<DeleteAccount />} />
+                <Route path="/data-deletion" element={<DeleteAccount />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
