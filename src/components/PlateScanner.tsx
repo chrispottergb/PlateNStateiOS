@@ -1,11 +1,21 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, Upload, Loader2, X, ScanLine } from "lucide-react";
+import { Camera, Upload, Loader2, X, ScanLine, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { isNative, pickImageFromLibrary } from "@/lib/native";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PlateScannerProps {
   onResult: (plateNumber: string, state: string | null) => void;
@@ -16,6 +26,9 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [showPassengerDialog, setShowPassengerDialog] = useState(false);
+  const [acknowledgedPassenger, setAcknowledgedPassenger] = useState(false);
+  const [passengerChecked, setPassengerChecked] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -85,6 +98,32 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
   }, [processImage]);
 
   const startCamera = async () => {
+    if (!acknowledgedPassenger) {
+      setPassengerChecked(false);
+      setShowPassengerDialog(true);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setCameraActive(true);
+    } catch {
+      toast.error("Camera access denied", {
+        description: "Please allow camera access to scan plates.",
+      });
+    }
+  };
+
+  const confirmPassengerAndStart = async () => {
+    setAcknowledgedPassenger(true);
+    setShowPassengerDialog(false);
+    // Start camera now that ack is set
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
