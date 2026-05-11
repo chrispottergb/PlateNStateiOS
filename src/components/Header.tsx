@@ -6,7 +6,6 @@ import { useCredits } from "@/hooks/useCredits";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
-import GitHubSyncIndicator from "@/components/GitHubSyncIndicator";
 
 const Header = () => {
   const location = useLocation();
@@ -68,7 +67,6 @@ const Header = () => {
                   <ShieldCheck className="h-3.5 w-3.5" />
                 </Link>
               )}
-              <GitHubSyncIndicator />
               <NotificationBell />
               <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground ml-0.5 rounded-full h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive">
                 <LogOut className="h-3.5 w-3.5" />
