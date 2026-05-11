@@ -180,8 +180,13 @@ const Index = () => {
       </section>
 
       <footer className="border-t border-border/30 py-6">
-        <div className="container text-center text-xs text-muted-foreground">
+        <div className="container text-center text-xs text-muted-foreground space-y-2">
           <p>Plate N' State — Community-driven road safety. Not affiliated with any government agency.</p>
+          <div className="flex items-center justify-center gap-3">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <span className="text-border">|</span>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </footer>
     </div>
