@@ -38,15 +38,26 @@ const Auth = () => {
         if (password.length < 10 || !/\d/.test(password)) {
           throw new Error("Password must be at least 10 characters and include a number.");
         }
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email, password,
           options: {
-            data: { display_name: displayName || "Driver" },
+            data: {
+              display_name: displayName || "Driver",
+              terms_accepted_at: new Date().toISOString(),
+              terms_version: "2026-05-11",
+            },
             emailRedirectTo: window.location.origin,
             captchaToken: captchaToken ?? undefined,
           },
         });
         if (error) throw error;
+        // Persist to profile (will run after profile row exists; if no session yet, will sync on first login)
+        if (signUpData.user) {
+          await supabase
+            .from("profiles")
+            .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11" })
+            .eq("user_id", signUpData.user.id);
+        }
         toast({ title: "Check your email", description: "We sent you a verification link to confirm your account." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
