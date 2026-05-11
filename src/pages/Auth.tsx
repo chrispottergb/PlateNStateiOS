@@ -16,6 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,6 +32,9 @@ const Auth = () => {
         throw new Error("Captcha verification failed. Please try again.");
       }
       if (isSignUp) {
+        if (!acceptedTerms) {
+          throw new Error("You must accept the Terms of Service and Privacy Policy to sign up.");
+        }
         if (password.length < 10 || !/\d/.test(password)) {
           throw new Error("Password must be at least 10 characters and include a number.");
         }
@@ -190,7 +194,24 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading}>
+            {isSignUp && (
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={e => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+            )}
+
+            <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading || (isSignUp && !acceptedTerms)}>
               {loading ? "Please wait..." : isSignUp ? "Join the Patrol" : "Enter the Patrol"}
               <ArrowRight className="h-4 w-4" />
             </Button>
