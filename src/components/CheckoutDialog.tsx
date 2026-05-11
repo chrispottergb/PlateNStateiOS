@@ -26,11 +26,15 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
       // Simulate processing latency
       await new Promise(r => setTimeout(r, 900));
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Please sign in to complete checkout.");
-      const body: Record<string, unknown> = { priceId };
+      if (!session?.access_token) throw new Error("Please sign in to complete checkout.");
+      const homeState = (typeof window !== "undefined" && localStorage.getItem("home_state")) || "WI";
+      const body: Record<string, unknown> = { priceId, state: homeState };
       if (plateNumber) body.plateNumber = plateNumber;
       if (disputeId) body.disputeId = disputeId;
-      const { data, error } = await supabase.functions.invoke("mock-checkout", { body });
+      const { data, error } = await supabase.functions.invoke("mock-checkout", {
+        body,
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       if (error) {
         // Try to extract the JSON error body from a non-2xx response
         let detail = error.message;
