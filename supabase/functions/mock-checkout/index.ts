@@ -25,11 +25,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    const token = authHeader?.replace("Bearer ", "") ?? "";
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization") ?? "";
+    const token = authHeader.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice(7).trim()
+      : authHeader.trim();
+    if (!token) {
+      console.warn("mock-checkout: missing bearer token");
+      return new Response(JSON.stringify({ error: "Missing authorization token. Please sign in again." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
     if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      console.warn("mock-checkout: auth failed", authErr?.message);
+      return new Response(JSON.stringify({ error: "Session invalid or expired. Please sign in again." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
