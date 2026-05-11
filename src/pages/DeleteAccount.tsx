@@ -38,16 +38,14 @@ const DeleteAccount = () => {
     toast({ title: "Request received", description: "We'll process your deletion within 30 days." });
   };
 
+  useEffect(() => {
+    document.title = "Delete Your Account & Data | Plate'n State";
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.setAttribute("content", "Request deletion of your Plate'n State account and personal data. Processed within 30 days.");
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Delete Your Account & Data | Plate'n State</title>
-        <meta
-          name="description"
-          content="Request deletion of your Plate'n State account and personal data. We process all requests within 30 days."
-        />
-        <link rel="canonical" href="https://platenstate.lovable.app/delete-account" />
-      </Helmet>
       <Header />
       <main className="container max-w-2xl py-10 space-y-6">
         <div className="text-center space-y-2">
