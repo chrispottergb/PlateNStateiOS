@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import TermsGate from "@/components/TermsGate";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -62,6 +63,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <TermsGate />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<Index />} />

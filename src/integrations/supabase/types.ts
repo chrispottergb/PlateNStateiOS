@@ -259,6 +259,8 @@ export type Database = {
           joined_at: string
           last_report_date: string | null
           streak_days: number
+          terms_accepted_at: string | null
+          terms_version: string | null
           total_reports: number
           user_id: string
           xp: number
@@ -271,6 +273,8 @@ export type Database = {
           joined_at?: string
           last_report_date?: string | null
           streak_days?: number
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total_reports?: number
           user_id: string
           xp?: number
@@ -283,6 +287,8 @@ export type Database = {
           joined_at?: string
           last_report_date?: string | null
           streak_days?: number
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total_reports?: number
           user_id?: string
           xp?: number
