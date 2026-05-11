@@ -245,6 +245,38 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
           </Button>
         </div>
       )}
+
+      <AlertDialog open={showPassengerDialog} onOpenChange={setShowPassengerDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Safety check
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <span className="block">
+                Using your camera while driving is dangerous and illegal in most places.
+                Please confirm you are <strong>not currently driving</strong> before continuing.
+              </span>
+              <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none mt-2">
+                <input
+                  type="checkbox"
+                  checked={passengerChecked}
+                  onChange={e => setPassengerChecked(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                />
+                <span>I am a passenger or my vehicle is parked. I am not operating a moving vehicle.</span>
+              </label>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={!passengerChecked} onClick={confirmPassengerAndStart}>
+              I acknowledge — Start Scan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
