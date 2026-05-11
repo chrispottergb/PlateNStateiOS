@@ -6,6 +6,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
+import GitHubSyncIndicator from "@/components/GitHubSyncIndicator";
 
 const Header = () => {
   const location = useLocation();
