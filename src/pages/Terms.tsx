@@ -118,7 +118,7 @@ const Terms = () => {
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">9. Contact</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">10. Contact</h2>
             <p>
               Questions about these terms: <a className="text-primary" href="mailto:legal@platenstate.com">legal@platenstate.com</a>
             </p>
