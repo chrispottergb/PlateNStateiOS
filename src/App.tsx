@@ -28,6 +28,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WatchMap = lazy(() => import("./pages/WatchMap"));
 const QuickCapture = lazy(() => import("./pages/QuickCapture"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
@@ -82,6 +83,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/quick-capture" element={<QuickCapture />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
