@@ -29,6 +29,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const [showPassengerDialog, setShowPassengerDialog] = useState(false);
   const [acknowledgedPassenger, setAcknowledgedPassenger] = useState(false);
   const [passengerChecked, setPassengerChecked] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -226,23 +227,54 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
           )}
         </div>
       ) : (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1 h-11 rounded-lg"
-            onClick={isNative ? handleNativePick : () => fileInputRef.current?.click()}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Photo
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-11 rounded-lg"
-            onClick={startCamera}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Live Scan
-          </Button>
+        <div className="space-y-2">
+          <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={acknowledgedPassenger}
+              onChange={e => {
+                setAcknowledgedPassenger(e.target.checked);
+                if (e.target.checked) setShowWarning(false);
+              }}
+              className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+            />
+            <span>
+              I am a passenger or my vehicle is parked. I am not operating a moving vehicle.
+            </span>
+          </label>
+          {showWarning && !acknowledgedPassenger && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>
+                Please confirm you're a passenger or parked before starting a live scan.
+              </span>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-11 rounded-lg"
+              onClick={isNative ? handleNativePick : () => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Photo
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!acknowledgedPassenger) {
+                  setShowWarning(true);
+                  return;
+                }
+                startCamera();
+              }}
+              aria-disabled={!acknowledgedPassenger}
+              className={`flex-1 h-11 rounded-lg ${!acknowledgedPassenger ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""}`}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Live Scan
+            </Button>
+          </div>
         </div>
       )}
 
