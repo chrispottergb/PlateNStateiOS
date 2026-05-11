@@ -29,6 +29,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const [showPassengerDialog, setShowPassengerDialog] = useState(false);
   const [acknowledgedPassenger, setAcknowledgedPassenger] = useState(false);
   const [passengerChecked, setPassengerChecked] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
