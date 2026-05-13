@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { isNative } from "@/lib/native";
 
 /**
  * Invisible hCaptcha integration.
@@ -20,7 +21,9 @@ const SITE_KEY =
   (import.meta.env.VITE_HCAPTCHA_SITE_KEY as string | undefined) ||
   "10f81642-efc0-4f90-b060-2c125fd6125a";
 
-export const ENABLED = Boolean(SITE_KEY);
+// hCaptcha doesn't work reliably inside the Capacitor WebView (origin is
+// http://localhost which isn't whitelisted on hCaptcha), so disable it on native.
+export const ENABLED = Boolean(SITE_KEY) && !isNative;
 
 type ResolveFn = (token: string | null) => void;
 

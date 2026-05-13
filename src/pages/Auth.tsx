@@ -8,8 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
+
+// On native (Capacitor) window.location.origin is http://localhost, which Supabase
+// rejects as a redirect URL and which won't reopen the app from an email link.
+// Fall back to the published web URL so confirmation links still work.
+const REDIRECT_ORIGIN = isNative
+  ? "https://platenstate.lovable.app"
+  : window.location.origin;
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -46,7 +54,7 @@ const Auth = () => {
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
             },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: REDIRECT_ORIGIN,
             captchaToken: captchaToken ?? undefined,
           },
         });
@@ -121,7 +129,7 @@ const Auth = () => {
               setLoading(true);
               try {
                 const result = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: window.location.origin,
+                  redirect_uri: REDIRECT_ORIGIN,
                 });
                 if (result.error) throw result.error;
                 if (result.redirected) return;
@@ -191,7 +199,7 @@ const Auth = () => {
                     }
                     try {
                       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/reset-password`,
+                        redirectTo: `${REDIRECT_ORIGIN}/reset-password`,
                       });
                       if (error) throw error;
                       toast({ title: "Check your email", description: "We sent you a password reset link." });
