@@ -54,7 +54,7 @@ const Auth = () => {
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
             },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: REDIRECT_ORIGIN,
             captchaToken: captchaToken ?? undefined,
           },
         });
@@ -129,7 +129,7 @@ const Auth = () => {
               setLoading(true);
               try {
                 const result = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: window.location.origin,
+                  redirect_uri: REDIRECT_ORIGIN,
                 });
                 if (result.error) throw result.error;
                 if (result.redirected) return;
@@ -199,7 +199,7 @@ const Auth = () => {
                     }
                     try {
                       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/reset-password`,
+                        redirectTo: `${REDIRECT_ORIGIN}/reset-password`,
                       });
                       if (error) throw error;
                       toast({ title: "Check your email", description: "We sent you a password reset link." });
