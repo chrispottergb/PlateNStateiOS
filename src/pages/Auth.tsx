@@ -8,8 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
+
+// On native (Capacitor) window.location.origin is http://localhost, which Supabase
+// rejects as a redirect URL and which won't reopen the app from an email link.
+// Fall back to the published web URL so confirmation links still work.
+const REDIRECT_ORIGIN = isNative
+  ? "https://platenstate.lovable.app"
+  : window.location.origin;
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
