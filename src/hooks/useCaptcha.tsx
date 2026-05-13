@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { isNative } from "@/lib/native";
 
 /**
  * Invisible hCaptcha integration.
