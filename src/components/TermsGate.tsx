@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const TERMS_VERSION = "2026-05-11";
+const TERMS_VERSION = "2026-05-14";
 
 /**
  * Shown once per account if the user has never accepted the current Terms version.
@@ -59,9 +59,9 @@ const TermsGate = () => {
           <AlertDialogDescription className="space-y-3">
             <span className="block">
               Before continuing, please review and accept our{" "}
-              <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>
-              {" "}and{" "}
-              <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+              <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>,{" "}
+              <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>, and{" "}
+              <Link to="/csae-policy" target="_blank" className="text-primary hover:underline">CSAE Policy</Link>.
             </span>
             <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none">
               <input
@@ -70,7 +70,7 @@ const TermsGate = () => {
                 onChange={e => setChecked(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
               />
-              <span>I have read and agree to the Terms of Service and Privacy Policy.</span>
+              <span>I have read and agree to the Terms of Service, Privacy Policy, and CSAE Policy.</span>
             </label>
           </AlertDialogDescription>
         </AlertDialogHeader>

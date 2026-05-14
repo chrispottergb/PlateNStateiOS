@@ -1,8 +1,24 @@
-I found the mock-checkout endpoint is now reachable and CORS is working, but the real app still needs a cleaner invocation path and better diagnostics so the request does not fail as a generic edge-function error.
+## CSAE Policy Implementation
 
-Plan:
-1. Update `CheckoutDialog` to send the current session access token explicitly when invoking `mock-checkout`, instead of relying on implicit auth behavior.
-2. Include the selected plate state in the mock checkout request so the function receives the full expected payload.
-3. Harden `mock-checkout` auth parsing so missing/invalid tokens return a clear checkout error with CORS headers, not a generic “Failed to send request” failure.
-4. Add lightweight server logs around auth and validation failures, then redeploy `mock-checkout`.
-5. Verify with an endpoint test that OPTIONS succeeds and POST reaches the function with the expected response path.
+### 1. New page: `src/pages/CsaePolicy.tsx`
+- Route: `/csae-policy`
+- Same layout/styling as Terms.tsx and Privacy.tsx (Header, container, prose-invert dark theme)
+- Full content from the user's pasted policy text, organized into the 9 sections + contact
+- Fix typo in pasted text: contact email shows `safety@platesnstate.com` — will use `support@platenstate.com` for consistency with Terms/Privacy (confirm if you'd prefer a separate `safety@` address)
+- Back-to-home link at bottom
+
+### 2. Routing: `src/App.tsx`
+- Lazy-load `CsaePolicy` and add `<Route path="/csae-policy" element={<CsaePolicy />} />`
+
+### 3. TermsGate update: `src/components/TermsGate.tsx`
+- Bump `TERMS_VERSION` to `2026-05-14` so existing users re-accept (covers the new policy)
+- Update dialog copy to reference Terms, Privacy, **and** the new CSAE Policy with a link to `/csae-policy`
+- Checkbox label updated to "I have read and agree to the Terms of Service, Privacy Policy, and CSAE Policy"
+- No schema change — reuses existing `terms_accepted_at` / `terms_version` columns
+
+### 4. Footer/navigation links
+You mentioned "i pasted the text" for the link location. Since Terms and Privacy are currently only linked from the TermsGate dialog (no global footer), the new TermsGate link will be the primary entry point. The page is also reachable directly via `/csae-policy`. If you want it added to a specific footer or settings menu, let me know which one.
+
+### Verification
+- After implementation, load `/csae-policy` in the preview to confirm rendering
+- Trigger TermsGate (clear `terms_accepted_at` for a test user) to confirm new copy + link work
