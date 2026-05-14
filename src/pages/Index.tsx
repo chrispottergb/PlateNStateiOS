@@ -188,6 +188,8 @@ const Index = () => {
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <span className="text-border">|</span>
             <Link to="/delete-account" className="hover:text-foreground transition-colors">Delete My Data</Link>
+            <span className="text-border">|</span>
+            <Link to="/csae-policy" className="hover:text-foreground transition-colors">CSAE Policy</Link>
           </div>
         </div>
       </footer>
