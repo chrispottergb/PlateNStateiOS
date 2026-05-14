@@ -120,7 +120,7 @@ const Terms = () => {
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">10. Contact</h2>
             <p>
-              Questions about these terms: <a className="text-primary" href="mailto:legal@platenstate.com">legal@platenstate.com</a>
+              Questions about these terms: <a className="text-primary" href="mailto:support@platenstate.com">support@platenstate.com</a>
             </p>
           </div>
         </section>
