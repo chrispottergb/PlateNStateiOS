@@ -65,6 +65,15 @@ const Auth = () => {
             .from("profiles")
             .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11" })
             .eq("user_id", signUpData.user.id);
+          // Fire welcome email (non-blocking, silently skip on failure)
+          supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome",
+              recipientEmail: email,
+              idempotencyKey: `welcome-${signUpData.user.id}`,
+              templateData: { name: displayName || undefined },
+            },
+          }).catch(() => {});
         }
         toast({ title: "Welcome to the Patrol!", description: "Your account is ready." });
         navigate("/");

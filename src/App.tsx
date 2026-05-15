@@ -32,6 +32,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const CsaePolicy = lazy(() => import("./pages/CsaePolicy"));
 const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
@@ -91,6 +92,7 @@ const App = () => (
                 <Route path="/csae-policy" element={<CsaePolicy />} />
                 <Route path="/delete-account" element={<DeleteAccount />} />
                 <Route path="/data-deletion" element={<DeleteAccount />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
