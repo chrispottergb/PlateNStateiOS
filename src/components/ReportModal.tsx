@@ -106,7 +106,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
 
   // Driver fields
   const [driverGenderFemale, setDriverGenderFemale] = useState(false);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment);
 
   const reset = () => {
     setStep(1);
@@ -127,7 +127,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setVehicleModel("");
     setVehicleFeatures([]);
     setDriverGenderFemale(false);
-    setComment("");
+    setComment(initialComment);
     setShowAllInfractions(false);
   };
 
@@ -138,7 +138,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       return;
     }
     setOpen(v);
-    if (v) detectLocation();
+    if (v) {
+      detectLocation();
+      setComment(initialComment);
+    }
     if (!v) { reset(); setMode("quick"); }
   };
 
