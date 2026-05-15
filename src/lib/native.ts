@@ -17,6 +17,21 @@ export async function pickImageFromLibrary(): Promise<string | null> {
   return `data:image/jpeg;base64,${photo.base64String}`;
 }
 
+// Camera — opens native camera app on native, returns base64 data URL.
+// Returns null on web (caller should use getUserMedia instead).
+export async function takePhotoNative(): Promise<string | null> {
+  if (!isNative) return null;
+  const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+  const photo = await Camera.getPhoto({
+    quality: 85,
+    allowEditing: false,
+    resultType: CameraResultType.Base64,
+    source: CameraSource.Camera,
+  });
+  if (!photo.base64String) return null;
+  return `data:image/jpeg;base64,${photo.base64String}`;
+}
+
 // Geolocation — uses Capacitor plugin on native, browser API on web.
 export async function getPosition(): Promise<{ latitude: number; longitude: number } | null> {
   if (isNative) {
