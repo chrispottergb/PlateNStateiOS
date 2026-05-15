@@ -214,6 +214,38 @@ const HonkZone = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main feed */}
           <div className="flex-1 space-y-4">
+            {/* Twitter-style report composer */}
+            {!loading && (
+              <ReportModal
+                trigger={
+                  <button
+                    type="button"
+                    className="group w-full text-left glass-card rounded-2xl border border-foreground/5 px-3 sm:px-4 py-3 flex items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    aria-label="Report a plate"
+                  >
+                    <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
+                      {user?.user_metadata?.avatar_url ? (
+                        <img
+                          src={user.user_metadata.avatar_url}
+                          alt=""
+                          className="h-full w-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span aria-hidden>🚨</span>
+                      )}
+                    </div>
+                    <span className="flex-1 min-w-0 text-sm text-muted-foreground group-hover:text-foreground/80 truncate">
+                      {composerPrompt}
+                    </span>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.5)] group-hover:scale-[1.03] transition-transform">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Report
+                    </span>
+                  </button>
+                }
+              />
+            )}
+
             {/* Controls bar */}
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex rounded-full glass overflow-hidden">
