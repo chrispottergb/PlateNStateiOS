@@ -145,7 +145,8 @@ const Auth = () => {
                     redirect_uri: `${REDIRECT_ORIGIN}/auth`,
                     state,
                   });
-                  window.location.href = `https://platenstate.com/~oauth/initiate?${params.toString()}`;
+                  const { Browser } = await import("@capacitor/browser");
+                  await Browser.open({ url: `https://platenstate.com/~oauth/initiate?${params.toString()}` });
                   return;
                 }
 
