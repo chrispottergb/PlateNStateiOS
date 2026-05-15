@@ -1,41 +1,33 @@
-## What I verified
+## Plan: make password reset work reliably in the Android app
 
-- The reset-password route is **not blank in preview**.
-- I tested both common reset-link URL shapes:
-  - `/reset-password?code=...`
-  - `/reset-password#access_token=...&refresh_token=...&type=recovery`
-- The form renders in preview with no auth-related console errors.
-- Lovable Cloud backend health looks normal.
+### What I found
+- The app is wrapped with Capacitor and an `.aab` is being built outside Lovable.
+- Password reset emails currently point to `https://platenstate.com/reset-password`.
+- The web reset route exists, but the native app does **not** currently have app/deep-link handling that forwards an opened reset URL into React Router.
+- That explains the Android behavior: the email link can open the app/WebView but the app never navigates to `/reset-password` with the reset token, leaving the user on an unusable/blank state.
 
-## Likely remaining problem
+### Changes to make
+1. **Add native URL handling**
+   - Add a small native-link handler using `@capacitor/app`.
+   - Listen for URLs opened from email links.
+   - If the URL contains `/reset-password`, push the full path/query/hash into React Router so the reset screen receives the token.
 
-The app currently sends reset links to whatever domain the user is on when they request the email. In preview that can be a preview/lovableproject URL; in production it can be `platenstate.com` or `platenstate.lovable.app`. If the email link uses a domain or redirect URL Google/Auth settings do not allow, the link can appear broken or blank after leaving email.
+2. **Make routing native-safe**
+   - Keep web routing unchanged for the published site.
+   - Add a safe redirect helper for Capacitor so native links like `https://platenstate.com/reset-password?code=...` become `/reset-password?code=...` inside the bundled app.
 
-## Plan
+3. **Harden the reset page**
+   - Keep support for all reset-link formats: `?code=...`, `?token_hash=...&type=recovery`, and legacy hash recovery links.
+   - Ensure it never sits on an infinite spinner or crashes into a blank screen.
+   - Show a visible invalid/expired-link message when token exchange fails.
 
-1. **Lock password reset emails to the production custom domain**
-   - Change the reset email redirect to always use:
-     - `https://platenstate.com/reset-password`
-   - This avoids preview-origin reset emails and prevents needing a new Google review just because the preview URL changed.
+4. **Keep reset emails pointed at production**
+   - Continue using `https://platenstate.com/reset-password` so emails don’t use preview/native `localhost` origins.
 
-2. **Make the reset page fail visibly instead of looking blank**
-   - Add a small loading state while the reset link is being checked.
-   - Catch `getSession()` / `verifyOtp()` errors so runtime auth errors cannot crash the page.
-   - Keep showing the form only after a recovery session is confirmed.
-   - Show a clear “invalid or expired link” message if the link is bad.
+5. **Verification before saying done**
+   - Test web preview reset URLs for render/no blank page.
+   - Test simulated native-open URL handling in browser-capable code paths.
+   - Run targeted checks so we verify the reset route loads and the fallback states are visible.
 
-3. **Keep support for all reset-link formats**
-   - PKCE links: `?code=...`
-   - Token hash links: `?token_hash=...&type=recovery`
-   - Legacy hash links: `#access_token=...&type=recovery`
-
-4. **Verify before calling it done**
-   - Open `/reset-password?code=test` and confirm the page never goes blank.
-   - Open legacy hash reset URL and confirm the form appears.
-   - Confirm no auth console errors.
-   - Confirm the reset email code points to `https://platenstate.com/reset-password`.
-
-## Files to update
-
-- `src/pages/Auth.tsx`
-- `src/pages/ResetPassword.tsx`
+### Important Android follow-up after implementation
+After this change is approved and implemented, the `.aab` builder needs to pull the updated code, run `npm install` if needed, then run `npm run build && npx cap sync android` before generating the next `.aab`. If the native Android manifest in Claude Code does not already declare App Links for `platenstate.com`, that will also need to be added there for email links to open the app directly.
