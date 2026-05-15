@@ -123,6 +123,11 @@ const ResetPassword = () => {
               <p className="text-sm font-medium">Password updated successfully!</p>
               <p className="text-xs text-muted-foreground">Redirecting to sign in…</p>
             </div>
+          ) : checking ? (
+            <div className="text-center py-6 space-y-2">
+              <div className="inline-block h-6 w-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+              <p className="text-xs text-muted-foreground">Verifying reset link…</p>
+            </div>
           ) : !isRecovery ? (
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground">Invalid or expired reset link. Please request a new one.</p>
