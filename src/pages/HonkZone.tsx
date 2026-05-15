@@ -243,7 +243,7 @@ const HonkZone = () => {
                       )}
                     </div>
                     <span className="flex-1 min-w-0 text-sm text-muted-foreground group-hover:text-foreground/80 truncate">
-                      {composerPrompt}
+                      {COMPOSER_PROMPTS[taglineIndex % COMPOSER_PROMPTS.length]}
                     </span>
                     <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.5)] group-hover:scale-[1.03] transition-transform">
                       <AlertTriangle className="h-3.5 w-3.5" />
