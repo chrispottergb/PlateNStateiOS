@@ -1,31 +1,36 @@
+## Goal
 
-## Issues & fixes
+Replace the existing inline "I am a passenger or parked" checkbox with a blocking confirmation modal that appears whenever the user taps **Live Scan** or **Upload Photo**, requiring an explicit "I'm not driving" button click before the camera/picker opens. This strengthens the liability waiver and makes acknowledgment unmistakable.
 
-### 1 + 2. No confirmation emails / want auto sign-in after signup
+## Behavior
 
-These two are best solved together. Right now signup requires email verification before login — so if email delivery has any hiccup (DNS, spam folder, provider lag), users are stuck. The cleanest fix that also gives "auto sign-in after signup" is to **disable email confirmation**.
-
-**Change:** Enable `auto_confirm_email` in auth settings. After this:
-- Signup returns a session immediately → user is signed in automatically.
-- Update `Auth.tsx` to navigate to `/` after a successful signup (instead of showing "Check your email").
-
-Trade-off: anyone can sign up with any email address (no proof of ownership). Given the app already uses hCaptcha + rate limiting, this is acceptable for a community reporting app. If you ever want verified emails back, we can add a post-signup "verify your email" flow without blocking login.
-
-### 3. Plate scan camera still not working
-
-`PlateScanner.tsx` `startCamera()` calls `navigator.mediaDevices.getUserMedia` directly. In the Android/iOS WebView the page is served over `http://localhost`, which Chrome treats as insecure and blocks `getUserMedia` → "Camera access denied" toast.
-
-The "Upload Photo" button already routes through Capacitor on native (`pickImageFromLibrary`) and works. The "Live Scan" button needs the same treatment, but using the **camera** source instead of the photo library.
-
-**Change:** Add `takePhotoNative()` to `src/lib/native.ts` (Capacitor Camera with `CameraSource.Camera`). In `PlateScanner.tsx`, when `isNative` is true, the "Live Scan" button calls `takePhotoNative()` (opens the OS camera app, returns a photo, runs through `processImage`) instead of `startCamera()`. On web, behavior is unchanged — the in-page video stream still works because the preview runs over HTTPS.
-
-This also lets us drop the in-app "passenger acknowledgement → live preview → capture frame" flow on native (the OS camera handles capture). We keep the passenger checkbox as a gate before opening the OS camera.
+1. User taps **Live Scan** or **Upload Photo** in `PlateScanner`.
+2. A modal (`AlertDialog`) appears with:
+   - Title: "Confirm you're not driving"
+   - Body: short liability disclaimer — confirming they are a passenger or parked, that they will not use the app while operating a vehicle, and that Plate'n State is not liable for misuse.
+   - Two buttons: **Cancel** and **I'm not driving — continue**
+3. On confirm, proceed with the originally intended action (native camera, web camera, or file picker).
+4. On cancel, close the modal and do nothing.
+5. Remember acknowledgment for the current session only (sessionStorage) so the modal doesn't reappear on every scan within the same session — but always re-prompts on a fresh app launch.
 
 ## Files to change
 
-- `src/lib/native.ts` — add `takePhotoNative()` using `CameraSource.Camera`.
-- `src/components/PlateScanner.tsx` — on native, "Live Scan" calls `takePhotoNative()`.
-- `src/pages/Auth.tsx` — on successful signup, navigate to `/` (no "check your email" toast).
-- Auth config — set `auto_confirm_email: true`.
+- **`src/components/PlateScanner.tsx`**
+  - Remove the inline checkbox + warning UI (lines ~242–263) and the `acknowledgedPassenger` / `showWarning` state.
+  - Add `liabilityOpen` state and a `pendingAction` ref/state to remember which entry point was clicked (`'native-camera' | 'web-camera' | 'upload'`).
+  - Wrap the three entry buttons (Live Scan native, Live Scan web, Upload Photo) so each first checks sessionStorage flag `plate_scan_liability_ack`. If absent, open the modal and stash the pending action; if present, run the action immediately.
+  - Add an `AlertDialog` at the bottom of the component with the disclaimer copy and a confirm handler that sets the sessionStorage flag and dispatches the pending action.
 
-No backend schema or RLS changes.
+- **No backend, schema, or edge-function changes.**
+
+## Technical notes
+
+- Use existing shadcn `AlertDialog` from `@/components/ui/alert-dialog` (already used elsewhere).
+- Keep all styling on semantic tokens (`text-muted-foreground`, `bg-background`, etc.).
+- Disclaimer copy (draft, easy to tweak):
+  > By continuing, you confirm that you are a passenger or your vehicle is parked, and that you will not use Plate'n State while driving. You agree that Plate'n State and its operators are not liable for any misuse, accidents, or damages resulting from use of this feature.
+
+## Out of scope
+
+- No changes to scan logic, edge functions, auth, or email.
+- No persistent (cross-session) acknowledgment — that would be a separate Terms acceptance feature.
