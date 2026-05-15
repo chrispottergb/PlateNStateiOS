@@ -53,8 +53,13 @@ const ResetPassword = () => {
           return;
         }
 
-        if (queryParams.get("code")) {
-          await new Promise((r) => setTimeout(r, 400));
+        // PKCE flow — explicitly exchange the code instead of relying on a timeout
+        const code = queryParams.get("code");
+        if (code) {
+          try {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (!error) { enableRecovery(); return; }
+          } catch { /* fall through to getSession check */ }
         }
 
         try {
