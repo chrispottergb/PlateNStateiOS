@@ -37,6 +37,14 @@ const FLAIR_FILTERS = [
   { key: "distracted_driving", label: "📱 Textaholics" },
 ];
 
+const COMPOSER_PROMPTS = [
+  "See an a-hole on the road? Tap to report…",
+  "Spotted a rolling menace? Drop the plate…",
+  "Witness a parking Picasso? Snitch here…",
+  "Caught a tailgater? Make it official…",
+  "Someone forgot their blinker? We'll remember…",
+];
+
 const VEHICLE_TYPES = ["Sedan", "SUV", "Truck", "Van", "Minivan", "Coupe", "Convertible", "Hatchback", "Wagon", "Motorcycle", "Semi/Commercial"];
 const VEHICLE_COLORS = ["Black", "White", "Silver/Gray", "Red", "Blue", "Green", "Yellow", "Orange", "Brown", "Gold"];
 
