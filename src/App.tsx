@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
+import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -52,6 +53,11 @@ const queryClient = new QueryClient({
   },
 });
 
+const NativeDeepLinkBridge = () => {
+  useNativeDeepLinks();
+  return null;
+};
+
 const RouteFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
     Loading…
@@ -67,6 +73,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <TermsGate />
+            <NativeDeepLinkBridge />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<Index />} />
