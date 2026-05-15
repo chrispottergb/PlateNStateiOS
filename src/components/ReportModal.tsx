@@ -64,14 +64,23 @@ const QUICK_INFRACTIONS: InfractionType[] = [
 interface ReportModalProps {
   trigger: React.ReactNode;
   initialPlate?: string;
+  initialComment?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const TOTAL_STEPS = 6;
 
-const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
+const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setInternalOpen(v);
+    controlledOnOpenChange?.(v);
+  };
   const [mode, setMode] = useState<"quick" | "detailed">("quick");
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
