@@ -21,6 +21,9 @@ const ResetPassword = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const clearSensitiveUrl = () => {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    };
     const enableRecovery = () => {
       if (cancelled) return;
       setIsRecovery(true);
@@ -35,6 +38,18 @@ const ResetPassword = () => {
         const queryParams = url.searchParams;
 
         if (hashParams.get("type") === "recovery") {
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+
+          if (accessToken && refreshToken) {
+            const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+            clearSensitiveUrl();
+            if (!error) { enableRecovery(); return; }
+            toast({ title: "Reset link expired", description: "Request a new password reset email.", variant: "destructive" });
+            finishChecking();
+            return;
+          }
+
           enableRecovery();
           return;
         }
@@ -44,6 +59,7 @@ const ResetPassword = () => {
         if (tokenHash && type === "recovery") {
           try {
             const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
+            clearSensitiveUrl();
             if (!error) { enableRecovery(); return; }
             toast({ title: "Reset link expired", description: "Request a new password reset email.", variant: "destructive" });
           } catch {
@@ -58,6 +74,7 @@ const ResetPassword = () => {
         if (code) {
           try {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
+            clearSensitiveUrl();
             if (!error) { enableRecovery(); return; }
           } catch { /* fall through to getSession check */ }
         }
