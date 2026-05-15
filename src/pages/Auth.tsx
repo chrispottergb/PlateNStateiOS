@@ -16,7 +16,7 @@ import authBg from "@/assets/auth-bg.jpg";
 // rejects as a redirect URL and which won't reopen the app from an email link.
 // Fall back to the published web URL so confirmation links still work.
 const REDIRECT_ORIGIN = isNative
-  ? "https://platenstate.lovable.app"
+  ? "https://platenstate.com"
   : window.location.origin;
 
 const Auth = () => {
