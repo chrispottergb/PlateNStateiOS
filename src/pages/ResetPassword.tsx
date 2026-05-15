@@ -15,37 +15,56 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
-    const enableRecovery = () => { if (!cancelled) setIsRecovery(true); };
+    const enableRecovery = () => {
+      if (cancelled) return;
+      setIsRecovery(true);
+      setChecking(false);
+    };
+    const finishChecking = () => { if (!cancelled) setChecking(false); };
 
     const init = async () => {
-      const url = new URL(window.location.href);
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-      const queryParams = url.searchParams;
+      try {
+        const url = new URL(window.location.href);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const queryParams = url.searchParams;
 
-      // Legacy hash flow: #access_token=...&type=recovery
-      if (hashParams.get("type") === "recovery") enableRecovery();
+        if (hashParams.get("type") === "recovery") {
+          enableRecovery();
+          return;
+        }
 
-      // token_hash query flow: ?token_hash=...&type=recovery
-      const tokenHash = queryParams.get("token_hash");
-      const type = queryParams.get("type");
-      if (tokenHash && type === "recovery") {
-        const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
-        if (!error) enableRecovery();
-        else toast({ title: "Reset link expired", description: "Request a new password reset email.", variant: "destructive" });
-        return;
+        const tokenHash = queryParams.get("token_hash");
+        const type = queryParams.get("type");
+        if (tokenHash && type === "recovery") {
+          try {
+            const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
+            if (!error) { enableRecovery(); return; }
+            toast({ title: "Reset link expired", description: "Request a new password reset email.", variant: "destructive" });
+          } catch {
+            toast({ title: "Reset link error", description: "Please request a new password reset email.", variant: "destructive" });
+          }
+          finishChecking();
+          return;
+        }
+
+        if (queryParams.get("code")) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) { enableRecovery(); return; }
+        } catch { /* ignore */ }
+        finishChecking();
+      } catch {
+        finishChecking();
       }
-
-      // PKCE flow: ?code=... — supabase-js auto-exchanges on load.
-      if (queryParams.get("code")) {
-        await new Promise((r) => setTimeout(r, 200));
-      }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) enableRecovery();
     };
 
     init();

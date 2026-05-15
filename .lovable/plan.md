@@ -1,29 +1,41 @@
-## Problem
+## What I verified
 
-Sentry is being spammed by `AuthApiError: Invalid Refresh Token: Refresh Token Not Found` (status 400, code `refresh_token_not_found`). Confirmed in:
-- Browser console (unhandled error from `supabase.auth._recoverAndRefresh` during init)
-- Auth logs (`POST /token` → 400 `refresh_token_not_found`)
+- The reset-password route is **not blank in preview**.
+- I tested both common reset-link URL shapes:
+  - `/reset-password?code=...`
+  - `/reset-password#access_token=...&refresh_token=...&type=recovery`
+- The form renders in preview with no auth-related console errors.
+- Lovable Cloud backend health looks normal.
 
-Cause: When the app boots with a stale or revoked refresh token in `localStorage`, supabase-js throws during init. The error is functionally harmless (user just isn't signed in), but it propagates as an uncaught promise rejection and Sentry captures it.
+## Likely remaining problem
 
-## Fix (two layers)
+The app currently sends reset links to whatever domain the user is on when they request the email. In preview that can be a preview/lovableproject URL; in production it can be `platenstate.com` or `platenstate.lovable.app`. If the email link uses a domain or redirect URL Google/Auth settings do not allow, the link can appear broken or blank after leaving email.
 
-### 1. Clear stale tokens in `src/hooks/useAuth.tsx`
-Wrap `supabase.auth.getSession()` in a `.catch` and call `supabase.auth.signOut({ scope: 'local' })` when the error is `refresh_token_not_found` / `AuthApiError`. This wipes the bad token from localStorage so the user starts clean instead of re-throwing on every page load.
+## Plan
 
-### 2. Filter known-noise from Sentry in `src/main.tsx`
-Add a `beforeSend` hook to the `Sentry.init` call that drops events whose error matches:
-- `AuthApiError` with `code === 'refresh_token_not_found'`
-- `AuthSessionMissingError`
-- Any error message matching `/Invalid Refresh Token|Refresh Token Not Found|Auth session missing/i`
+1. **Lock password reset emails to the production custom domain**
+   - Change the reset email redirect to always use:
+     - `https://platenstate.com/reset-password`
+   - This avoids preview-origin reset emails and prevents needing a new Google review just because the preview URL changed.
 
-This prevents future variants of the same noise category from polluting Sentry while still letting genuine auth bugs through.
+2. **Make the reset page fail visibly instead of looking blank**
+   - Add a small loading state while the reset link is being checked.
+   - Catch `getSession()` / `verifyOtp()` errors so runtime auth errors cannot crash the page.
+   - Keep showing the form only after a recovery session is confirmed.
+   - Show a clear “invalid or expired link” message if the link is bad.
 
-## Files touched
+3. **Keep support for all reset-link formats**
+   - PKCE links: `?code=...`
+   - Token hash links: `?token_hash=...&type=recovery`
+   - Legacy hash links: `#access_token=...&type=recovery`
 
-- `src/hooks/useAuth.tsx` — clean up stale refresh tokens on init failure
-- `src/main.tsx` — Sentry `beforeSend` filter
+4. **Verify before calling it done**
+   - Open `/reset-password?code=test` and confirm the page never goes blank.
+   - Open legacy hash reset URL and confirm the form appears.
+   - Confirm no auth console errors.
+   - Confirm the reset email code points to `https://platenstate.com/reset-password`.
 
-## Verification
+## Files to update
 
-After implementation: hard-refresh the preview, confirm no `AuthApiError` in the console, confirm `localStorage` no longer holds the stale `sb-*-auth-token` after the recovery path runs, and confirm signed-in sessions still load normally.
+- `src/pages/Auth.tsx`
+- `src/pages/ResetPassword.tsx`

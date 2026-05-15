@@ -208,8 +208,10 @@ const Auth = () => {
                       return;
                     }
                     try {
+                      // Always send reset emails to the production custom domain so links
+                      // don't break across preview/native/staging origins.
                       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${REDIRECT_ORIGIN}/reset-password`,
+                        redirectTo: "https://platenstate.com/reset-password",
                       });
                       if (error) throw error;
                       toast({ title: "Check your email", description: "We sent you a password reset link." });
