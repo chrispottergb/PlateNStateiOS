@@ -61,6 +61,70 @@ interface Report {
   vehicle_color: string | null;
 }
 
+const ReportComposer = () => {
+  const { user } = useAuth();
+  const [text, setText] = useState("");
+  const [open, setOpen] = useState(false);
+  const [promptIndex] = useState(() => Math.floor(Math.random() * COMPOSER_PROMPTS.length));
+
+  const handleOpen = () => {
+    if (text.trim().length === 0) return;
+    setOpen(true);
+  };
+
+  return (
+    <div className="glass-card rounded-2xl border border-foreground/5 p-3 sm:p-4 hover:border-primary/20 transition-colors">
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
+          {user?.user_metadata?.avatar_url ? (
+            <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+          ) : (
+            <span aria-hidden>🚨</span>
+          )}
+        </div>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value.slice(0, 500))}
+          placeholder={COMPOSER_PROMPTS[promptIndex]}
+          rows={1}
+          maxLength={500}
+          className="flex-1 min-w-0 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none resize-none border-0 focus:ring-0 py-2"
+          onInput={(e) => {
+            const el = e.currentTarget;
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 160) + "px";
+          }}
+        />
+      </div>
+      <div className="flex items-center justify-between gap-2 mt-2 pl-12 sm:pl-[52px]">
+        <span className={`text-[11px] ${text.length > 450 ? "text-destructive" : "text-muted-foreground"}`}>
+          {text.length}/500
+        </span>
+        <ReportModal
+          initialComment={text}
+          open={open}
+          onOpenChange={(v) => {
+            setOpen(v);
+            if (!v) setText("");
+          }}
+          trigger={
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleOpen}
+              disabled={text.trim().length === 0}
+              className="rounded-full gap-1.5 font-semibold px-4 shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.5)]"
+            >
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Report
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+};
+
 const HonkZone = () => {
   const [searchPlate, setSearchPlate] = useState("");
   const [taglineIndex, setTaglineIndex] = useState(0);
@@ -215,34 +279,7 @@ const HonkZone = () => {
         {/* Twitter-style report composer */}
         {!loading && (
           <div className="mt-4 mb-4">
-            <ReportModal
-              trigger={
-                <button
-                  type="button"
-                  className="group w-full text-left glass-card rounded-2xl border border-foreground/5 px-3 sm:px-4 py-3 flex items-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
-                  aria-label="Report a plate"
-                >
-                  <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
-                    {user?.user_metadata?.avatar_url ? (
-                      <img
-                        src={user.user_metadata.avatar_url}
-                        alt=""
-                        className="h-full w-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span aria-hidden>🚨</span>
-                    )}
-                  </div>
-                  <span className="flex-1 min-w-0 text-sm text-muted-foreground group-hover:text-foreground/80 truncate">
-                    {COMPOSER_PROMPTS[taglineIndex % COMPOSER_PROMPTS.length]}
-                  </span>
-                  <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.5)] group-hover:scale-[1.03] transition-transform">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Report
-                  </span>
-                </button>
-              }
-            />
+            <ReportComposer />
           </div>
         )}
 

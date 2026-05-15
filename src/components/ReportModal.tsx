@@ -64,14 +64,23 @@ const QUICK_INFRACTIONS: InfractionType[] = [
 interface ReportModalProps {
   trigger: React.ReactNode;
   initialPlate?: string;
+  initialComment?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const TOTAL_STEPS = 6;
 
-const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
+const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setInternalOpen(v);
+    controlledOnOpenChange?.(v);
+  };
   const [mode, setMode] = useState<"quick" | "detailed">("quick");
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
@@ -97,7 +106,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
 
   // Driver fields
   const [driverGenderFemale, setDriverGenderFemale] = useState(false);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment);
 
   const reset = () => {
     setStep(1);
@@ -118,7 +127,7 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
     setVehicleModel("");
     setVehicleFeatures([]);
     setDriverGenderFemale(false);
-    setComment("");
+    setComment(initialComment);
     setShowAllInfractions(false);
   };
 
@@ -129,7 +138,10 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
       return;
     }
     setOpen(v);
-    if (v) detectLocation();
+    if (v) {
+      detectLocation();
+      setComment(initialComment);
+    }
     if (!v) { reset(); setMode("quick"); }
   };
 
@@ -360,7 +372,20 @@ const ReportModal = ({ trigger, initialPlate = "" }: ReportModalProps) => {
               )}
             </div>
 
-            {/* Submit */}
+            {/* Optional note */}
+            <div>
+              <Label htmlFor="quick-comment" className="text-sm font-medium">Note <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <Textarea
+                id="quick-comment"
+                value={comment}
+                onChange={e => setComment(e.target.value.slice(0, 500))}
+                placeholder="Add details about what happened…"
+                className="mt-1.5 rounded-lg min-h-[72px] resize-none"
+                maxLength={500}
+              />
+            </div>
+
+
             <Button
               onClick={handleSubmit}
               disabled={!canSubmitQuick || submitting}
