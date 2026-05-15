@@ -138,6 +138,17 @@ const Auth = () => {
             onClick={async () => {
               setLoading(true);
               try {
+                if (isNative) {
+                  const state = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+                  const params = new URLSearchParams({
+                    provider: "google",
+                    redirect_uri: `${REDIRECT_ORIGIN}/auth`,
+                    state,
+                  });
+                  window.location.href = `https://platenstate.com/~oauth/initiate?${params.toString()}`;
+                  return;
+                }
+
                 const result = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: REDIRECT_ORIGIN,
                 });
