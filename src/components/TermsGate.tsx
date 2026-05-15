@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -21,11 +21,16 @@ const TERMS_VERSION = "2026-05-14";
  */
 const TermsGate = () => {
   const { user, loading } = useAuth();
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (pathname === "/reset-password") {
+      setOpen(false);
+      return;
+    }
     if (loading || !user) return;
     let cancelled = false;
     (async () => {
@@ -38,7 +43,7 @@ const TermsGate = () => {
       if (!data?.terms_accepted_at) setOpen(true);
     })();
     return () => { cancelled = true; };
-  }, [user, loading]);
+  }, [user, loading, pathname]);
 
   const accept = async () => {
     if (!user) return;
