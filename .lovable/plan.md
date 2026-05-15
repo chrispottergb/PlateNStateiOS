@@ -1,36 +1,45 @@
 ## Goal
 
-Replace the existing inline "I am a passenger or parked" checkbox with a blocking confirmation modal that appears whenever the user taps **Live Scan** or **Upload Photo**, requiring an explicit "I'm not driving" button click before the camera/picker opens. This strengthens the liability waiver and makes acknowledgment unmistakable.
+Add a Twitter-style "compose box" at the top of the plate feed on **/a-hole-patrol** that any signed-in user can click to instantly open the existing **Report a Plate** modal. It makes reporting feel one-tap, without removing the existing hero "Report a Plate" button.
+
+## Where it goes
+
+In `src/pages/HonkZone.tsx`, inside `<div className="flex-1 space-y-4">` (line ~216), as the **first child of the main feed column** — above the Hot/New/Top controls bar. This places it directly above the feed on both mobile and desktop, just like Twitter's composer sits above the timeline.
+
+It does **not** appear on `/a-hole-patrol/wall` (that page is a curated wall, not a feed).
+
+## What it looks like
+
+A glass-card row, full width of the feed column:
+
+```text
+┌────────────────────────────────────────────────────┐
+│ (avatar)  See an a-hole on the road?      [Report] │
+└────────────────────────────────────────────────────┘
+```
+
+- **Avatar** on the left: signed-in user's avatar from `useAuth()` if available, otherwise a generic siren/car emoji circle styled like the existing avatar bubbles.
+- **Faux input** in the middle: muted placeholder text like *"See an a-hole on the road? Tap to report…"* (rotating from a small set of cheeky variants for personality, matching the page's tone). Not a real `<input>` — just a styled `div` so the whole card is one click target.
+- **Pill button** on the right: small primary "Report" button with the `AlertTriangle` icon, hidden on very small screens (the whole card is already clickable).
+- The entire card is a single button-like element — clicking anywhere triggers the same `ReportModal` flow already used by the hero CTA.
+
+Styling uses existing tokens: `glass-card`, `rounded-2xl`, `border-foreground/5`, `text-muted-foreground`, `hover:border-primary/30`, subtle `hover:bg-primary/5` transition. Mobile-first, no horizontal overflow at 760px viewport.
 
 ## Behavior
 
-1. User taps **Live Scan** or **Upload Photo** in `PlateScanner`.
-2. A modal (`AlertDialog`) appears with:
-   - Title: "Confirm you're not driving"
-   - Body: short liability disclaimer — confirming they are a passenger or parked, that they will not use the app while operating a vehicle, and that Plate'n State is not liable for misuse.
-   - Two buttons: **Cancel** and **I'm not driving — continue**
-3. On confirm, proceed with the originally intended action (native camera, web camera, or file picker).
-4. On cancel, close the modal and do nothing.
-5. Remember acknowledgment for the current session only (sessionStorage) so the modal doesn't reappear on every scan within the same session — but always re-prompts on a fresh app launch.
+- **Signed in** → clicking the card opens `ReportModal` (same component already imported on the page; we just wrap a new trigger in it).
+- **Signed out** → mirrors current behavior of the hero "Report a Plate" button: `ReportModal` already shows the "Sign in required" toast and redirects to `/auth`. No extra logic needed.
+- No new state, no new API calls, no new routes.
+- Composer is hidden while `loading` is true (skeletons already shown), to avoid layout jank.
 
 ## Files to change
 
-- **`src/components/PlateScanner.tsx`**
-  - Remove the inline checkbox + warning UI (lines ~242–263) and the `acknowledgedPassenger` / `showWarning` state.
-  - Add `liabilityOpen` state and a `pendingAction` ref/state to remember which entry point was clicked (`'native-camera' | 'web-camera' | 'upload'`).
-  - Wrap the three entry buttons (Live Scan native, Live Scan web, Upload Photo) so each first checks sessionStorage flag `plate_scan_liability_ack`. If absent, open the modal and stash the pending action; if present, run the action immediately.
-  - Add an `AlertDialog` at the bottom of the component with the disclaimer copy and a confirm handler that sets the sessionStorage flag and dispatches the pending action.
+- **`src/pages/HonkZone.tsx`** — add a new `<ReportComposer />` (inline component or local block) as the first item in the main feed column.
 
-- **No backend, schema, or edge-function changes.**
-
-## Technical notes
-
-- Use existing shadcn `AlertDialog` from `@/components/ui/alert-dialog` (already used elsewhere).
-- Keep all styling on semantic tokens (`text-muted-foreground`, `bg-background`, etc.).
-- Disclaimer copy (draft, easy to tweak):
-  > By continuing, you confirm that you are a passenger or your vehicle is parked, and that you will not use Plate'n State while driving. You agree that Plate'n State and its operators are not liable for any misuse, accidents, or damages resulting from use of this feature.
+That's the only file touched. No backend, schema, or new components required unless we want to extract `ReportComposer` into its own file for reuse later (optional, not in scope).
 
 ## Out of scope
 
-- No changes to scan logic, edge functions, auth, or email.
-- No persistent (cross-session) acknowledgment — that would be a separate Terms acceptance feature.
+- Inline plate entry inside the composer (keeping the modal flow preserves photo scan, location capture, captcha, rate limiting — all already handled there).
+- Adding the composer to other pages (Wall of Shame, Community, Plate Detail).
+- Persisting drafts.
