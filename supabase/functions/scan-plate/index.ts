@@ -1,6 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { captureException, verifyCaptcha, getClientIp } from "../_shared/sentry.ts";
 
+/** Returns true when the request carries a valid Supabase user JWT. */
+async function isAuthenticated(req: Request): Promise<boolean> {
+  try {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return false;
+    const client = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data } = await client.auth.getUser();
+    return Boolean(data?.user?.id);
+  } catch {
+    return false;
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -34,7 +51,10 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { image, captcha_token } = body;
-    if (!(await verifyCaptcha(captcha_token))) {
+    // Authenticated users (native + logged-in web) bypass captcha.
+    // Unauthenticated public requests still require a valid hCaptcha token.
+    const authed = await isAuthenticated(req);
+    if (!authed && !(await verifyCaptcha(captcha_token))) {
       return new Response(JSON.stringify({ error: "Captcha failed" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -54,7 +74,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
+        model: "openai/gpt-4o-mini",
         messages: [
           {
             role: "system",

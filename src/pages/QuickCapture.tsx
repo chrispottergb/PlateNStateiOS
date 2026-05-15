@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReportModal from "@/components/ReportModal";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
+import { isNative, takePhotoNative } from "@/lib/native";
 
 /**
  * /quick-capture
@@ -35,6 +36,12 @@ const QuickCapture = () => {
   }, []);
 
   const startCamera = useCallback(async () => {
+    if (isNative) {
+      // Capacitor WebView cannot use getUserMedia (http://localhost is not HTTPS).
+      // Camera is opened per-capture via the plugin instead.
+      setReady(true);
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -60,21 +67,28 @@ const QuickCapture = () => {
 
   const capture = useCallback(async () => {
     if (scanningRef.current) return;
-    if (!videoRef.current || !canvasRef.current) return;
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video.videoWidth) return;
-
     scanningRef.current = true;
     setScanning(true);
 
     try {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("No canvas context");
-      ctx.drawImage(video, 0, 0);
-      const base64 = canvas.toDataURL("image/jpeg", 0.85);
+      let base64: string;
+
+      if (isNative) {
+        const img = await takePhotoNative();
+        if (!img) { scanningRef.current = false; setScanning(false); return; }
+        base64 = img;
+      } else {
+        if (!videoRef.current || !canvasRef.current) { scanningRef.current = false; setScanning(false); return; }
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!video.videoWidth) { scanningRef.current = false; setScanning(false); return; }
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("No canvas context");
+        ctx.drawImage(video, 0, 0);
+        base64 = canvas.toDataURL("image/jpeg", 0.85);
+      }
 
       const captchaToken = await captcha.execute();
       if (captcha.enabled && !captchaToken) {
