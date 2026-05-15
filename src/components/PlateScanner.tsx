@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
-import { isNative, pickImageFromLibrary } from "@/lib/native";
+import { isNative, pickImageFromLibrary, takePhotoNative } from "@/lib/native";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -95,6 +95,17 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       processImage(base64);
     } catch (err: any) {
       toast.error("Could not open photo library", { description: err.message });
+    }
+  }, [processImage]);
+
+  const handleNativeCamera = useCallback(async () => {
+    try {
+      const base64 = await takePhotoNative();
+      if (!base64) return;
+      setPreview(base64);
+      processImage(base64);
+    } catch (err: any) {
+      toast.error("Could not open camera", { description: err.message });
     }
   }, [processImage]);
 
@@ -266,7 +277,11 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
                   setShowWarning(true);
                   return;
                 }
-                startCamera();
+                if (isNative) {
+                  handleNativeCamera();
+                } else {
+                  startCamera();
+                }
               }}
               aria-disabled={!acknowledgedPassenger}
               className={`flex-1 h-11 rounded-lg ${!acknowledgedPassenger ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""}`}
