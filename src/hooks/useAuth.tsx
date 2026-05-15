@@ -30,11 +30,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          const msg = String(error.message || "");
+          if (/Refresh Token|Auth session missing/i.test(msg)) {
+            // Stale token in localStorage — wipe it so we don't loop on every load.
+            supabase.auth.signOut({ scope: "local" }).catch(() => {});
+          }
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, []);
