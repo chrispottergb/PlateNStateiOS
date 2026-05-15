@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Camera, Upload, Loader2, X, ScanLine, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,20 +21,30 @@ interface PlateScannerProps {
   onResult: (plateNumber: string, state: string | null) => void;
 }
 
+type PendingAction = "native-camera" | "web-camera" | "upload";
+
+const ACK_KEY = "plate_scan_liability_ack";
+
 const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const isMobile = useIsMobile();
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [showPassengerDialog, setShowPassengerDialog] = useState(false);
-  const [acknowledgedPassenger, setAcknowledgedPassenger] = useState(false);
-  const [passengerChecked, setPassengerChecked] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
+  const [liabilityOpen, setLiabilityOpen] = useState(false);
+  const pendingActionRef = useRef<PendingAction | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const captcha = useCaptcha();
+
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    setCameraActive(false);
+  }, []);
+
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
   const processImage = useCallback(async (base64: string) => {
     setScanning(true);
@@ -66,7 +76,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       setPreview(null);
       stopCamera();
     }
-  }, [onResult, captcha]);
+  }, [onResult, captcha, stopCamera]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -87,7 +97,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
     e.target.value = "";
   };
 
-  const handleNativePick = useCallback(async () => {
+  const doNativePick = useCallback(async () => {
     try {
       const base64 = await pickImageFromLibrary();
       if (!base64) return;
@@ -98,7 +108,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
     }
   }, [processImage]);
 
-  const handleNativeCamera = useCallback(async () => {
+  const doNativeCamera = useCallback(async () => {
     try {
       const base64 = await takePhotoNative();
       if (!base64) return;
@@ -109,55 +119,55 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
     }
   }, [processImage]);
 
-  const startCamera = async () => {
-    if (!acknowledgedPassenger) {
-      setPassengerChecked(false);
-      setShowPassengerDialog(true);
+  const doWebCamera = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setCameraActive(true);
+    } catch {
+      toast.error("Camera access denied", {
+        description: "Please allow camera access to scan plates.",
+      });
+    }
+  }, []);
+
+  const runAction = useCallback((action: PendingAction) => {
+    if (action === "upload") {
+      if (isNative) doNativePick();
+      else fileInputRef.current?.click();
+    } else if (action === "native-camera") {
+      doNativeCamera();
+    } else if (action === "web-camera") {
+      doWebCamera();
+    }
+  }, [doNativePick, doNativeCamera, doWebCamera]);
+
+  const requestAction = useCallback((action: PendingAction) => {
+    const acked = typeof window !== "undefined" && sessionStorage.getItem(ACK_KEY) === "1";
+    if (acked) {
+      runAction(action);
       return;
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setCameraActive(true);
-    } catch {
-      toast.error("Camera access denied", {
-        description: "Please allow camera access to scan plates.",
-      });
-    }
-  };
+    pendingActionRef.current = action;
+    setLiabilityOpen(true);
+  }, [runAction]);
 
-  const confirmPassengerAndStart = async () => {
-    setAcknowledgedPassenger(true);
-    setShowPassengerDialog(false);
-    // Start camera now that ack is set
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setCameraActive(true);
-    } catch {
-      toast.error("Camera access denied", {
-        description: "Please allow camera access to scan plates.",
-      });
+  const handleConfirmLiability = useCallback(() => {
+    try { sessionStorage.setItem(ACK_KEY, "1"); } catch { /* ignore */ }
+    setLiabilityOpen(false);
+    const action = pendingActionRef.current;
+    pendingActionRef.current = null;
+    if (action) {
+      // small defer so the dialog can unmount cleanly
+      setTimeout(() => runAction(action), 0);
     }
-  };
-
-  const stopCamera = () => {
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-    setCameraActive(false);
-  };
+  }, [runAction]);
 
   const captureFrame = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -195,27 +205,16 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
             muted
             className="w-full aspect-video object-cover"
           />
-          {/* Scan overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="border-2 border-primary/70 rounded-lg w-3/4 h-1/3 flex items-center justify-center">
               <ScanLine className="h-6 w-6 text-primary animate-pulse" />
             </div>
           </div>
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-3">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={stopCamera}
-              className="rounded-full"
-            >
+            <Button size="sm" variant="secondary" onClick={stopCamera} className="rounded-full">
               <X className="h-4 w-4 mr-1" /> Cancel
             </Button>
-            <Button
-              size="sm"
-              onClick={captureFrame}
-              disabled={scanning}
-              className="rounded-full"
-            >
+            <Button size="sm" onClick={captureFrame} disabled={scanning} className="rounded-full">
               {scanning ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-1" />
               ) : (
@@ -238,88 +237,51 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
           )}
         </div>
       ) : (
-        <div className="space-y-2">
-          <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={acknowledgedPassenger}
-              onChange={e => {
-                setAcknowledgedPassenger(e.target.checked);
-                if (e.target.checked) setShowWarning(false);
-              }}
-              className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
-            />
-            <span>
-              I am a passenger or my vehicle is parked. I am not operating a moving vehicle.
-            </span>
-          </label>
-          {showWarning && !acknowledgedPassenger && (
-            <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>
-                Please confirm you're a passenger or parked before starting a live scan.
-              </span>
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 h-11 rounded-lg"
-              onClick={isNative ? handleNativePick : () => fileInputRef.current?.click()}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Photo
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (!acknowledgedPassenger) {
-                  setShowWarning(true);
-                  return;
-                }
-                if (isNative) {
-                  handleNativeCamera();
-                } else {
-                  startCamera();
-                }
-              }}
-              aria-disabled={!acknowledgedPassenger}
-              className={`flex-1 h-11 rounded-lg ${!acknowledgedPassenger ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""}`}
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Live Scan
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1 h-11 rounded-lg"
+            onClick={() => requestAction("upload")}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Photo
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 h-11 rounded-lg"
+            onClick={() => requestAction(isNative ? "native-camera" : "web-camera")}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Live Scan
+          </Button>
         </div>
       )}
 
-      <AlertDialog open={showPassengerDialog} onOpenChange={setShowPassengerDialog}>
+      <AlertDialog open={liabilityOpen} onOpenChange={setLiabilityOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Safety check
+              Confirm you're not driving
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <span className="block">
-                Using your camera while driving is dangerous and illegal in most places.
-                Please confirm you are <strong>not currently driving</strong> before continuing.
-              </span>
-              <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none mt-2">
-                <input
-                  type="checkbox"
-                  checked={passengerChecked}
-                  onChange={e => setPassengerChecked(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
-                />
-                <span>I am a passenger or my vehicle is parked. I am not operating a moving vehicle.</span>
-              </label>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  By continuing, you confirm that you are a <strong>passenger</strong> or
+                  your vehicle is <strong>parked</strong>, and that you will not use
+                  Plate'n State while operating a moving vehicle.
+                </p>
+                <p>
+                  You agree that Plate'n State and its operators are <strong>not liable</strong>{" "}
+                  for any misuse, accidents, injuries, or damages resulting from use of this feature.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={!passengerChecked} onClick={confirmPassengerAndStart}>
-              I acknowledge — Start Scan
+            <AlertDialogAction onClick={handleConfirmLiability}>
+              I'm not driving — continue
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
