@@ -33,6 +33,7 @@ export const useNativeDeepLinks = () => {
             const refreshToken = hashParams.get("refresh_token");
             if (accessToken && refreshToken) {
               await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+              await import("@capacitor/browser").then(({ Browser }) => Browser.close()).catch(() => {});
               navigate(path === "/auth" || path.startsWith("/~oauth") ? "/" : target, { replace: true });
               return;
             }
@@ -40,6 +41,7 @@ export const useNativeDeepLinks = () => {
             const code = u.searchParams.get("code");
             if (code && (path === "/auth" || path.startsWith("/~oauth"))) {
               await supabase.auth.exchangeCodeForSession(code).catch(() => {});
+              await import("@capacitor/browser").then(({ Browser }) => Browser.close()).catch(() => {});
               navigate("/", { replace: true });
               return;
             }
