@@ -1,45 +1,29 @@
-## Goal
+## Problem
 
-Add a Twitter-style "compose box" at the top of the plate feed on **/a-hole-patrol** that any signed-in user can click to instantly open the existing **Report a Plate** modal. It makes reporting feel one-tap, without removing the existing hero "Report a Plate" button.
+Sentry is being spammed by `AuthApiError: Invalid Refresh Token: Refresh Token Not Found` (status 400, code `refresh_token_not_found`). Confirmed in:
+- Browser console (unhandled error from `supabase.auth._recoverAndRefresh` during init)
+- Auth logs (`POST /token` → 400 `refresh_token_not_found`)
 
-## Where it goes
+Cause: When the app boots with a stale or revoked refresh token in `localStorage`, supabase-js throws during init. The error is functionally harmless (user just isn't signed in), but it propagates as an uncaught promise rejection and Sentry captures it.
 
-In `src/pages/HonkZone.tsx`, inside `<div className="flex-1 space-y-4">` (line ~216), as the **first child of the main feed column** — above the Hot/New/Top controls bar. This places it directly above the feed on both mobile and desktop, just like Twitter's composer sits above the timeline.
+## Fix (two layers)
 
-It does **not** appear on `/a-hole-patrol/wall` (that page is a curated wall, not a feed).
+### 1. Clear stale tokens in `src/hooks/useAuth.tsx`
+Wrap `supabase.auth.getSession()` in a `.catch` and call `supabase.auth.signOut({ scope: 'local' })` when the error is `refresh_token_not_found` / `AuthApiError`. This wipes the bad token from localStorage so the user starts clean instead of re-throwing on every page load.
 
-## What it looks like
+### 2. Filter known-noise from Sentry in `src/main.tsx`
+Add a `beforeSend` hook to the `Sentry.init` call that drops events whose error matches:
+- `AuthApiError` with `code === 'refresh_token_not_found'`
+- `AuthSessionMissingError`
+- Any error message matching `/Invalid Refresh Token|Refresh Token Not Found|Auth session missing/i`
 
-A glass-card row, full width of the feed column:
+This prevents future variants of the same noise category from polluting Sentry while still letting genuine auth bugs through.
 
-```text
-┌────────────────────────────────────────────────────┐
-│ (avatar)  See an a-hole on the road?      [Report] │
-└────────────────────────────────────────────────────┘
-```
+## Files touched
 
-- **Avatar** on the left: signed-in user's avatar from `useAuth()` if available, otherwise a generic siren/car emoji circle styled like the existing avatar bubbles.
-- **Faux input** in the middle: muted placeholder text like *"See an a-hole on the road? Tap to report…"* (rotating from a small set of cheeky variants for personality, matching the page's tone). Not a real `<input>` — just a styled `div` so the whole card is one click target.
-- **Pill button** on the right: small primary "Report" button with the `AlertTriangle` icon, hidden on very small screens (the whole card is already clickable).
-- The entire card is a single button-like element — clicking anywhere triggers the same `ReportModal` flow already used by the hero CTA.
+- `src/hooks/useAuth.tsx` — clean up stale refresh tokens on init failure
+- `src/main.tsx` — Sentry `beforeSend` filter
 
-Styling uses existing tokens: `glass-card`, `rounded-2xl`, `border-foreground/5`, `text-muted-foreground`, `hover:border-primary/30`, subtle `hover:bg-primary/5` transition. Mobile-first, no horizontal overflow at 760px viewport.
+## Verification
 
-## Behavior
-
-- **Signed in** → clicking the card opens `ReportModal` (same component already imported on the page; we just wrap a new trigger in it).
-- **Signed out** → mirrors current behavior of the hero "Report a Plate" button: `ReportModal` already shows the "Sign in required" toast and redirects to `/auth`. No extra logic needed.
-- No new state, no new API calls, no new routes.
-- Composer is hidden while `loading` is true (skeletons already shown), to avoid layout jank.
-
-## Files to change
-
-- **`src/pages/HonkZone.tsx`** — add a new `<ReportComposer />` (inline component or local block) as the first item in the main feed column.
-
-That's the only file touched. No backend, schema, or new components required unless we want to extract `ReportComposer` into its own file for reuse later (optional, not in scope).
-
-## Out of scope
-
-- Inline plate entry inside the composer (keeping the modal flow preserves photo scan, location capture, captcha, rate limiting — all already handled there).
-- Adding the composer to other pages (Wall of Shame, Community, Plate Detail).
-- Persisting drafts.
+After implementation: hard-refresh the preview, confirm no `AuthApiError` in the console, confirm `localStorage` no longer holds the stale `sb-*-auth-token` after the recovery path runs, and confirm signed-in sessions still load normally.

@@ -17,6 +17,28 @@ if (SENTRY_DSN) {
     tracePropagationTargets: [/^https:\/\/diaydeyqbcseufpbwpki\.supabase\.co/],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
+    ignoreErrors: [
+      "AuthApiError",
+      "AuthSessionMissingError",
+      "Invalid Refresh Token",
+      "Refresh Token Not Found",
+      "Auth session missing",
+    ],
+    beforeSend(event, hint) {
+      const err = hint?.originalException as any;
+      const name = err?.name || "";
+      const code = err?.code || "";
+      const msg = String(err?.message || event.message || "");
+      if (
+        code === "refresh_token_not_found" ||
+        name === "AuthSessionMissingError" ||
+        (name === "AuthApiError" && /Refresh Token/i.test(msg)) ||
+        /Invalid Refresh Token|Refresh Token Not Found|Auth session missing/i.test(msg)
+      ) {
+        return null;
+      }
+      return event;
+    },
   });
 }
 
