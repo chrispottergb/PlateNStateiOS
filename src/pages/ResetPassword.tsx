@@ -19,19 +19,45 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get("type") === "recovery") {
-      setIsRecovery(true);
-    }
+    let cancelled = false;
+    const enableRecovery = () => { if (!cancelled) setIsRecovery(true); };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsRecovery(true);
+    const init = async () => {
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const queryParams = url.searchParams;
+
+      // Legacy hash flow: #access_token=...&type=recovery
+      if (hashParams.get("type") === "recovery") enableRecovery();
+
+      // token_hash query flow: ?token_hash=...&type=recovery
+      const tokenHash = queryParams.get("token_hash");
+      const type = queryParams.get("type");
+      if (tokenHash && type === "recovery") {
+        const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
+        if (!error) enableRecovery();
+        else toast({ title: "Reset link expired", description: "Request a new password reset email.", variant: "destructive" });
+        return;
+      }
+
+      // PKCE flow: ?code=... — supabase-js auto-exchanges on load.
+      if (queryParams.get("code")) {
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) enableRecovery();
+    };
+
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+        enableRecovery();
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
