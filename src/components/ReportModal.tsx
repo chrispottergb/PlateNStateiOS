@@ -372,7 +372,20 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               )}
             </div>
 
-            {/* Submit */}
+            {/* Optional note */}
+            <div>
+              <Label htmlFor="quick-comment" className="text-sm font-medium">Note <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <Textarea
+                id="quick-comment"
+                value={comment}
+                onChange={e => setComment(e.target.value.slice(0, 500))}
+                placeholder="Add details about what happened…"
+                className="mt-1.5 rounded-lg min-h-[72px] resize-none"
+                maxLength={500}
+              />
+            </div>
+
+
             <Button
               onClick={handleSubmit}
               disabled={!canSubmitQuick || submitting}
