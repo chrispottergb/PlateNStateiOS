@@ -16,7 +16,7 @@ import authBg from "@/assets/auth-bg.jpg";
 // rejects as a redirect URL and which won't reopen the app from an email link.
 // Fall back to the published web URL so confirmation links still work.
 const REDIRECT_ORIGIN = isNative
-  ? "https://platenstate.lovable.app"
+  ? "https://platenstate.com"
   : window.location.origin;
 
 const Auth = () => {
@@ -138,6 +138,18 @@ const Auth = () => {
             onClick={async () => {
               setLoading(true);
               try {
+                if (isNative) {
+                  const state = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+                  const params = new URLSearchParams({
+                    provider: "google",
+                    redirect_uri: `${REDIRECT_ORIGIN}/auth`,
+                    state,
+                  });
+                  const { Browser } = await import("@capacitor/browser");
+                  await Browser.open({ url: `https://platenstate.com/~oauth/initiate?${params.toString()}` });
+                  return;
+                }
+
                 const result = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: REDIRECT_ORIGIN,
                 });
