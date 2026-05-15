@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.platenstate.myapp",
+      "sha256_cert_fingerprints": [
+        "1A:B4:76:E5:B9:1B:ED:40:B8:EC:96:1F:C7:F3:B2:80:51:94:EE:74:20:69:A1:CD:E3:67:42:F6:7E:BB:1F:B0"
+      ]
+    }
+  }
+]
