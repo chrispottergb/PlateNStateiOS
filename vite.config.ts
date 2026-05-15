@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const supabaseUrl = env.VITE_SUPABASE_URL || "https://diaydeyqbcseufpbwpki.supabase.co";
   const supabasePublishableKey =
     env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImRpYXlkZXlxYmNzZXVmcGJ3cGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NTEzOTgsImV4cCI6MjA4OTAyNzM5OH0.ifIgZSZDTCB8eWdYLeQCjeizbWNbpaZi7K2CwzEIdaM";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpYXlkZXlxYmNzZXVmcGJ3cGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NTEzOTgsImV4cCI6MjA4OTAyNzM5OH0.ifIgZSZDTCB8eWdYLeQCjeizbWNbpaZi7K2CwzEIdaM";
 
   return {
     define: {
