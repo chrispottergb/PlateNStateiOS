@@ -66,7 +66,8 @@ const Auth = () => {
             .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11" })
             .eq("user_id", signUpData.user.id);
         }
-        toast({ title: "Check your email", description: "We sent you a verification link to confirm your account." });
+        toast({ title: "Welcome to the Patrol!", description: "Your account is ready." });
+        navigate("/");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email, password,
