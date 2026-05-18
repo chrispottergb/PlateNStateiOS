@@ -192,6 +192,14 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
             <Share2 className="h-3.5 w-3.5" />
           </button>
+          <button
+            disabled={flagged}
+            onClick={() => setFlagOpen(true)}
+            title="Flag as false report"
+            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${flagged ? "text-amber-500" : "text-muted-foreground hover:text-amber-500"}`}
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 
