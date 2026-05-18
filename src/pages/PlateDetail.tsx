@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeReportDialog } from "@/components/DisputeReportDialog";
+import { toast } from "sonner";
 
 const HIGH_RISK_INFRACTIONS = new Set([
   "road_rage", "hit_and_run", "dui_suspected", "wrong_way",
