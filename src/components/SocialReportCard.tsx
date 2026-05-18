@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
-import { MapPin, ThumbsUp, MessageCircle, Share2, Car } from "lucide-react";
+import { MapPin, ThumbsUp, MessageCircle, Share2, Car, Flag, AlertCircle } from "lucide-react";
 import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentThread from "./CommentThread";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 const FUNNY_BADGES: Record<string, string> = {
   reckless: "🏎️ Speed Demon",
   tailgating: "🐌 Personal Space Invader",
