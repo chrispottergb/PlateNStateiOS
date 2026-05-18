@@ -48,6 +48,7 @@ const ClaimPlate = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { toast } = useToast();
+  const [selectedTier, setSelectedTier] = useState<ClaimPriceId>("plate_claim_lifetime");
   const { homeState, setHomeState } = useHomeState();
 
   const { data: claimedPlates, refetch: refetchClaims } = useQuery({
@@ -125,10 +126,11 @@ const ClaimPlate = () => {
       toast({ title: "Enter a plate number first", variant: "destructive" });
       return;
     }
+    const tier = CLAIM_TIERS.find(t => t.id === selectedTier)!;
     setCheckout({
-      priceId: "plate_claim_one_time",
+      priceId: selectedTier,
       plateNumber: cleaned,
-      title: `Claim ${cleaned} — ${CLAIM_PRICE_USD}`,
+      title: `Claim ${cleaned} (${tier.label}) — ${tier.price}`,
     });
   };
 
@@ -222,7 +224,7 @@ const ClaimPlate = () => {
               </div>
               <CardTitle className="text-2xl">Claim Your Plate</CardTitle>
               <CardDescription>
-                Lock in your plate for life — {CLAIM_PRICE_USD} one-time. Get notified when it's reported and unlock optional Privacy tiers.
+                Lock in your plate, pick a duration. Get notified when it's reported and unlock optional Privacy tiers.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -234,23 +236,48 @@ const ClaimPlate = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  <Input
+                    value={plateNumber}
+                    onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 10))}
+                    placeholder="ABC 1234"
+                    className="font-mono text-lg tracking-wider text-center h-12"
+                    maxLength={10}
+                  />
+
+                  {/* Pricing tier picker */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {CLAIM_TIERS.map(tier => (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => setSelectedTier(tier.id)}
+                        className={`relative rounded-xl border p-3 text-left transition-all ${
+                          selectedTier === tier.id
+                            ? "border-primary bg-primary/5 ring-2 ring-primary/40"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        {tier.badge && (
+                          <span className="absolute -top-2 right-2 text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
+                            {tier.badge}
+                          </span>
+                        )}
+                        <p className="text-xs text-muted-foreground">{tier.label}</p>
+                        <p className="text-lg font-extrabold">{tier.price}</p>
+                      </button>
+                    ))}
+                  </div>
+
                   <div className="flex gap-2">
-                    <Input
-                      value={plateNumber}
-                      onChange={e => setPlateNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-                      placeholder="ABC 1234"
-                      className="font-mono text-lg tracking-wider"
-                      maxLength={8}
-                    />
-                    <Button onClick={startClaim} disabled={plateNumber.trim().length < 3}>
-                      <Lock className="h-4 w-4 mr-1" /> Claim {CLAIM_PRICE_USD}
+                    <Button onClick={startClaim} disabled={plateNumber.trim().length < 3} className="flex-1">
+                      <Lock className="h-4 w-4 mr-1" /> Claim {CLAIM_TIERS.find(t => t.id === selectedTier)?.price}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setShowScanner(true)}>
+                      <Camera className="h-4 w-4 mr-1" />
+                      Scan
                     </Button>
                   </div>
-                  <Button type="button" variant="outline" className="w-full" onClick={() => setShowScanner(true)}>
-                    <Camera className="h-4 w-4 mr-2" />
-                    Scan Plate Instead
-                  </Button>
                 </div>
               )}
             </CardContent>

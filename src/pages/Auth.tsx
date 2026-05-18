@@ -43,6 +43,9 @@ const Auth = () => {
         if (!acceptedTerms) {
           throw new Error("You must accept the Terms of Service and Privacy Policy to sign up.");
         }
+        if (displayName.trim().length < 2) {
+          throw new Error("Please choose a display name (at least 2 characters).");
+        }
         if (password.length < 10 || !/\d/.test(password)) {
           throw new Error("Password must be at least 10 characters and include a number.");
         }
@@ -50,7 +53,7 @@ const Auth = () => {
           email, password,
           options: {
             data: {
-              display_name: displayName || "Driver",
+              display_name: displayName.trim(),
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
             },
@@ -180,7 +183,10 @@ const Auth = () => {
                 <Input
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Display name"
+                  placeholder="Display name (username)"
+                  required
+                  minLength={2}
+                  maxLength={40}
                   className="pl-10 rounded-xl h-11"
                 />
               </div>
