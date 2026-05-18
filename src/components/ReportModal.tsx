@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { getPosition } from "@/lib/native";
-import { Loader2, MapPin, Pencil, Car, Palette, Wrench, User, Zap } from "lucide-react";
+import { Loader2, MapPin, Pencil, Car, Wrench, User, Zap, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import PlateScanner from "@/components/PlateScanner";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { INFRACTIONS } from "@/lib/data";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { BAD_INFRACTIONS, GOOD_BEHAVIORS, INFRACTIONS } from "@/lib/data";
 import { US_STATES, getStateByCode, stateNameToCode } from "@/lib/usStates";
 import { InfractionType } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,15 +20,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaptcha } from "@/hooks/useCaptcha";
 import { getClientIp } from "@/lib/clientIp";
-
-const ICON_MAP: Record<string, React.ReactNode> = {
-  CarFront: <CarFront className="h-6 w-6" />,
-  Gauge: <Gauge className="h-6 w-6" />,
-  CircleAlert: <CircleAlert className="h-6 w-6" />,
-  ParkingSquare: <ParkingSquare className="h-6 w-6" />,
-  ArrowLeftRight: <ArrowLeftRight className="h-6 w-6" />,
-  Smartphone: <Smartphone className="h-6 w-6" />,
-};
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-4 w-4" />,
@@ -50,15 +42,19 @@ const VEHICLE_FEATURE_OPTIONS = [
   "Bumper Stickers",
 ];
 
-const QUICK_INFRACTIONS: InfractionType[] = [
-  "tailgating",
-  "speeding",
-  "ran_red_light",
-  "no_turn_signal",
-  "distracted_driving",
-  "road_rage",
-  "bad_parking",
-  "suspicious_vehicle",
+const QUICK_BAD: InfractionType[] = [
+  "tailgating", "speeding", "ran_red_light", "no_turn_signal",
+  "distracted_driving", "road_rage", "bad_parking", "suspicious_vehicle",
+];
+
+const DRIVER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "elderly_male", label: "Elderly Male" },
+  { value: "elderly_female", label: "Elderly Female" },
+  { value: "young_male", label: "Young Male" },
+  { value: "young_female", label: "Young Female" },
+  { value: "unknown", label: "Unknown / Not Sure" },
 ];
 
 interface ReportModalProps {
@@ -85,7 +81,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
+  const [behaviorTab, setBehaviorTab] = useState<"bad" | "good">("bad");
   const [location, setLocation] = useState("");
+  const [ksCounty, setKsCounty] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -96,6 +94,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [stateCode, setStateCode] = useState<string>("WI");
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
+  const [aiTagging, setAiTagging] = useState(false);
 
   // Vehicle fields
   const [vehicleType, setVehicleType] = useState("");
@@ -104,15 +103,17 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleFeatures, setVehicleFeatures] = useState<string[]>([]);
 
-  // Driver fields
-  const [driverGenderFemale, setDriverGenderFemale] = useState(false);
+  // Driver
+  const [driverDescription, setDriverDescription] = useState<string>("");
   const [comment, setComment] = useState(initialComment);
 
   const reset = () => {
     setStep(1);
     setPlateNumber(initialPlate);
     setInfraction(null);
+    setBehaviorTab("bad");
     setLocation("");
+    setKsCounty("");
     setLatitude(null);
     setLongitude(null);
     setGeoStatus("idle");
@@ -126,9 +127,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setVehicleMake("");
     setVehicleModel("");
     setVehicleFeatures([]);
-    setDriverGenderFemale(false);
+    setDriverDescription("");
     setComment(initialComment);
     setShowAllInfractions(false);
+    setAiTagging(false);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -189,18 +191,47 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     );
   };
 
+  const autoTagFromComment = useCallback(async () => {
+    if (infraction || !comment || comment.trim().length < 10) return;
+    setAiTagging(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-tag-behavior", {
+        body: { comment: comment.trim() },
+      });
+      if (error) return;
+      if (data?.type && data.confidence >= 0.6) {
+        const found = INFRACTIONS.find(i => i.type === data.type);
+        if (found) {
+          setInfraction(found.type);
+          setBehaviorTab(found.kind === "good" ? "good" : "bad");
+          toast.success(`AI tagged: ${found.label}`, { description: `Confidence ${Math.round(data.confidence * 100)}%` });
+        }
+      }
+    } catch {
+      // silent
+    } finally {
+      setAiTagging(false);
+    }
+  }, [comment, infraction]);
+
   const captcha = useCaptcha();
   const handleSubmit = async () => {
-    if (!user || !infraction) return;
+    if (!user) return;
     setSubmitting(true);
     try {
       const ip = await getClientIp();
-      // captcha.token is null when no site key configured (graceful no-op)
       void captcha.token;
+      // Build location with KS county if provided
+      let finalLocation = location;
+      if (stateCode === "KS" && ksCounty.trim()) {
+        finalLocation = `${location} — ${ksCounty.trim()} County`;
+      }
+      // Infraction is now OPTIONAL — use sentinel when missing
+      const finalInfraction = infraction ?? "unspecified";
       const { error } = await supabase.rpc("spend_credit_on_report", {
         p_plate_number: plateNumber,
-        p_infraction: infraction,
-        p_location: location,
+        p_infraction: finalInfraction,
+        p_location: finalLocation,
         p_latitude: latitude,
         p_longitude: longitude,
         p_vehicle_type: vehicleType || null,
@@ -208,7 +239,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         p_vehicle_make: vehicleMake || null,
         p_vehicle_model: vehicleModel || null,
         p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
-        p_driver_gender: null, // restricted — not sent from client
+        p_driver_gender: driverDescription || null,
         p_comment: comment || null,
         p_state: stateCode,
         p_ip: ip,
@@ -227,8 +258,11 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         }
         return;
       }
+      const inf = INFRACTIONS.find(i => i.type === infraction);
       toast.success("Report submitted! 🪙 1 coin spent", {
-        description: `${plateNumber} reported for ${INFRACTIONS.find(i => i.type === infraction)?.label}`,
+        description: inf
+          ? `${plateNumber} reported for ${inf.label}`
+          : `${plateNumber} report filed`,
       });
       reset();
       setOpen(false);
@@ -239,22 +273,82 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     }
   };
 
-  const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 8);
+  // Allow up to 10 chars
+  const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 10);
 
-  const canSubmitQuick = plateNumber.trim().length >= 4 && infraction !== null && location.trim().length > 0;
+  const canSubmitQuick = plateNumber.trim().length >= 4 && location.trim().length > 0;
 
   const canProceed = () => {
     if (step === 1) return plateNumber.trim().length >= 4;
     if (step === 2) return true;
-    if (step === 3) return infraction !== null;
+    if (step === 3) return true; // infraction optional
     if (step === 4) return location.trim().length > 0;
     if (step === 5) return true;
     return true;
   };
 
-  const stepLabels = ["Plate", "Vehicle", "Infraction", "Location", "Driver", "Review"];
+  const stepLabels = ["Plate", "Vehicle", "Behavior", "Location", "Driver", "Review"];
 
-  const quickInfractionList = showAllInfractions ? INFRACTIONS : INFRACTIONS.filter(i => QUICK_INFRACTIONS.includes(i.type));
+  const visibleBad = showAllInfractions ? BAD_INFRACTIONS : BAD_INFRACTIONS.filter(i => QUICK_BAD.includes(i.type));
+
+  const renderBehaviorTabs = (variant: "quick" | "detailed") => (
+    <Tabs value={behaviorTab} onValueChange={(v) => { setBehaviorTab(v as "bad" | "good"); setInfraction(null); }}>
+      <TabsList className="w-full grid grid-cols-2 mb-2">
+        <TabsTrigger value="bad" className="gap-1.5 text-xs"><ThumbsDown className="h-3.5 w-3.5" /> Bad Behavior</TabsTrigger>
+        <TabsTrigger value="good" className="gap-1.5 text-xs"><ThumbsUp className="h-3.5 w-3.5" /> Good Behavior</TabsTrigger>
+      </TabsList>
+      <TabsContent value="bad" className="mt-0">
+        <div className="grid grid-cols-2 gap-1.5">
+          {visibleBad.map(inf => (
+            <button
+              key={inf.type}
+              type="button"
+              onClick={() => setInfraction(inf.type)}
+              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all ${
+                infraction === inf.type
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/50 hover:border-primary/30 hover:bg-muted/50 text-muted-foreground"
+              }`}
+            >
+              {ICON_MAP_SM[inf.icon] ?? <AlertTriangle className="h-4 w-4" />}
+              <span className="font-medium truncate">{inf.label}</span>
+            </button>
+          ))}
+        </div>
+        {variant === "quick" && (
+          <button
+            type="button"
+            onClick={() => setShowAllInfractions(!showAllInfractions)}
+            className="text-xs text-primary hover:underline mt-2"
+          >
+            {showAllInfractions ? "Show less" : `More infractions (${BAD_INFRACTIONS.length - QUICK_BAD.length}+)…`}
+          </button>
+        )}
+      </TabsContent>
+      <TabsContent value="good" className="mt-0">
+        <div className="grid grid-cols-2 gap-1.5">
+          {GOOD_BEHAVIORS.map(inf => (
+            <button
+              key={inf.type}
+              type="button"
+              onClick={() => setInfraction(inf.type)}
+              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all ${
+                infraction === inf.type
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
+                  : "border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-muted-foreground"
+              }`}
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+              <span className="font-medium truncate">{inf.label}</span>
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-2 italic">
+          Good behavior reports lower a plate's score. Show 'em some love.
+        </p>
+      </TabsContent>
+    </Tabs>
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -267,14 +361,13 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
             ) : (
               <AlertTriangle className="h-5 w-5 text-destructive" />
             )}
-            {mode === "quick" ? "Quick Report" : "Report a Bad Driver"}
+            {mode === "quick" ? "Quick Report" : "Report a Driver"}
             <span className="ml-auto flex items-center gap-1 text-xs font-normal text-muted-foreground">
               <Coins className="h-3.5 w-3.5" /> 1 coin
             </span>
           </DialogTitle>
         </DialogHeader>
 
-        {/* Mode toggle */}
         <button
           onClick={() => { setMode(mode === "quick" ? "detailed" : "quick"); setStep(1); }}
           className="text-xs text-primary hover:underline text-left -mt-2 mb-1"
@@ -287,48 +380,37 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         {/* ===== QUICK MODE ===== */}
         {mode === "quick" && (
           <div className="space-y-4">
-            {/* Plate input */}
+            {/* Plate input + state */}
             <div>
-              <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate</Label>
-              <PlateScanner onResult={(plate, state) => {
-                setPlateNumber(plate);
-              }} />
-              <Input
-                id="quick-plate"
-                value={plateNumber}
-                onChange={e => setPlateNumber(formatPlate(e.target.value))}
-                placeholder="ABC 1234"
-                className="mt-1.5 font-mono text-xl tracking-widest text-center rounded-lg h-12"
-                maxLength={8}
-              />
+              <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate & State</Label>
+              <PlateScanner onResult={(plate) => setPlateNumber(plate.slice(0, 10))} />
+              <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
+                <Input
+                  id="quick-plate"
+                  value={plateNumber}
+                  onChange={e => setPlateNumber(formatPlate(e.target.value))}
+                  placeholder="ABC 1234"
+                  className="font-mono text-xl tracking-widest text-center rounded-lg h-12"
+                  maxLength={10}
+                />
+                <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                  <SelectTrigger className="rounded-lg h-12"><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {US_STATES.map(s => (
+                      <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Or scan/upload a photo above</p>
             </div>
 
-            {/* Infraction chips */}
+            {/* Behavior tabs */}
             <div>
-              <Label className="text-sm font-medium">What did they do?</Label>
-              <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-                {quickInfractionList.map(inf => (
-                  <button
-                    key={inf.type}
-                    onClick={() => setInfraction(inf.type)}
-                    className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all ${
-                      infraction === inf.type
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/50 hover:border-primary/30 hover:bg-muted/50 text-muted-foreground"
-                    }`}
-                  >
-                    {ICON_MAP_SM[inf.icon]}
-                    <span className="font-medium truncate">{inf.label}</span>
-                  </button>
-                ))}
+              <Label className="text-sm font-medium">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <div className="mt-1.5">
+                {renderBehaviorTabs("quick")}
               </div>
-              <button
-                onClick={() => setShowAllInfractions(!showAllInfractions)}
-                className="text-xs text-primary hover:underline mt-1.5"
-              >
-                {showAllInfractions ? "Show less" : `More infractions (${INFRACTIONS.length - QUICK_INFRACTIONS.length}+)…`}
-              </button>
             </div>
 
             {/* Location */}
@@ -351,40 +433,50 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   Detecting…
                 </div>
               ) : (
-                <div className="mt-1.5 grid grid-cols-[110px_1fr] gap-2">
-                  <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
-                    <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {US_STATES.map(s => (
-                        <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                    <SelectContent>
-                      {getStateByCode(stateCode).cities.map(city => (
-                        <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <Select value={location} onValueChange={setLocation}>
+                  <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                  <SelectContent>
+                    {getStateByCode(stateCode).cities.map(city => (
+                      <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {stateCode === "KS" && (
+                <div className="mt-2">
+                  <Input
+                    value={ksCounty}
+                    onChange={e => setKsCounty(e.target.value.slice(0, 40))}
+                    placeholder="County (optional)"
+                    className="rounded-lg text-sm h-9"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1 italic">
+                    Kansas vanity plates are issued per county. Including it improves report accuracy.
+                  </p>
                 </div>
               )}
             </div>
 
             {/* Optional note */}
             <div>
-              <Label htmlFor="quick-comment" className="text-sm font-medium">Note <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <Label htmlFor="quick-comment" className="text-sm font-medium flex items-center gap-2">
+                Note <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                {aiTagging && (
+                  <span className="ml-auto flex items-center gap-1 text-[10px] text-primary">
+                    <Sparkles className="h-3 w-3 animate-pulse" /> AI is reading your note…
+                  </span>
+                )}
+              </Label>
               <Textarea
                 id="quick-comment"
                 value={comment}
                 onChange={e => setComment(e.target.value.slice(0, 500))}
+                onBlur={autoTagFromComment}
                 placeholder="Add details about what happened…"
                 className="mt-1.5 rounded-lg min-h-[72px] resize-none"
                 maxLength={500}
               />
             </div>
-
 
             <Button
               onClick={handleSubmit}
@@ -420,28 +512,41 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               </p>
             </div>
 
-            {/* Step 1: Plate */}
+            {/* Step 1: Plate + State */}
             {step === 1 && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="plate" className="text-sm font-medium">License Plate Number</Label>
-                  <PlateScanner onResult={(plate, state) => {
-                    setPlateNumber(plate);
+                  <Label htmlFor="plate" className="text-sm font-medium">License Plate & State</Label>
+                  <PlateScanner onResult={(plate, scannedState) => {
+                    setPlateNumber(plate.slice(0, 10));
+                    if (scannedState && US_STATES.some(s => s.code === scannedState)) {
+                      setStateCode(scannedState);
+                    }
                   }} />
-                  <Input
-                    id="plate"
-                    value={plateNumber}
-                    onChange={e => setPlateNumber(formatPlate(e.target.value))}
-                    placeholder="ABC 1234"
-                    className="mt-1.5 font-mono text-lg tracking-wider text-center rounded-lg"
-                    maxLength={8}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1.5">Scan a plate or type it manually</p>
+                  <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
+                    <Input
+                      id="plate"
+                      value={plateNumber}
+                      onChange={e => setPlateNumber(formatPlate(e.target.value))}
+                      placeholder="ABC 1234"
+                      className="font-mono text-lg tracking-wider text-center rounded-lg"
+                      maxLength={10}
+                    />
+                    <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                      <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {US_STATES.map(s => (
+                          <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">Scan a plate or type it manually (up to 10 chars)</p>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Vehicle Description */}
+            {/* Step 2: Vehicle */}
             {step === 2 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -521,27 +626,11 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               </div>
             )}
 
-            {/* Step 3: Infraction */}
+            {/* Step 3: Behavior */}
             {step === 3 && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium">What did they do?</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {INFRACTIONS.map(inf => (
-                    <button
-                      key={inf.type}
-                      onClick={() => setInfraction(inf.type)}
-                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-sm transition-all ${
-                        infraction === inf.type
-                          ? "border-primary bg-primary/10 text-primary glow"
-                          : "border-border/50 hover:border-primary/30 hover:bg-muted/50 text-muted-foreground"
-                      }`}
-                    >
-                      {ICON_MAP[inf.icon]}
-                      <span className="font-medium text-xs">{inf.label}</span>
-                      <span className="text-[10px] text-muted-foreground">+{inf.points} pts</span>
-                    </button>
-                  ))}
-                </div>
+                <Label className="text-sm font-medium">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional — skip to file an anonymous sighting)</span></Label>
+                {renderBehaviorTabs("detailed")}
               </div>
             )}
 
@@ -570,23 +659,26 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       Detecting your location…
                     </div>
                   ) : (
-                    <div className="mt-1.5 grid grid-cols-[110px_1fr] gap-2">
-                      <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
-                        <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
-                        <SelectContent className="max-h-72">
-                          {US_STATES.map(s => (
-                            <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={location} onValueChange={setLocation}>
-                        <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                        <SelectContent>
-                          {getStateByCode(stateCode).cities.map(city => (
-                            <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <Select value={location} onValueChange={setLocation}>
+                      <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                      <SelectContent>
+                        {getStateByCode(stateCode).cities.map(city => (
+                          <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {stateCode === "KS" && (
+                    <div className="mt-2">
+                      <Input
+                        value={ksCounty}
+                        onChange={e => setKsCounty(e.target.value.slice(0, 40))}
+                        placeholder="County (optional)"
+                        className="rounded-lg text-sm h-9"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1 italic">
+                        Kansas vanity plates are issued per county. Including it improves report accuracy.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -628,18 +720,32 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   Driver Description & Comments
                   <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                 </div>
-                <label className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-3 cursor-pointer hover:bg-muted/40 transition-colors">
-                  <Checkbox
-                    checked={driverGenderFemale}
-                    onCheckedChange={(checked) => setDriverGenderFemale(checked === true)}
-                  />
-                  <span className="text-sm">Female driver</span>
-                </label>
                 <div>
-                  <Label className="text-xs">Additional Comments</Label>
+                  <Label className="text-xs">Driver</Label>
+                  <Select value={driverDescription} onValueChange={setDriverDescription}>
+                    <SelectTrigger className="mt-1 rounded-lg h-10 text-sm">
+                      <SelectValue placeholder="Choose driver description" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DRIVER_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs flex items-center gap-2">
+                    Additional Comments
+                    {aiTagging && (
+                      <span className="ml-auto flex items-center gap-1 text-[10px] text-primary">
+                        <Sparkles className="h-3 w-3 animate-pulse" /> AI is reading your note…
+                      </span>
+                    )}
+                  </Label>
                   <Textarea
                     value={comment}
                     onChange={e => setComment(e.target.value.slice(0, 280))}
+                    onBlur={autoTagFromComment}
                     placeholder="Any additional details about the incident..."
                     className="mt-1.5 rounded-lg text-sm min-h-[80px]"
                     maxLength={280}
@@ -656,7 +762,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Plate</span>
-                    <span className="font-mono font-bold">{plateNumber}</span>
+                    <span className="font-mono font-bold">{plateNumber} <span className="text-xs text-muted-foreground">({stateCode})</span></span>
                   </div>
                   {(vehicleType || vehicleColor || vehicleMake || vehicleModel) && (
                     <div className="flex justify-between">
@@ -673,21 +779,25 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Infraction</span>
-                    <span className="font-medium">{INFRACTIONS.find(i => i.type === infraction)?.label}</span>
+                    <span className="text-muted-foreground">Behavior</span>
+                    <span className="font-medium">
+                      {infraction
+                        ? INFRACTIONS.find(i => i.type === infraction)?.label
+                        : <span className="italic text-muted-foreground">Anonymous sighting</span>}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location</span>
-                    <span>{location}</span>
+                    <span>{stateCode === "KS" && ksCounty ? `${location} — ${ksCounty} County` : location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">When</span>
                     <span>{new Date(dateTime).toLocaleString()}</span>
                   </div>
-                  {driverGenderFemale && (
+                  {driverDescription && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Driver</span>
-                      <span>Female</span>
+                      <span>{DRIVER_OPTIONS.find(o => o.value === driverDescription)?.label}</span>
                     </div>
                   )}
                   {comment && (
@@ -708,7 +818,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               ) : <div />}
               {step < TOTAL_STEPS ? (
                 <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full">
-                  {step === 2 || step === 5 ? "Skip / " : ""}Next <ArrowRight className="h-4 w-4 ml-1" />
+                  {step === 2 || step === 3 || step === 5 ? "Skip / " : ""}Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
                 <Button size="sm" onClick={handleSubmit} disabled={submitting} className="rounded-full glow">

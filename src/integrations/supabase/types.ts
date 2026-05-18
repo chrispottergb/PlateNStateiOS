@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeals: {
+        Row: {
+          created_at: string
+          id: string
+          plate_number: string
+          reason: string
+          report_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plate_number: string
+          reason: string
+          report_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plate_number?: string
+          reason?: string
+          report_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claimed_plates: {
         Row: {
           claimed_at: string
@@ -524,6 +575,45 @@ export type Database = {
         }
         Relationships: []
       }
+      report_flags: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_flags_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_flags_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_reactions: {
         Row: {
           created_at: string
@@ -605,9 +695,12 @@ export type Database = {
           created_at: string
           downvote_count: number
           driver_gender: string | null
+          excluded_from_score: boolean
+          flag_count: number
           hot_take: string | null
           id: string
           infraction: string
+          is_flagged: boolean
           latitude: number | null
           location: string
           longitude: number | null
@@ -627,9 +720,12 @@ export type Database = {
           created_at?: string
           downvote_count?: number
           driver_gender?: string | null
+          excluded_from_score?: boolean
+          flag_count?: number
           hot_take?: string | null
           id?: string
           infraction: string
+          is_flagged?: boolean
           latitude?: number | null
           location: string
           longitude?: number | null
@@ -649,9 +745,12 @@ export type Database = {
           created_at?: string
           downvote_count?: number
           driver_gender?: string | null
+          excluded_from_score?: boolean
+          flag_count?: number
           hot_take?: string | null
           id?: string
           infraction?: string
+          is_flagged?: boolean
           latitude?: number | null
           location?: string
           longitude?: number | null
