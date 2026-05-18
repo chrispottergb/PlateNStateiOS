@@ -31,6 +31,7 @@ const AdminPanel = () => {
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
   const [fleetCounts, setFleetCounts] = useState<Record<string, number>>({});
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [appeals, setAppeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
