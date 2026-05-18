@@ -334,6 +334,31 @@ const AdminPanel = () => {
             ))}
           </TabsContent>
 
+          <TabsContent value="appeals" className="space-y-2">
+            {appeals.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No pending appeals</p>
+            ) : appeals.map((a) => (
+              <div key={a.id} className="rounded-xl glass-card p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span className="font-mono font-bold text-sm">{a.plate_number}</span>
+                  <Badge variant="outline" className="text-[10px] rounded-full">Appeal</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
+                </div>
+                <p className="text-xs text-muted-foreground italic">"{a.reason}"</p>
+                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{a.report_id}</span></p>
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={updating === a.id} onClick={() => handleResolveAppeal(a.id, a.report_id, "upheld")} className="gap-1 rounded-full">
+                    <CheckCircle2 className="h-4 w-4" /> Uphold (remove report)
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={updating === a.id} onClick={() => handleResolveAppeal(a.id, a.report_id, "dismissed")} className="gap-1 rounded-full">
+                    <XCircle className="h-4 w-4" /> Dismiss (restore)
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
           <TabsContent value="fleets" className="space-y-2">
             {companies.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No fleet companies registered</p>
