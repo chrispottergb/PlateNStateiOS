@@ -17,13 +17,25 @@ import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { useHomeState } from "@/hooks/useHomeState";
 
+type ClaimPriceId =
+  | "plate_claim_1yr"
+  | "plate_claim_2yr"
+  | "plate_claim_5yr"
+  | "plate_claim_lifetime";
+
 type CheckoutTarget = {
-  priceId: "plate_claim_one_time" | "plate_privacy_monthly" | "plate_total_block_monthly";
+  priceId: ClaimPriceId | "plate_privacy_monthly" | "plate_total_block_monthly";
   plateNumber: string;
   title: string;
 } | null;
 
-const CLAIM_PRICE_USD = "$4.99";
+const CLAIM_TIERS: { id: ClaimPriceId; label: string; price: string; badge?: string }[] = [
+  { id: "plate_claim_1yr", label: "1 Year", price: "$4.99" },
+  { id: "plate_claim_2yr", label: "2 Years", price: "$8.99" },
+  { id: "plate_claim_5yr", label: "5 Years", price: "$14.99" },
+  { id: "plate_claim_lifetime", label: "Lifetime", price: "$29.99", badge: "Best Value" },
+];
+
 const PRIVACY_PRICE_USD = "$7.99/mo";
 const TOTAL_BLOCK_PRICE_USD = "$14.99/mo";
 
