@@ -52,6 +52,21 @@ const PlateDetail = () => {
     return () => { active = false; };
   }, [decoded]);
 
+  const submitAppeal = async (reportId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Sign in to appeal"); return; }
+    const reason = window.prompt("Briefly explain why this report is inaccurate:");
+    if (!reason || !reason.trim()) return;
+    const { error } = await supabase.from("appeals").insert({
+      report_id: reportId,
+      user_id: user.id,
+      plate_number: decoded.toUpperCase(),
+      reason: reason.trim(),
+    });
+    if (error) toast.error("Appeal failed: " + error.message);
+    else toast.success("Appeal submitted for admin review");
+  };
+
   const sortedReports = [...reports].sort((a, b) =>
     sortOrder === "newest"
       ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
