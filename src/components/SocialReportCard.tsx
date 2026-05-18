@@ -113,6 +113,11 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
         <Badge variant="secondary" className="text-[10px] rounded-full shrink-0 bg-primary/10 text-primary border-primary/20 border">
           {funnyBadge}
         </Badge>
+        {report.is_flagged && (
+          <Badge variant="outline" className="text-[10px] rounded-full shrink-0 border-amber-500/40 text-amber-500 gap-1">
+            <AlertCircle className="h-2.5 w-2.5" /> Under Review
+          </Badge>
+        )}
       </div>
 
       {/* Plate & infraction */}
