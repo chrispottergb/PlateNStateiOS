@@ -58,8 +58,35 @@ interface SocialReportCardProps {
 
 const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
   const [showComments, setShowComments] = useState(false);
+  const [flagOpen, setFlagOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagging, setFlagging] = useState(false);
+  const [flagged, setFlagged] = useState(false);
   const inf = INFRACTIONS.find((i) => i.type === report.infraction);
   const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
+
+  const submitFlag = async () => {
+    setFlagging(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Sign in to flag reports");
+      setFlagging(false);
+      return;
+    }
+    const { error } = await supabase.from("report_flags").insert({
+      report_id: report.id,
+      user_id: user.id,
+      reason: flagReason.trim() || null,
+    });
+    setFlagging(false);
+    if (error) {
+      toast.error(error.message.includes("duplicate") ? "You already flagged this report" : "Failed to flag");
+      return;
+    }
+    setFlagged(true);
+    setFlagOpen(false);
+    toast.success("Report flagged for review");
+  };
 
   const vehicleDesc = [report.vehicle_color, report.vehicle_type, report.vehicle_make, report.vehicle_model]
     .filter(Boolean)
