@@ -69,7 +69,34 @@ const AdminPanel = () => {
       .order("created_at", { ascending: true });
     setDisputes(dispRes || []);
 
+    const { data: appealsRes } = await supabase
+      .from("appeals")
+      .select("id, report_id, plate_number, reason, status, created_at, user_id")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    setAppeals(appealsRes || []);
+
     setLoading(false);
+  };
+
+  const handleResolveAppeal = async (appealId: string, reportId: string, decision: "upheld" | "dismissed") => {
+    setUpdating(appealId);
+    if (decision === "upheld") {
+      await supabase.from("reports").delete().eq("id", reportId);
+    } else {
+      // Dismiss: keep the report and clear flagged/excluded so it counts again
+      await supabase.from("reports").update({ is_flagged: false, excluded_from_score: false }).eq("id", reportId);
+    }
+    const { error } = await supabase
+      .from("appeals")
+      .update({ status: decision, resolved_at: new Date().toISOString(), resolved_by: user!.id })
+      .eq("id", appealId);
+    if (error) toast.error("Failed: " + error.message);
+    else {
+      toast.success(decision === "upheld" ? "Appeal upheld — report removed" : "Appeal dismissed");
+      setAppeals((prev) => prev.filter((a) => a.id !== appealId));
+    }
+    setUpdating(null);
   };
 
   const handleResolveDispute = async (id: string, decision: "upheld" | "denied") => {
