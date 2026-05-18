@@ -216,6 +216,29 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog open={flagOpen} onOpenChange={setFlagOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Flag as false report</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Reports with 3+ flags are auto-hidden from scoring pending review.
+          </p>
+          <Textarea
+            placeholder="Reason (optional)"
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFlagOpen(false)}>Cancel</Button>
+            <Button onClick={submitFlag} disabled={flagging} className="gap-1">
+              <Flag className="h-3.5 w-3.5" /> {flagging ? "Submitting..." : "Submit flag"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
