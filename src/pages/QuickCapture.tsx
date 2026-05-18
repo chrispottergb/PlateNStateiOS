@@ -100,7 +100,7 @@ const QuickCapture = () => {
       if (error) throw error;
 
       if (data?.plate_number) {
-        const plate = String(data.plate_number).toUpperCase().replace(/\s+/g, "");
+        const plate = String(data.plate_number).toUpperCase().replace(/\s+/g, "").slice(0, 10);
         setDetectedPlate(plate);
         toast.success(`Plate detected: ${plate}`, {
           description: data.state

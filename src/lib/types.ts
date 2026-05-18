@@ -1,4 +1,4 @@
-export type InfractionType =
+export type BadInfractionType =
   | "tailgating"
   | "speeding"
   | "ran_red_light"
@@ -30,11 +30,25 @@ export type InfractionType =
   | "loud_exhaust"
   | "left_lane_camping";
 
+export type GoodBehaviorType =
+  | "courteous_merge"
+  | "yielded_pedestrian"
+  | "let_me_in"
+  | "used_turn_signal"
+  | "stopped_for_school_bus"
+  | "great_parking"
+  | "safe_following_distance"
+  | "hazard_warning"
+  | "roadside_assist";
+
+export type InfractionType = BadInfractionType | GoodBehaviorType;
+
 export interface InfractionDef {
   type: InfractionType;
   label: string;
   icon: string;
-  points: number;
+  points: number; // negative for good behaviors
+  kind: "bad" | "good";
 }
 
 export interface PlateReport {

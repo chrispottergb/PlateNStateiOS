@@ -60,7 +60,9 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       if (error) throw error;
 
       if (data?.plate_number) {
-        onResult(data.plate_number, data.state || null);
+        // Plates can be up to 10 chars
+        const cleaned = String(data.plate_number).toUpperCase().slice(0, 10);
+        onResult(cleaned, data.state || null);
         toast.success(`Plate detected: ${data.plate_number}`, {
           description: data.state ? `State: ${data.state} (${data.confidence} confidence)` : `Confidence: ${data.confidence}`,
         });

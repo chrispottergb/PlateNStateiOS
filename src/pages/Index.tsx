@@ -1,6 +1,7 @@
-import { Shield, Skull, Briefcase, ArrowRight, Zap, Users, MapPin } from "lucide-react";
+import { Shield, Skull, Briefcase, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import Header from "@/components/Header";
+import ReportModal from "@/components/ReportModal";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -97,8 +98,24 @@ const Index = () => {
               </AnimatePresence>
             </div>
 
+            {/* Primary CTA: Report a Plate */}
+            <div className="pt-4 flex justify-center">
+              <ReportModal
+                trigger={
+                  <button
+                    type="button"
+                    className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-bold text-base px-7 py-3.5 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.03] active:scale-[0.98] transition-all glow"
+                  >
+                    <Megaphone className="h-5 w-5" />
+                    Report a Plate
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                }
+              />
+            </div>
+
             {/* Two path cards */}
-            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto pt-4">
+            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto pt-2">
               <Link to="/a-hole-patrol" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -4 }}
