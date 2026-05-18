@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
-import { MapPin, ThumbsUp, MessageCircle, Share2, Car } from "lucide-react";
+import { MapPin, ThumbsUp, MessageCircle, Share2, Car, Flag, AlertCircle } from "lucide-react";
 import WisconsinPlate from "./WisconsinPlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentThread from "./CommentThread";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 const FUNNY_BADGES: Record<string, string> = {
   reckless: "🏎️ Speed Demon",
   tailgating: "🐌 Personal Space Invader",
@@ -44,6 +48,7 @@ interface SocialReportCardProps {
     vehicle_model?: string | null;
     vehicle_features?: string[] | null;
     comment?: string | null;
+    is_flagged?: boolean | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
@@ -53,8 +58,35 @@ interface SocialReportCardProps {
 
 const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: SocialReportCardProps) => {
   const [showComments, setShowComments] = useState(false);
+  const [flagOpen, setFlagOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagging, setFlagging] = useState(false);
+  const [flagged, setFlagged] = useState(false);
   const inf = INFRACTIONS.find((i) => i.type === report.infraction);
   const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
+
+  const submitFlag = async () => {
+    setFlagging(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Sign in to flag reports");
+      setFlagging(false);
+      return;
+    }
+    const { error } = await supabase.from("report_flags").insert({
+      report_id: report.id,
+      user_id: user.id,
+      reason: flagReason.trim() || null,
+    });
+    setFlagging(false);
+    if (error) {
+      toast.error(error.message.includes("duplicate") ? "You already flagged this report" : "Failed to flag");
+      return;
+    }
+    setFlagged(true);
+    setFlagOpen(false);
+    toast.success("Report flagged for review");
+  };
 
   const vehicleDesc = [report.vehicle_color, report.vehicle_type, report.vehicle_make, report.vehicle_model]
     .filter(Boolean)
@@ -81,6 +113,11 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
         <Badge variant="secondary" className="text-[10px] rounded-full shrink-0 bg-primary/10 text-primary border-primary/20 border">
           {funnyBadge}
         </Badge>
+        {report.is_flagged && (
+          <Badge variant="outline" className="text-[10px] rounded-full shrink-0 border-amber-500/40 text-amber-500 gap-1">
+            <AlertCircle className="h-2.5 w-2.5" /> Under Review
+          </Badge>
+        )}
       </div>
 
       {/* Plate & infraction */}
@@ -155,6 +192,14 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
             <Share2 className="h-3.5 w-3.5" />
           </button>
+          <button
+            disabled={flagged}
+            onClick={() => setFlagOpen(true)}
+            title="Flag as false report"
+            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${flagged ? "text-amber-500" : "text-muted-foreground hover:text-amber-500"}`}
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 
@@ -171,6 +216,29 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog open={flagOpen} onOpenChange={setFlagOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Flag as false report</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Reports with 3+ flags are auto-hidden from scoring pending review.
+          </p>
+          <Textarea
+            placeholder="Reason (optional)"
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFlagOpen(false)}>Cancel</Button>
+            <Button onClick={submitFlag} disabled={flagging} className="gap-1">
+              <Flag className="h-3.5 w-3.5" /> {flagging ? "Submitting..." : "Submit flag"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

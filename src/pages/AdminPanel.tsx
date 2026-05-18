@@ -31,6 +31,7 @@ const AdminPanel = () => {
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
   const [fleetCounts, setFleetCounts] = useState<Record<string, number>>({});
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [appeals, setAppeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
@@ -68,7 +69,34 @@ const AdminPanel = () => {
       .order("created_at", { ascending: true });
     setDisputes(dispRes || []);
 
+    const { data: appealsRes } = await supabase
+      .from("appeals")
+      .select("id, report_id, plate_number, reason, status, created_at, user_id")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    setAppeals(appealsRes || []);
+
     setLoading(false);
+  };
+
+  const handleResolveAppeal = async (appealId: string, reportId: string, decision: "upheld" | "dismissed") => {
+    setUpdating(appealId);
+    if (decision === "upheld") {
+      await supabase.from("reports").delete().eq("id", reportId);
+    } else {
+      // Dismiss: keep the report and clear flagged/excluded so it counts again
+      await supabase.from("reports").update({ is_flagged: false, excluded_from_score: false }).eq("id", reportId);
+    }
+    const { error } = await supabase
+      .from("appeals")
+      .update({ status: decision, resolved_at: new Date().toISOString(), resolved_by: user!.id })
+      .eq("id", appealId);
+    if (error) toast.error("Failed: " + error.message);
+    else {
+      toast.success(decision === "upheld" ? "Appeal upheld — report removed" : "Appeal dismissed");
+      setAppeals((prev) => prev.filter((a) => a.id !== appealId));
+    }
+    setUpdating(null);
   };
 
   const handleResolveDispute = async (id: string, decision: "upheld" | "denied") => {
@@ -159,6 +187,10 @@ const AdminPanel = () => {
             <TabsTrigger value="disputes" className="flex-1 gap-1">
               Disputes
               {disputes.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{disputes.length}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="appeals" className="flex-1 gap-1">
+              Appeals
+              {appeals.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{appeals.length}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
           </TabsList>
@@ -296,6 +328,31 @@ const AdminPanel = () => {
                   </Button>
                   <Button size="sm" variant="outline" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "denied")} className="gap-1 rounded-full">
                     <XCircle className="h-4 w-4" /> Deny
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="appeals" className="space-y-2">
+            {appeals.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No pending appeals</p>
+            ) : appeals.map((a) => (
+              <div key={a.id} className="rounded-xl glass-card p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span className="font-mono font-bold text-sm">{a.plate_number}</span>
+                  <Badge variant="outline" className="text-[10px] rounded-full">Appeal</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
+                </div>
+                <p className="text-xs text-muted-foreground italic">"{a.reason}"</p>
+                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{a.report_id}</span></p>
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={updating === a.id} onClick={() => handleResolveAppeal(a.id, a.report_id, "upheld")} className="gap-1 rounded-full">
+                    <CheckCircle2 className="h-4 w-4" /> Uphold (remove report)
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={updating === a.id} onClick={() => handleResolveAppeal(a.id, a.report_id, "dismissed")} className="gap-1 rounded-full">
+                    <XCircle className="h-4 w-4" /> Dismiss (restore)
                   </Button>
                 </div>
               </div>

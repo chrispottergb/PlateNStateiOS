@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeReportDialog } from "@/components/DisputeReportDialog";
+import { toast } from "sonner";
 
 const HIGH_RISK_INFRACTIONS = new Set([
   "road_rage", "hit_and_run", "dui_suspected", "wrong_way",
@@ -50,6 +51,21 @@ const PlateDetail = () => {
     })();
     return () => { active = false; };
   }, [decoded]);
+
+  const submitAppeal = async (reportId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Sign in to appeal"); return; }
+    const reason = window.prompt("Briefly explain why this report is inaccurate:");
+    if (!reason || !reason.trim()) return;
+    const { error } = await supabase.from("appeals").insert({
+      report_id: reportId,
+      user_id: user.id,
+      plate_number: decoded.toUpperCase(),
+      reason: reason.trim(),
+    });
+    if (error) toast.error("Appeal failed: " + error.message);
+    else toast.success("Appeal submitted for admin review");
+  };
 
   const sortedReports = [...reports].sort((a, b) =>
     sortOrder === "newest"
@@ -199,12 +215,17 @@ const PlateDetail = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
                         <span className="text-[10px] text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
                         {report.upvote_count >= 3 && (
                           <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30 gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" /> Verified
+                          </Badge>
+                        )}
+                        {(report as any).is_flagged && (
+                          <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/40 gap-0.5">
+                            <Flag className="h-2.5 w-2.5" /> Under Review
                           </Badge>
                         )}
                       </div>
@@ -221,6 +242,16 @@ const PlateDetail = () => {
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <ThumbsUp className="h-3 w-3" /> {report.upvote_count}
                       </span>
+                      {isOwner && (report as any).is_flagged && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs gap-1 border-amber-500/40 text-amber-500 hover:text-amber-600"
+                          onClick={() => submitAppeal(report.id)}
+                        >
+                          <AlertTriangle className="h-3 w-3" /> Appeal
+                        </Button>
+                      )}
                       {isOwner && (
                         <Button
                           size="sm"
