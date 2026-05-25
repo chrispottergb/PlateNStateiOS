@@ -426,6 +426,7 @@ export type Database = {
           id: string
           joined_at: string
           last_report_date: string | null
+          portal_mode: Database["public"]["Enums"]["portal_mode"]
           streak_days: number
           terms_accepted_at: string | null
           terms_version: string | null
@@ -440,6 +441,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_report_date?: string | null
+          portal_mode?: Database["public"]["Enums"]["portal_mode"]
           streak_days?: number
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -454,6 +456,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_report_date?: string | null
+          portal_mode?: Database["public"]["Enums"]["portal_mode"]
           streak_days?: number
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -1227,6 +1230,7 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       fleet_tier: "starter" | "business" | "premium"
       le_tier: "department" | "precinct" | "agency"
+      portal_mode: "consumer" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1357,6 +1361,7 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       fleet_tier: ["starter", "business", "premium"],
       le_tier: ["department", "precinct", "agency"],
+      portal_mode: ["consumer", "enterprise"],
     },
   },
 } as const
