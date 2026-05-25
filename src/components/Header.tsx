@@ -9,9 +9,10 @@ import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, portalMode } = useAuth();
   const { credits } = useCredits();
   const { isAdmin } = useIsAdmin();
+  const isEnterprise = portalMode === "enterprise";
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   const navLinkClass = (path: string) =>
