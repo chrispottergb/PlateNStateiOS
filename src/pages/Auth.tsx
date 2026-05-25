@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2, Skull, Briefcase } from "lucide-react";
 import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
@@ -25,6 +25,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [portalMode, setPortalMode] = useState<"consumer" | "enterprise">("consumer");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,6 +57,7 @@ const Auth = () => {
               display_name: displayName.trim(),
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
+              portal_mode: portalMode,
             },
             emailRedirectTo: REDIRECT_ORIGIN,
             captchaToken: captchaToken ?? undefined,
@@ -66,7 +68,7 @@ const Auth = () => {
         if (signUpData.user) {
           await supabase
             .from("profiles")
-            .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11" })
+            .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11", portal_mode: portalMode })
             .eq("user_id", signUpData.user.id);
           // Fire welcome email (non-blocking, silently skip on failure)
           supabase.functions.invoke("send-transactional-email", {
@@ -79,7 +81,7 @@ const Auth = () => {
           }).catch(() => {});
         }
         toast({ title: "Welcome to the Patrol!", description: "Your account is ready." });
-        navigate("/");
+        navigate(portalMode === "enterprise" ? "/business" : "/");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email, password,
@@ -178,18 +180,51 @@ const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <CaptchaWidget captcha={captcha} />
             {isSignUp && (
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Display name (username)"
-                  required
-                  minLength={2}
-                  maxLength={40}
-                  className="pl-10 rounded-xl h-11"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">I'm signing up as</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPortalMode("consumer")}
+                      className={`rounded-xl border p-3 text-left transition-all ${
+                        portalMode === "consumer"
+                          ? "border-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
+                          : "border-border/60 bg-muted/20 hover:border-border"
+                      }`}
+                    >
+                      <Skull className={`h-4 w-4 mb-1.5 ${portalMode === "consumer" ? "text-primary" : "text-muted-foreground"}`} />
+                      <div className="text-xs font-bold">A-Hole Patrol</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Report drivers, earn XP</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPortalMode("enterprise")}
+                      className={`rounded-xl border p-3 text-left transition-all ${
+                        portalMode === "enterprise"
+                          ? "border-accent bg-accent/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
+                          : "border-border/60 bg-muted/20 hover:border-border"
+                      }`}
+                    >
+                      <Briefcase className={`h-4 w-4 mb-1.5 ${portalMode === "enterprise" ? "text-accent" : "text-muted-foreground"}`} />
+                      <div className="text-xs font-bold">Business & Enterprise</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Fleet, insurance, agencies</div>
+                    </button>
+                  </div>
+                </div>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={displayName}
+                    onChange={e => setDisplayName(e.target.value)}
+                    placeholder="Display name (username)"
+                    required
+                    minLength={2}
+                    maxLength={40}
+                    className="pl-10 rounded-xl h-11"
+                  />
+                </div>
+              </>
             )}
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -292,12 +327,6 @@ const Auth = () => {
           </div>
         </div>
 
-        {/* Enterprise Link */}
-        <div className="text-center mt-6">
-          <Link to="/business" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 justify-center">
-            <Shield className="h-3 w-3" /> Enterprise? Use the Business Portal
-          </Link>
-        </div>
       </motion.div>
     </div>
   );

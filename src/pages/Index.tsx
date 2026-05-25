@@ -1,4 +1,4 @@
-import { Shield, Skull, Briefcase, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react";
+import { Shield, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
@@ -114,63 +114,13 @@ const Index = () => {
               />
             </div>
 
-            {/* Two path cards */}
-            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto pt-2">
-              <Link to="/a-hole-patrol" className="group">
-                <motion.div
-                  whileHover={{ scale: 1.03, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="relative rounded-2xl overflow-hidden"
-                >
-                  {/* Gradient border */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary/40 opacity-80 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative m-[1px] rounded-[15px] bg-background/95 group-hover:bg-background/90 p-7 space-y-4 text-center h-full transition-colors">
-                    <div className="relative">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mx-auto group-hover:bg-primary/20 transition-colors">
-                        <Skull className="h-7 w-7" />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-14 w-14 bg-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                    <h2 className="text-xl font-extrabold">The A-Hole Patrol</h2>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Report plates, roast bad drivers, upvote the worst offenders. Social media for road rage. 🚨
-                    </p>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
-                      Join the Patrol <ArrowRight className="h-4 w-4" />
-                    </span>
-                  </div>
-                </motion.div>
-              </Link>
-
-              <Link to="/business" className="group">
-                <motion.div
-                  whileHover={{ scale: 1.03, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="relative rounded-2xl overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent via-muted-foreground/30 to-secondary opacity-60 group-hover:opacity-80 transition-opacity" />
-                  <div className="relative m-[1px] rounded-[15px] bg-background/95 group-hover:bg-background/90 p-7 space-y-4 text-center h-full transition-colors">
-                    <div className="relative">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent mx-auto group-hover:bg-accent/20 transition-colors">
-                        <Briefcase className="h-7 w-7" />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-14 w-14 bg-accent/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                    <h2 className="text-xl font-extrabold">Business & Enterprise</h2>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Fleet management, law enforcement tools, and insurance portals. Professional road intelligence.
-                    </p>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent group-hover:gap-2.5 transition-all">
-                      Explore Solutions <ArrowRight className="h-4 w-4" />
-                    </span>
-                  </div>
-                </motion.div>
+            {/* Secondary CTA */}
+            <div className="pt-2">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign in or create an account <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
 
