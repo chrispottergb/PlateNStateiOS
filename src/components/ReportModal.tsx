@@ -400,7 +400,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   className="font-mono text-xl tracking-widest text-center rounded-lg h-12"
                   maxLength={10}
                 />
-                <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                <Select value={plateState} onValueChange={setPlateState}>
                   <SelectTrigger className="rounded-lg h-12"><SelectValue /></SelectTrigger>
                   <SelectContent className="max-h-72">
                     {US_STATES.map(s => (
