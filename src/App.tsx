@@ -10,6 +10,7 @@ import TermsGate from "@/components/TermsGate";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import { isNative } from "@/lib/native";
 
 // Wrap React.lazy with retry + auto-reload on stale chunk errors after a new deploy.
 // Symptom this fixes: "TypeError: Importing a module script failed" / "Failed to fetch dynamically imported module"
@@ -106,7 +107,7 @@ const App = () => (
             <NativeDeepLinkBridge />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={isNative ? <HonkZone /> : <Index />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/a-hole-patrol" element={<HonkZone />} />
                 <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
