@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaptcha } from "@/hooks/useCaptcha";
 import { getClientIp } from "@/lib/clientIp";
+import { useHomeState } from "@/hooks/useHomeState";
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-4 w-4" />,
@@ -69,6 +70,7 @@ const TOTAL_STEPS = 6;
 
 const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
+  const { homeState } = useHomeState();
   const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -91,7 +93,11 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [geocoding, setGeocoding] = useState(false);
   const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState(false);
-  const [stateCode, setStateCode] = useState<string>("WI");
+  // Plate's home state (where the plate is registered) — defaults to user's home_state
+  const [plateState, setPlateState] = useState<string>(homeState || "WI");
+  // Incident state (where the report happened) — set by GPS reverse-geocode
+  const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
+  const [detectedStateCode, setDetectedStateCode] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
   const [aiTagging, setAiTagging] = useState(false);
@@ -119,8 +125,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setGeoStatus("idle");
     setGeocoding(false);
     setAutoDetectedLocation(null);
+    setDetectedStateCode(null);
     setManualOverride(false);
-    setStateCode("WI");
+    setPlateState(homeState || "WI");
+    setIncidentState(homeState || "WI");
     setDateTime(new Date().toISOString().slice(0, 16));
     setVehicleType("");
     setVehicleColor("");
@@ -159,7 +167,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
       const stName = addr?.state || "";
       const code = stateNameToCode(stName);
-      if (code) setStateCode(code);
+      if (code) {
+        setIncidentState(code);
+        setDetectedStateCode(code);
+      }
       if (city) {
         const detected = `${city}${code ? `, ${code}` : ""}`;
         setAutoDetectedLocation(detected);
@@ -223,7 +234,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       void captcha.token;
       // Build location with KS county if provided
       let finalLocation = location;
-      if (stateCode === "KS" && ksCounty.trim()) {
+      if (plateState === "KS" && ksCounty.trim()) {
         finalLocation = `${location} — ${ksCounty.trim()} County`;
       }
       // Infraction is now OPTIONAL — use sentinel when missing
@@ -241,7 +252,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
         p_driver_gender: driverDescription || null,
         p_comment: comment || null,
-        p_state: stateCode,
+        p_state: plateState,
+        p_incident_state: incidentState,
         p_ip: ip,
       } as any);
       if (error) {
@@ -393,7 +405,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   className="font-mono text-xl tracking-widest text-center rounded-lg h-12"
                   maxLength={10}
                 />
-                <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                <Select value={plateState} onValueChange={setPlateState}>
                   <SelectTrigger className="rounded-lg h-12"><SelectValue /></SelectTrigger>
                   <SelectContent className="max-h-72">
                     {US_STATES.map(s => (
@@ -402,7 +414,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Or scan/upload a photo above</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
+              </p>
             </div>
 
             {/* Behavior tabs */}
@@ -433,25 +447,47 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   Detecting…
                 </div>
               ) : (
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                  <SelectContent>
-                    {getStateByCode(stateCode).cities.map(city => (
-                      <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
+                  <Select value={incidentState} onValueChange={(v) => {
+                    setIncidentState(v);
+                    if (autoDetectedLocation && v === detectedStateCode) {
+                      setLocation(autoDetectedLocation);
+                    } else {
+                      setLocation("");
+                    }
+                  }}>
+                    <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {US_STATES.map(s => (
+                        <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={location} onValueChange={setLocation}>
+                    <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent>
+                      {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
+                        <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
+                      )}
+                      {getStateByCode(incidentState).cities.map(city => (
+                        <SelectItem key={city} value={`${city}, ${incidentState}`}>
+                          {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
-              {stateCode === "KS" && (
+              {plateState === "KS" && (
                 <div className="mt-2">
                   <Input
                     value={ksCounty}
                     onChange={e => setKsCounty(e.target.value.slice(0, 40))}
-                    placeholder="County (optional)"
+                    placeholder="County the plate was issued in (optional)"
                     className="rounded-lg text-sm h-9"
                   />
                   <p className="text-[10px] text-muted-foreground mt-1 italic">
-                    Kansas vanity plates are issued per county. Including it improves report accuracy.
+                    Kansas vanity plates are issued per county — include the county the plate was issued in.
                   </p>
                 </div>
               )}
@@ -520,7 +556,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <PlateScanner onResult={(plate, scannedState) => {
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
-                      setStateCode(scannedState);
+                      setPlateState(scannedState);
                     }
                   }} />
                   <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
@@ -532,7 +568,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       className="font-mono text-lg tracking-wider text-center rounded-lg"
                       maxLength={10}
                     />
-                    <Select value={stateCode} onValueChange={(v) => { setStateCode(v); setLocation(""); }}>
+                    <Select value={plateState} onValueChange={setPlateState}>
                       <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {US_STATES.map(s => (
@@ -659,25 +695,47 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       Detecting your location…
                     </div>
                   ) : (
-                    <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                      <SelectContent>
-                        {getStateByCode(stateCode).cities.map(city => (
-                          <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
+                      <Select value={incidentState} onValueChange={(v) => {
+                        setIncidentState(v);
+                        if (autoDetectedLocation && v === detectedStateCode) {
+                          setLocation(autoDetectedLocation);
+                        } else {
+                          setLocation("");
+                        }
+                      }}>
+                        <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {US_STATES.map(s => (
+                            <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={location} onValueChange={setLocation}>
+                        <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent>
+                          {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
+                            <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
+                          )}
+                          {getStateByCode(incidentState).cities.map(city => (
+                            <SelectItem key={city} value={`${city}, ${incidentState}`}>
+                              {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                  {stateCode === "KS" && (
+                  {plateState === "KS" && (
                     <div className="mt-2">
                       <Input
                         value={ksCounty}
                         onChange={e => setKsCounty(e.target.value.slice(0, 40))}
-                        placeholder="County (optional)"
+                        placeholder="County the plate was issued in (optional)"
                         className="rounded-lg text-sm h-9"
                       />
                       <p className="text-[10px] text-muted-foreground mt-1 italic">
-                        Kansas vanity plates are issued per county. Including it improves report accuracy.
+                        Kansas vanity plates are issued per county — include the county the plate was issued in.
                       </p>
                     </div>
                   )}
@@ -762,7 +820,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Plate</span>
-                    <span className="font-mono font-bold">{plateNumber} <span className="text-xs text-muted-foreground">({stateCode})</span></span>
+                    <span className="font-mono font-bold">{plateNumber} <span className="text-xs text-muted-foreground">({plateState})</span></span>
                   </div>
                   {(vehicleType || vehicleColor || vehicleMake || vehicleModel) && (
                     <div className="flex justify-between">
@@ -788,7 +846,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location</span>
-                    <span>{stateCode === "KS" && ksCounty ? `${location} — ${ksCounty} County` : location}</span>
+                    <span>{plateState === "KS" && ksCounty ? `${location} — ${ksCounty} County` : location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">When</span>

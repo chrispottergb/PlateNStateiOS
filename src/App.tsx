@@ -11,29 +11,59 @@ import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
+// Wrap React.lazy with retry + auto-reload on stale chunk errors after a new deploy.
+// Symptom this fixes: "TypeError: Importing a module script failed" / "Failed to fetch dynamically imported module"
+// when a user has an old tab open and clicks a route whose chunk hash no longer exists on the CDN.
+const lazyWithRetry = <T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) =>
+  lazy(async () => {
+    const reloadedKey = "chunk-reload-attempted";
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem(reloadedKey);
+      return mod;
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      const isChunkErr =
+        /Importing a module script failed/i.test(msg) ||
+        /Failed to fetch dynamically imported module/i.test(msg) ||
+        /error loading dynamically imported module/i.test(msg) ||
+        /ChunkLoadError/i.test(msg);
+      if (isChunkErr && !sessionStorage.getItem(reloadedKey)) {
+        sessionStorage.setItem(reloadedKey, "1");
+        window.location.reload();
+        // Return a never-resolving promise so Suspense holds while we reload
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }
+  });
+
 // Lazy-load heavy / less-frequently-hit routes to keep initial bundle small for high-traffic landing
-const Community = lazy(() => import("./pages/Community"));
-const Business = lazy(() => import("./pages/Business"));
-const HonkZone = lazy(() => import("./pages/HonkZone"));
-const WallOfShame = lazy(() => import("./pages/WallOfShame"));
-const PlateDetail = lazy(() => import("./pages/PlateDetail"));
-const Leaderboard = lazy(() => import("./pages/Leaderboard"));
-const Profile = lazy(() => import("./pages/Profile"));
-const ClaimPlate = lazy(() => import("./pages/ClaimPlate"));
-const Fleet = lazy(() => import("./pages/Fleet"));
-const InsurancePortal = lazy(() => import("./pages/InsurancePortal"));
-const BatchScreening = lazy(() => import("./pages/BatchScreening"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const LawEnforcement = lazy(() => import("./pages/LawEnforcement"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const WatchMap = lazy(() => import("./pages/WatchMap"));
-const QuickCapture = lazy(() => import("./pages/QuickCapture"));
-const Privacy = lazy(() => import("./pages/Privacy"));
-const Terms = lazy(() => import("./pages/Terms"));
-const CsaePolicy = lazy(() => import("./pages/CsaePolicy"));
-const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
-const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const Community = lazyWithRetry(() => import("./pages/Community"));
+const Business = lazyWithRetry(() => import("./pages/Business"));
+const HonkZone = lazyWithRetry(() => import("./pages/HonkZone"));
+const WallOfShame = lazyWithRetry(() => import("./pages/WallOfShame"));
+const PlateDetail = lazyWithRetry(() => import("./pages/PlateDetail"));
+const Leaderboard = lazyWithRetry(() => import("./pages/Leaderboard"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const ClaimPlate = lazyWithRetry(() => import("./pages/ClaimPlate"));
+const Fleet = lazyWithRetry(() => import("./pages/Fleet"));
+const InsurancePortal = lazyWithRetry(() => import("./pages/InsurancePortal"));
+const BatchScreening = lazyWithRetry(() => import("./pages/BatchScreening"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
+const LawEnforcement = lazyWithRetry(() => import("./pages/LawEnforcement"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const WatchMap = lazyWithRetry(() => import("./pages/WatchMap"));
+const QuickCapture = lazyWithRetry(() => import("./pages/QuickCapture"));
+const Privacy = lazyWithRetry(() => import("./pages/Privacy"));
+const Terms = lazyWithRetry(() => import("./pages/Terms"));
+const CsaePolicy = lazyWithRetry(() => import("./pages/CsaePolicy"));
+const DeleteAccount = lazyWithRetry(() => import("./pages/DeleteAccount"));
+const Unsubscribe = lazyWithRetry(() => import("./pages/Unsubscribe"));
+
 
 // Tuned for high-traffic: cache aggressively, retry on network errors, refetch sparingly
 const queryClient = new QueryClient({
@@ -76,7 +106,8 @@ const App = () => (
             <NativeDeepLinkBridge />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<HonkZone />} />
+                <Route path="/welcome" element={<Index />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/a-hole-patrol" element={<HonkZone />} />
                 <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />

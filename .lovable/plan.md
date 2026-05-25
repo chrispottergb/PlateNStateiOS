@@ -1,78 +1,53 @@
+## Goal
+Move the portal selection (A-Hole Patrol vs Business & Enterprise) so it only appears during sign-up. Remove it from the public marketing landing page and make the header navigation reflect the chosen mode after login.
 
-# Plate N' State — Feature Batch
+## Current State
+- `Index.tsx` (web landing) shows two large path cards: "The A-Hole Patrol" and "Business & Enterprise"
+- `Auth.tsx` has no mode selection — just Sign In / Sign Up tabs with a tiny "Enterprise?" footer link
+- `Header.tsx` shows all nav links regardless of user type
+- `profiles` table has no `account_type` / `portal_mode` field
 
-12 changes across frontend, one new edge function, and a DB migration. Grouped by area for review.
+## Plan
 
-## 1. Plate length & state-on-step-1
+### 1. Database — Add `account_type` to profiles
+- Add a `portal_mode` enum column to `public.profiles` with values `'consumer'` and `'enterprise'`
+- Default existing users to `'consumer'`
 
-- `formatPlate` in `ReportModal.tsx` → allow 10 chars; bump `maxLength={8}` → `10` everywhere: `ReportModal` (quick + detailed), `ClaimPlate.tsx`, `QuickCapture.tsx`, `PlateScanner.tsx`.
-- Move the existing `<Select stateCode>` from the Location step into **Step 1 (Plate)** of detailed mode, and add it next to the plate input in quick mode. State stays paired with location pickers too (state drives city list).
+### 2. Sign-up flow (`Auth.tsx`)
+- Add a portal-selection step that appears when the user is on the **Sign Up** tab
+- Two cards: "A-Hole Patrol" (consumer/social) and "Business & Enterprise" (enterprise)
+- Store the chosen `portal_mode` in the profile on sign-up
+- On native: default to consumer (since native home is already HonkZone)
 
-## 2. Infraction tab: Bad / Good behavior
+### 3. Marketing landing (`Index.tsx`)
+- Remove the two dual-path cards entirely
+- Replace with a single primary CTA: "Get Started" → links to `/auth`
+- Keep stats, tagline, and hero layout
 
-- New `POSITIVE_BEHAVIORS` array in `data.ts` with 9 items (courteous_merge, yielded_pedestrian, let_me_in, used_turn_signal, stopped_for_school_bus, great_parking, safe_following_distance, hazard_warning, roadside_assist), each with **negative** points (e.g. -2 to -4).
-- Extend `InfractionType` union in `types.ts` to include positive types. Add `kind: 'bad' | 'good'` to `InfractionDef`.
-- In `ReportModal`, render Tabs ("Bad Behavior" / "Good Behavior") on the infraction step in **both quick and detailed** modes. Selecting a good behavior is valid for submission.
-- **Infraction is now optional**: drop `infraction !== null` from `canSubmitQuick` / `canProceed`. Server-side `spend_credit_on_report` already allows arbitrary `p_infraction` strings; pass `null`/empty when missing — confirm RPC accepts null (it does, column is `text NOT NULL` though — set a sentinel `'unspecified'` to keep schema safe).
+### 4. Header navigation (`Header.tsx`)
+- Conditionally render nav links based on the logged-in user's `portal_mode`
+- **Consumer**: A-Hole Patrol, Leaderboard, Map, Claim, Profile
+- **Enterprise**: Business, Fleet, Insurance, Law Enforcement, Profile
+- Unauthenticated visitors: show both paths? No — show minimal nav with Sign In + a link to `/business` as "Enterprise"
 
-## 3. AI auto-tag (new edge function)
+### 5. Post-auth routing
+- After sign-in or sign-up, route to the appropriate home based on `portal_mode`:
+  - consumer → `/a-hole-patrol` (or `/` on native)
+  - enterprise → `/business`
 
-- New edge function `supabase/functions/auto-tag-behavior/index.ts` using Lovable AI Gateway (`google/gemini-3-flash-preview`, structured output via AI SDK `Output.object`). Input: `{ comment: string }`. Output: `{ type: InfractionType | null, confidence: number }`. `verify_jwt=true` (default). CORS + zod validation.
-- `config.toml`: no special config needed.
-- In `ReportModal` comment Textarea, add `onBlur` → if comment length ≥ 10 and no infraction selected, invoke function, show "AI is reading your note…" spinner inline, and auto-select returned type if confidence ≥ 0.6.
+### 6. `useAuth` hook update
+- Fetch the user's `portal_mode` from `profiles` alongside session data
+- Expose it in `AuthContext` so Header and routing logic can consume it
 
-## 4. Scoring window + good-behavior scoring
+## Files to modify
+- `supabase` migration (new)
+- `src/hooks/useAuth.tsx`
+- `src/pages/Auth.tsx`
+- `src/pages/Index.tsx`
+- `src/components/Header.tsx`
+- `src/App.tsx` (post-login redirect logic)
 
-- DB migration (`supabase--migration`):
-  - Recreate `wall_of_shame_mv` with `WHERE created_at >= NOW() - INTERVAL '6 months'` and a `CASE` that **subtracts** points for good-behavior infraction types.
-  - Update `batch_plate_screening`, `insurance_plate_lookup`, `scan_uploaded_plates` score `CASE` blocks to recognize the 9 positive types as negative weights and to gate on the 6-month window.
-- `data.ts` `getScoreColor`/`getScoreBg`: green for `score <= 0` (good standing), muted 1-14, warning 15-29, destructive 30+.
-
-## 5. Landing page CTA
-
-- `Index.tsx`: add a prominent `<ReportModal trigger={...} />` button (gradient pill, "Report a Plate", `Megaphone` icon) above the two path cards.
-
-## 6. Kansas county field
-
-- In `ReportModal` quick + detailed location section, when `stateCode === "KS"` render an optional `<Input>` for county with helper text: *"Kansas vanity plates are issued per county. Including it improves report accuracy."*
-- Append ` — <County> County` into the `location` string on submit (no schema change).
-
-## 7. Driver description dropdown
-
-- Replace the `driverGenderFemale` checkbox with a `<Select>` for: Male, Female, Elderly Male, Elderly Female, Young Male, Young Female, Unknown / Not Sure. Map labels to existing `p_driver_gender` text param.
-
-## 8. Plate claim — 4 pricing tiers
-
-- `ClaimPlate.tsx`: render a 2×2 grid of duration cards (1yr $4.99, 2yr $8.99, 5yr $14.99, Lifetime $29.99 with "Best Value" ribbon). Selecting a tier sets it; "Claim" passes the corresponding `priceId`: `plate_claim_1yr | plate_claim_2yr | plate_claim_5yr | plate_claim_lifetime`.
-- Update `CheckoutTarget` priceId union.
-- **Backend follow-up (not in this batch)**: user creates the 4 Stripe prices and updates `mock-checkout` edge function to recognize them. We'll set up the frontend to send them; mock function can default to success.
-
-## 9. Flagging / strikes / appeals
-
-- Migration:
-  - `reports.flag_count int default 0`, `reports.is_flagged boolean default false`, `reports.excluded_from_score boolean default false`.
-  - New `report_flags` table (`report_id`, `user_id`, `reason text`, unique pair) with RLS: authenticated can insert own, anyone can read counts via view.
-  - New `appeals` table (`plate_number`, `user_id`, `report_id nullable`, `reason text`, `status text default 'pending'`, timestamps) + RLS: owner can insert/select own; admins can select/update all.
-  - Trigger on `report_flags` insert: bump `reports.flag_count`; at `>=3` set `is_flagged=true, excluded_from_score=true`. Wall-of-shame view also gets `AND NOT excluded_from_score`.
-- Frontend:
-  - Add "Flag as false report" button + dialog on `SocialReportCard` / report cards.
-  - "Under Review" badge when `is_flagged`.
-  - On `PlateDetail.tsx`, add "Appeal" button (visible to verified plate owner — check `claimed_plates`).
-  - `AdminPanel.tsx`: new "Appeals" tab with pending list and Uphold/Dismiss actions (writes status).
-
-## 10. Username on signup
-
-- `Auth.tsx` already has a `displayName` input on sign-up — currently optional with `"Driver"` fallback. Make it **required** when `isSignUp`, min 2 chars, and surface on the profile via the existing `handle_new_user` trigger (already reads `display_name` from `raw_user_meta_data`). Just enforce the requirement client-side and remove the silent fallback.
-
-## Technical notes
-
-- New edge function deploys automatically; no `config.toml` change needed.
-- `wall_of_shame_mv` rebuild requires `DROP MATERIALIZED VIEW ... CASCADE` then `CREATE`; reschedule the `refresh_wall_of_shame` job is unchanged.
-- All RLS policies on new tables use `auth.uid()` patterns matching existing tables.
-- Stripe price IDs are sent as strings to the mock-checkout function — actual Stripe product creation is on the user's side (or via `payments--batch_create_product` if they want me to do it in a follow-up).
-
-## Out of scope (deliberately)
-
-- Building a new Android AAB (separate request).
-- Real Stripe product creation (user owns this per their notes).
-- Migrating existing reports' state field.
+## Outcome
+- First-time visitors to platenstate.com see a clean single-CTA landing page
+- Only during sign-up do users explicitly choose A-Hole Patrol or Business & Enterprise
+- After logging in, the entire UI (header, nav, home route) is scoped to their chosen portal

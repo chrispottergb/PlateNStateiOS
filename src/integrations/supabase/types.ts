@@ -426,6 +426,7 @@ export type Database = {
           id: string
           joined_at: string
           last_report_date: string | null
+          portal_mode: Database["public"]["Enums"]["portal_mode"]
           streak_days: number
           terms_accepted_at: string | null
           terms_version: string | null
@@ -440,6 +441,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_report_date?: string | null
+          portal_mode?: Database["public"]["Enums"]["portal_mode"]
           streak_days?: number
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -454,6 +456,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_report_date?: string | null
+          portal_mode?: Database["public"]["Enums"]["portal_mode"]
           streak_days?: number
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -699,6 +702,7 @@ export type Database = {
           flag_count: number
           hot_take: string | null
           id: string
+          incident_state: string | null
           infraction: string
           is_flagged: boolean
           latitude: number | null
@@ -724,6 +728,7 @@ export type Database = {
           flag_count?: number
           hot_take?: string | null
           id?: string
+          incident_state?: string | null
           infraction: string
           is_flagged?: boolean
           latitude?: number | null
@@ -749,6 +754,7 @@ export type Database = {
           flag_count?: number
           hot_take?: string | null
           id?: string
+          incident_state?: string | null
           infraction?: string
           is_flagged?: boolean
           latitude?: number | null
@@ -1179,6 +1185,26 @@ export type Database = {
             Args: {
               p_comment?: string
               p_driver_gender?: string
+              p_incident_state?: string
+              p_infraction: string
+              p_ip?: string
+              p_latitude?: number
+              p_location: string
+              p_longitude?: number
+              p_plate_number: string
+              p_state?: string
+              p_vehicle_color?: string
+              p_vehicle_features?: string[]
+              p_vehicle_make?: string
+              p_vehicle_model?: string
+              p_vehicle_type?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_comment?: string
+              p_driver_gender?: string
               p_infraction: string
               p_ip?: string
               p_latitude?: number
@@ -1204,6 +1230,7 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       fleet_tier: "starter" | "business" | "premium"
       le_tier: "department" | "precinct" | "agency"
+      portal_mode: "consumer" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1334,6 +1361,7 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       fleet_tier: ["starter", "business", "premium"],
       le_tier: ["department", "precinct", "agency"],
+      portal_mode: ["consumer", "enterprise"],
     },
   },
 } as const

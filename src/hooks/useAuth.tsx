@@ -2,10 +2,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+type PortalMode = "consumer" | "enterprise";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  portalMode: PortalMode | null;
   signOut: () => Promise<void>;
 }
 
@@ -13,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  portalMode: null,
   signOut: async () => {},
 });
 
@@ -20,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portalMode, setPortalMode] = useState<PortalMode | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -35,7 +40,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) {
           const msg = String(error.message || "");
           if (/Refresh Token|Auth session missing/i.test(msg)) {
-            // Stale token in localStorage — wipe it so we don't loop on every load.
             supabase.auth.signOut({ scope: "local" }).catch(() => {});
           }
           setSession(null);
@@ -56,12 +60,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch portal_mode whenever the user changes
+  useEffect(() => {
+    if (!user) {
+      setPortalMode(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("portal_mode")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) {
+        setPortalMode((data?.portal_mode as PortalMode) ?? "consumer");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, portalMode, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -11,7 +11,7 @@ import PlateScanner from "@/components/PlateScanner";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import ReportModal from "@/components/ReportModal";
-import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight } from "lucide-react";
+import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -50,6 +50,33 @@ const ClaimPlate = () => {
   const { toast } = useToast();
   const [selectedTier, setSelectedTier] = useState<ClaimPriceId>("plate_claim_lifetime");
   const { homeState, setHomeState } = useHomeState();
+
+  const cleanedPlate = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  // Detect identical KS vanity collisions: another KS claim or report exists for this exact plate
+  const { data: ksDuplicate } = useQuery({
+    queryKey: ["ks-duplicate-check", cleanedPlate, user?.id],
+    queryFn: async () => {
+      if (homeState !== "KS" || cleanedPlate.length < 3) return false;
+      const [{ data: claims }, { data: reports }] = await Promise.all([
+        supabase
+          .from("claimed_plates")
+          .select("id,user_id")
+          .eq("plate_number", cleanedPlate)
+          .eq("state", "KS")
+          .limit(5),
+        supabase
+          .from("reports")
+          .select("id")
+          .eq("plate_number", cleanedPlate)
+          .eq("state", "KS")
+          .limit(1),
+      ]);
+      const otherClaim = (claims ?? []).some(c => c.user_id !== user?.id);
+      return otherClaim || (reports?.length ?? 0) > 0;
+    },
+    enabled: homeState === "KS" && cleanedPlate.length >= 3,
+  });
 
   const { data: claimedPlates, refetch: refetchClaims } = useQuery({
     queryKey: ["my-claimed-plates", user?.id],
@@ -244,6 +271,16 @@ const ClaimPlate = () => {
                     className="font-mono text-lg tracking-wider text-center h-12"
                     maxLength={10}
                   />
+
+                  {homeState === "KS" && ksDuplicate && (
+                    <div className="flex gap-2 items-start text-xs rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-200 p-3">
+                      <Info className="h-4 w-4 mt-0.5 shrink-0" />
+                      <p className="leading-relaxed">
+                        <span className="font-semibold block mb-1 uppercase tracking-wide">Disclaimer of Unique Identification</span>
+                        The Kansas Department of Revenue issues vanity license plates on a non-exclusive, county-specific basis. The plate number herein is not unique statewide and may be concurrently registered to one or more third parties in other Kansas counties. By proceeding with this claim, you expressly acknowledge and agree that: (i) identical plate registrations may exist outside your county of residence; (ii) any reports, notifications, or alerts received in connection with this plate number are not, without corroborating jurisdictional or locational data, attributable to your specific vehicle; and (iii) Plate State, its officers, agents, and affiliates expressly disclaim any and all liability arising from misidentification, erroneous association, or reputational harm resulting from such duplicate registrations. You assume sole responsibility for independently verifying the location and circumstances of any reported incident prior to taking any responsive action.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Pricing tier picker */}
                   <div className="grid grid-cols-2 gap-2">
