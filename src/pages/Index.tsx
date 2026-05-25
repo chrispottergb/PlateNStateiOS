@@ -1,4 +1,4 @@
-import { Shield, Skull, Briefcase, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react";
+import { Shield, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
