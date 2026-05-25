@@ -70,6 +70,7 @@ const TOTAL_STEPS = 6;
 
 const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
+  const { homeState } = useHomeState();
   const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -92,7 +93,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [geocoding, setGeocoding] = useState(false);
   const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState(false);
-  const [stateCode, setStateCode] = useState<string>("WI");
+  // Plate's home state (where the plate is registered) — defaults to user's home_state
+  const [plateState, setPlateState] = useState<string>(homeState || "WI");
+  // Incident state (where the report happened) — set by GPS reverse-geocode
+  const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
   const [aiTagging, setAiTagging] = useState(false);
