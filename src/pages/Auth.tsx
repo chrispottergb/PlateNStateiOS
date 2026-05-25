@@ -327,12 +327,6 @@ const Auth = () => {
           </div>
         </div>
 
-        {/* Enterprise Link */}
-        <div className="text-center mt-6">
-          <Link to="/business" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 justify-center">
-            <Shield className="h-3 w-3" /> Enterprise? Use the Business Portal
-          </Link>
-        </div>
       </motion.div>
     </div>
   );
