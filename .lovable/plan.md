@@ -1,18 +1,25 @@
 ## Goal
-Make the top navigation bar taller and all buttons easier to tap on mobile.
+On the native mobile app (iOS/Android via Capacitor), the home screen ("/") should open directly to the social feed page (A-Hole Patrol / HonkZone). Web visitors at platenstate.com continue to see the marketing landing.
 
-## Current State
-- Header container is `h-14` (56 px)
-- Nav links have `px-3 py-1.5` padding with `h-3.5 w-3.5` icons
-- Sign-out button is `h-7 w-7`
-- Sign-in button is `h-8 px-4`
+## Why this works with what's already built
+- `HonkZone` (`/a-hole-patrol`) already contains: the live feed of reports, a prominent blue "Report a Plate" button, and feed items that navigate to `/plate/:plateNumber` (Plate Detail) on tap — which shows the geotag, full report history, points, and offenses.
+- `src/lib/native.ts` already exports `isNative` (Capacitor platform detection).
 
-## Changes
-1. **Header container** – bump from `h-14` to `h-16` (64 px)
-2. **Nav links** – increase padding from `px-3 py-1.5` to `px-4 py-2` and bump icon size from `h-3.5 w-3.5` to `h-4 w-4`
-3. **Sign-out button** – increase from `h-7 w-7` to `h-8 w-8`
-4. **Credits badge** – slightly more padding for parity
-5. **Logo** – increase from `h-7 w-7` to `h-8 w-8`
+## Change
+Single edit in `src/App.tsx`:
+
+```tsx
+import { isNative } from "@/lib/native";
+...
+<Route path="/" element={isNative ? <HonkZone /> : <Index />} />
+```
+
+`isNative` is evaluated once at module load (Capacitor's check is synchronous), so there's no flash or hydration issue.
 
 ## Scope
-Single file: `src/components/Header.tsx`
+- Web (platenstate.com, previews in browser) — unchanged, still shows marketing landing.
+- Native iOS/Android — "/" renders the social feed; the existing marketing landing remains reachable at `/community` or any other route if needed (no other routes change).
+- No new components, no layout changes inside HonkZone (user confirmed the existing feed-first + Report-a-Plate button + tap-to-detail flow is what they want).
+
+## Files
+- `src/App.tsx` — add `isNative` import and update the `/` route element.
