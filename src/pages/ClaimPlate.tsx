@@ -51,6 +51,33 @@ const ClaimPlate = () => {
   const [selectedTier, setSelectedTier] = useState<ClaimPriceId>("plate_claim_lifetime");
   const { homeState, setHomeState } = useHomeState();
 
+  const cleanedPlate = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  // Detect identical KS vanity collisions: another KS claim or report exists for this exact plate
+  const { data: ksDuplicate } = useQuery({
+    queryKey: ["ks-duplicate-check", cleanedPlate, user?.id],
+    queryFn: async () => {
+      if (homeState !== "KS" || cleanedPlate.length < 3) return false;
+      const [{ data: claims }, { data: reports }] = await Promise.all([
+        supabase
+          .from("claimed_plates")
+          .select("id,user_id")
+          .eq("plate_number", cleanedPlate)
+          .eq("state", "KS")
+          .limit(5),
+        supabase
+          .from("reports")
+          .select("id")
+          .eq("plate_number", cleanedPlate)
+          .eq("state", "KS")
+          .limit(1),
+      ]);
+      const otherClaim = (claims ?? []).some(c => c.user_id !== user?.id);
+      return otherClaim || (reports?.length ?? 0) > 0;
+    },
+    enabled: homeState === "KS" && cleanedPlate.length >= 3,
+  });
+
   const { data: claimedPlates, refetch: refetchClaims } = useQuery({
     queryKey: ["my-claimed-plates", user?.id],
     queryFn: async () => {
