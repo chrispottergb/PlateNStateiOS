@@ -57,6 +57,7 @@ const Auth = () => {
               display_name: displayName.trim(),
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
+              portal_mode: portalMode,
             },
             emailRedirectTo: REDIRECT_ORIGIN,
             captchaToken: captchaToken ?? undefined,
@@ -67,7 +68,7 @@ const Auth = () => {
         if (signUpData.user) {
           await supabase
             .from("profiles")
-            .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11" })
+            .update({ terms_accepted_at: new Date().toISOString(), terms_version: "2026-05-11", portal_mode: portalMode })
             .eq("user_id", signUpData.user.id);
           // Fire welcome email (non-blocking, silently skip on failure)
           supabase.functions.invoke("send-transactional-email", {
@@ -80,7 +81,7 @@ const Auth = () => {
           }).catch(() => {});
         }
         toast({ title: "Welcome to the Patrol!", description: "Your account is ready." });
-        navigate("/");
+        navigate(portalMode === "enterprise" ? "/business" : "/");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email, password,
