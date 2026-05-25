@@ -699,6 +699,7 @@ export type Database = {
           flag_count: number
           hot_take: string | null
           id: string
+          incident_state: string | null
           infraction: string
           is_flagged: boolean
           latitude: number | null
@@ -724,6 +725,7 @@ export type Database = {
           flag_count?: number
           hot_take?: string | null
           id?: string
+          incident_state?: string | null
           infraction: string
           is_flagged?: boolean
           latitude?: number | null
@@ -749,6 +751,7 @@ export type Database = {
           flag_count?: number
           hot_take?: string | null
           id?: string
+          incident_state?: string | null
           infraction?: string
           is_flagged?: boolean
           latitude?: number | null
@@ -1167,6 +1170,26 @@ export type Database = {
               p_location: string
               p_longitude?: number
               p_plate_number: string
+              p_vehicle_color?: string
+              p_vehicle_features?: string[]
+              p_vehicle_make?: string
+              p_vehicle_model?: string
+              p_vehicle_type?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_comment?: string
+              p_driver_gender?: string
+              p_incident_state?: string
+              p_infraction: string
+              p_ip?: string
+              p_latitude?: number
+              p_location: string
+              p_longitude?: number
+              p_plate_number: string
+              p_state?: string
               p_vehicle_color?: string
               p_vehicle_features?: string[]
               p_vehicle_make?: string
