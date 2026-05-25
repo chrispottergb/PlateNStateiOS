@@ -272,14 +272,14 @@ const ClaimPlate = () => {
                     maxLength={10}
                   />
 
-                  {homeState === "KS" && (
+                  {homeState === "KS" && ksDuplicate && (
                     <div className="flex gap-2 items-start text-xs rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-200 p-3">
                       <Info className="h-4 w-4 mt-0.5 shrink-0" />
                       <p>
-                        <span className="font-semibold">Heads up, Kansas drivers:</span> KS issues plates by county,
-                        so the same plate number can exist in multiple counties. After claiming, you may receive
-                        in-app notifications for reports filed against an identical plate registered in a different
-                        Kansas county. Check the location and county on each report before reacting.
+                        <span className="font-semibold">Identical KS plate detected.</span> Kansas issues vanity
+                        plates by county, so this exact plate number already exists elsewhere in the state. After
+                        claiming, you may get notifications for reports filed against the same plate in a different
+                        Kansas county — check the location on each report before reacting.
                       </p>
                     </div>
                   )}
