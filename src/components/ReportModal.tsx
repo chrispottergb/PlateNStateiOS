@@ -694,7 +694,14 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     </div>
                   ) : (
                     <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
-                      <Select value={incidentState} onValueChange={(v) => { setIncidentState(v); setLocation(""); }}>
+                      <Select value={incidentState} onValueChange={(v) => {
+                        setIncidentState(v);
+                        if (autoDetectedLocation && v === detectedStateCode) {
+                          setLocation(autoDetectedLocation);
+                        } else {
+                          setLocation("");
+                        }
+                      }}>
                         <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
                         <SelectContent className="max-h-72">
                           {US_STATES.map(s => (
@@ -705,8 +712,13 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       <Select value={location} onValueChange={setLocation}>
                         <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
                         <SelectContent>
+                          {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
+                            <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
+                          )}
                           {getStateByCode(incidentState).cities.map(city => (
-                            <SelectItem key={city} value={`${city}, ${incidentState}`}>{city}, {incidentState}</SelectItem>
+                            <SelectItem key={city} value={`${city}, ${incidentState}`}>
+                              {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
