@@ -464,11 +464,11 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <Input
                     value={ksCounty}
                     onChange={e => setKsCounty(e.target.value.slice(0, 40))}
-                    placeholder="County (optional)"
+                    placeholder="County the plate was issued in (optional)"
                     className="rounded-lg text-sm h-9"
                   />
                   <p className="text-[10px] text-muted-foreground mt-1 italic">
-                    Kansas vanity plates are issued per county. Including it improves report accuracy.
+                    Kansas vanity plates are issued per county — include the county the plate was issued in.
                   </p>
                 </div>
               )}
