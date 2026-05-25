@@ -165,7 +165,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
       const stName = addr?.state || "";
       const code = stateNameToCode(stName);
-      if (code) setStateCode(code);
+      if (code) setIncidentState(code);
       if (city) {
         const detected = `${city}${code ? `, ${code}` : ""}`;
         setAutoDetectedLocation(detected);
