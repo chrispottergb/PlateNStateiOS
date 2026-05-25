@@ -11,7 +11,7 @@ import PlateScanner from "@/components/PlateScanner";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import ReportModal from "@/components/ReportModal";
-import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight } from "lucide-react";
+import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
