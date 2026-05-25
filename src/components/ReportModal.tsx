@@ -97,6 +97,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [plateState, setPlateState] = useState<string>(homeState || "WI");
   // Incident state (where the report happened) — set by GPS reverse-geocode
   const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
+  const [detectedStateCode, setDetectedStateCode] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
   const [aiTagging, setAiTagging] = useState(false);
