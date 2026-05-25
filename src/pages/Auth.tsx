@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2, Skull, Briefcase } from "lucide-react";
 import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
