@@ -11,7 +11,7 @@ import PlateScanner from "@/components/PlateScanner";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import ReportModal from "@/components/ReportModal";
-import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight } from "lucide-react";
+import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -244,6 +244,18 @@ const ClaimPlate = () => {
                     className="font-mono text-lg tracking-wider text-center h-12"
                     maxLength={10}
                   />
+
+                  {homeState === "KS" && (
+                    <div className="flex gap-2 items-start text-xs rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-200 p-3">
+                      <Info className="h-4 w-4 mt-0.5 shrink-0" />
+                      <p>
+                        <span className="font-semibold">Heads up, Kansas drivers:</span> KS issues plates by county,
+                        so the same plate number can exist in multiple counties. After claiming, you may receive
+                        in-app notifications for reports filed against an identical plate registered in a different
+                        Kansas county. Check the location and county on each report before reacting.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Pricing tier picker */}
                   <div className="grid grid-cols-2 gap-2">
