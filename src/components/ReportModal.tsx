@@ -97,6 +97,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [plateState, setPlateState] = useState<string>(homeState || "WI");
   // Incident state (where the report happened) — set by GPS reverse-geocode
   const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
+  const [detectedStateCode, setDetectedStateCode] = useState<string | null>(null);
   const [dateTime, setDateTime] = useState(() => new Date().toISOString().slice(0, 16));
   const [showAllInfractions, setShowAllInfractions] = useState(false);
   const [aiTagging, setAiTagging] = useState(false);
@@ -124,6 +125,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setGeoStatus("idle");
     setGeocoding(false);
     setAutoDetectedLocation(null);
+    setDetectedStateCode(null);
     setManualOverride(false);
     setPlateState(homeState || "WI");
     setIncidentState(homeState || "WI");
@@ -165,7 +167,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       const city = addr?.city || addr?.town || addr?.village || addr?.county || "";
       const stName = addr?.state || "";
       const code = stateNameToCode(stName);
-      if (code) setIncidentState(code);
+      if (code) {
+        setIncidentState(code);
+        setDetectedStateCode(code);
+      }
       if (city) {
         const detected = `${city}${code ? `, ${code}` : ""}`;
         setAutoDetectedLocation(detected);
@@ -409,7 +414,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Or scan/upload a photo above</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
+              </p>
             </div>
 
             {/* Behavior tabs */}
@@ -441,7 +448,14 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 </div>
               ) : (
                 <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
-                  <Select value={incidentState} onValueChange={(v) => { setIncidentState(v); setLocation(""); }}>
+                  <Select value={incidentState} onValueChange={(v) => {
+                    setIncidentState(v);
+                    if (autoDetectedLocation && v === detectedStateCode) {
+                      setLocation(autoDetectedLocation);
+                    } else {
+                      setLocation("");
+                    }
+                  }}>
                     <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-72">
                       {US_STATES.map(s => (
@@ -452,8 +466,13 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <Select value={location} onValueChange={setLocation}>
                     <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
                     <SelectContent>
+                      {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
+                        <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
+                      )}
                       {getStateByCode(incidentState).cities.map(city => (
-                        <SelectItem key={city} value={`${city}, ${incidentState}`}>{city}, {incidentState}</SelectItem>
+                        <SelectItem key={city} value={`${city}, ${incidentState}`}>
+                          {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -677,7 +696,14 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     </div>
                   ) : (
                     <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
-                      <Select value={incidentState} onValueChange={(v) => { setIncidentState(v); setLocation(""); }}>
+                      <Select value={incidentState} onValueChange={(v) => {
+                        setIncidentState(v);
+                        if (autoDetectedLocation && v === detectedStateCode) {
+                          setLocation(autoDetectedLocation);
+                        } else {
+                          setLocation("");
+                        }
+                      }}>
                         <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
                         <SelectContent className="max-h-72">
                           {US_STATES.map(s => (
@@ -688,8 +714,13 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       <Select value={location} onValueChange={setLocation}>
                         <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
                         <SelectContent>
+                          {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
+                            <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
+                          )}
                           {getStateByCode(incidentState).cities.map(city => (
-                            <SelectItem key={city} value={`${city}, ${incidentState}`}>{city}, {incidentState}</SelectItem>
+                            <SelectItem key={city} value={`${city}, ${incidentState}`}>
+                              {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
