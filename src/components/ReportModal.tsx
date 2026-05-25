@@ -229,7 +229,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       void captcha.token;
       // Build location with KS county if provided
       let finalLocation = location;
-      if (stateCode === "KS" && ksCounty.trim()) {
+      if (plateState === "KS" && ksCounty.trim()) {
         finalLocation = `${location} — ${ksCounty.trim()} County`;
       }
       // Infraction is now OPTIONAL — use sentinel when missing
