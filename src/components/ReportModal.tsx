@@ -414,7 +414,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Or scan/upload a photo above</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
+              </p>
             </div>
 
             {/* Behavior tabs */}
