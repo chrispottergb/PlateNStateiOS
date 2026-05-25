@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaptcha } from "@/hooks/useCaptcha";
 import { getClientIp } from "@/lib/clientIp";
+import { useHomeState } from "@/hooks/useHomeState";
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-4 w-4" />,
