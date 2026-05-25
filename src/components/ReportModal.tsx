@@ -125,6 +125,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setGeoStatus("idle");
     setGeocoding(false);
     setAutoDetectedLocation(null);
+    setDetectedStateCode(null);
     setManualOverride(false);
     setPlateState(homeState || "WI");
     setIncidentState(homeState || "WI");
