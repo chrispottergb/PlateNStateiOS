@@ -1,54 +1,53 @@
-## The disconnect
+## Goal
 
-`stateCode` in `ReportModal` is doing double duty — it's used as both the **plate's home state** and the **incident state** (drives the city dropdown and the KS county prompt). That breaks the "out-of-state plate seen locally" case:
+When you report a plate from another state (e.g. you're in WI and see a MN plate), the modal should keep your GPS location and pre-fill the city + state of the incident — including in the edit/fallback view.
 
-1. GPS opens the modal → `reverseGeocode` sets `stateCode = "WI"` (your state).
-2. You pick **KS** from the state dropdown next to the plate (because the plate is Kansas) → `onValueChange` calls `setLocation("")` and now the location city list switches to Kansas cities, even though the incident happened in Wisconsin.
-3. The "Kansas vanity county" field only appears when `stateCode === "KS"`, so the moment you correct the location back to WI, the county field disappears. There's no way to capture *Kansas plate + Wisconsin incident + KS county of issue*.
-4. `p_state` sent to `spend_credit_on_report` ends up being whichever one you set last, so reports get mis-bucketed (Wall of Shame / state filters).
+## Current behavior
 
-The Kansas vanity-plate hint is also worded around location instead of plate registration, which adds to the confusion.
+- GPS detect already runs on modal open and fills `incidentState` + `location` + an "auto-detected" pill.
+- Changing the plate state correctly no longer clears the location (recent fix).
+- Bugs that still break the experience for out-of-state reports:
+  1. If you tap the Edit pencil on the auto-detected pill, the city dropdown is filtered to a curated list per state. If Nominatim returned a city that isn't in that list (very common — e.g. small towns, "Town of X" formats), the city Select shows **blank** even though `location` is set.
+  2. In that same fallback view, changing `incidentState` always wipes `location` to `""`, so even just confirming the state nukes the auto-fill.
+  3. There's no visible "📍 currently set to …" hint in the fallback, so users think detection failed.
 
-## Fix
+## Plan
 
-Split the single `stateCode` into two independent concepts in `ReportModal` (Quick + Detailed) and persist both:
+Single file: `src/components/ReportModal.tsx`. No DB / no backend changes. Applies to both Quick mode (Step 1) and Detailed mode (Step 4).
 
-- `plateState` — where the plate is registered. Lives next to the plate input on Step 1. Default = user's `home_state` (from `useHomeState`) so the common case is one tap. Auto-filled by `PlateScanner` when ALPR returns a state.
-- `incidentState` — where the report happened. Set by `reverseGeocode` from GPS, used to drive the city dropdown on the Location step. Editable via a small state selector right above the city select (so reporting an incident outside your home state still works).
+1. **Inject the auto-detected city as a Select option** so it's always selectable, even when it isn't in `getStateByCode(...).cities`. Build the city list as:
+   ```
+   const detectedCity = autoDetectedLocation; // e.g. "Eau Claire, WI"
+   const curatedCities = getStateByCode(incidentState).cities.map(c => `${c}, ${incidentState}`);
+   const cityOptions = detectedCity && !curatedCities.includes(detectedCity)
+     ? [detectedCity, ...curatedCities]
+     : curatedCities;
+   ```
+   Render an "📍 Detected" badge next to the detected option.
 
-Behavior changes that fall out of the split:
+2. **Stop nuking `location` when `incidentState` changes** if the new state matches the detected state. Only clear when the user genuinely switches to a different state than what GPS returned. Concretely:
+   ```
+   onValueChange={(v) => {
+     setIncidentState(v);
+     if (autoDetectedLocation && v === detectedStateCode) {
+       setLocation(autoDetectedLocation); // restore
+     } else {
+       setLocation("");
+     }
+   }}
+   ```
+   Track the GPS-resolved state code in a new `detectedStateCode` state set inside `reverseGeocode`.
 
-- City list uses `getStateByCode(incidentState).cities`, not the plate state.
-- Changing `plateState` no longer clears `location`.
-- KS vanity county field appears when **`plateState === "KS"`** (plate is Kansas), regardless of where the incident happened. Reword helper to: *"Kansas vanity plates are issued per county — include the county the plate was issued in."*
-- `finalLocation` only appends `— <County> County` when `plateState === "KS"` and `ksCounty` is set.
-- Review step shows both: `Plate: ABC123 (KS)` and `Seen in: Milwaukee, WI — Dane County` style.
+3. **Pre-select the detected city in the dropdown** by ensuring `location` is set to the same string used as the SelectItem `value` (already true — just need step 1 to make the item exist).
 
-Submit payload:
+4. **Decouple plate state from incident state visually:** add a small caption under the plate-state selector — `"Plate state — incident location stays on your GPS"` — so users know that picking a different state for the plate won't move them. (UI-only, no logic change.)
 
-- Keep `p_state` = `plateState` (this is what Wall of Shame / state leaderboards group by today — `reports.state` already represents the plate's state).
-- Add `p_incident_state` = `incidentState` so the location context isn't lost. Requires a migration adding `reports.incident_state text` (nullable, 2-letter code, validated by the existing `validate_state_code`-style check) and a new overload of `spend_credit_on_report` that accepts `p_incident_state` and writes it. Existing overloads stay intact for backwards compat.
+5. **Don't auto-flip to the manual fallback when plate state changes.** Currently `manualOverride` is only set by the Edit button, so this should already hold — verify by inspection during implementation.
 
-QuickCapture and ClaimPlate don't currently track a separate incident state, so no changes needed there — they only deal with the plate itself.
+## Acceptance check (manual)
 
-## Technical details
-
-Files:
-
-- `src/components/ReportModal.tsx`
-  - Rename existing `stateCode` → `plateState`. Add `incidentState` state, default `"WI"`, seeded from `useHomeState()` on open.
-  - `reverseGeocode` sets `incidentState` (not plate state) and only auto-fills `location` when `incidentState` matches.
-  - Plate-state `<Select>` (Quick + Step 1 Detailed): remove `setLocation("")` side effect.
-  - Location step (Quick + Step 4 Detailed): add a compact `incidentState` `<Select>` above the city `<Select>`; city list keyed off `incidentState`.
-  - KS county block: gate on `plateState === "KS"`, update helper copy.
-  - `handleSubmit`: pass `p_state: plateState`, `p_incident_state: incidentState`.
-  - Review step: render both plate state and incident location.
-
-- `supabase/migrations/<new>.sql`
-  - `alter table public.reports add column if not exists incident_state text;`
-  - Add trigger or check that mirrors `validate_state_code` for `incident_state`.
-  - New `spend_credit_on_report(... , p_state text, p_incident_state text, p_ip text)` overload that writes `incident_state`. Keep the existing function so older clients keep working.
-
-- `src/integrations/supabase/types.ts` regenerates automatically.
-
-No UI changes needed in WatchMap / WallOfShame — they continue to group by `reports.state` (plate state), which is the correct dimension for those views.
+- Allow location → see "Eau Claire, WI" pill auto-filled.
+- Change plate state from WI → MN → pill still shows "Eau Claire, WI".
+- Tap Edit → state dropdown shows WI, city dropdown shows "Eau Claire, WI" pre-selected (with 📍 badge).
+- Switch incident state dropdown WI → MN → city clears (expected). Switch back to WI → "Eau Claire, WI" repopulates automatically.
+- Submit → report saves with `state = MN` (plate), `incident_state = WI`, `location = "Eau Claire, WI"`.
