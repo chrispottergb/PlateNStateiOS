@@ -275,11 +275,9 @@ const ClaimPlate = () => {
                   {homeState === "KS" && ksDuplicate && (
                     <div className="flex gap-2 items-start text-xs rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-200 p-3">
                       <Info className="h-4 w-4 mt-0.5 shrink-0" />
-                      <p>
-                        <span className="font-semibold">Identical KS plate detected.</span> Kansas issues vanity
-                        plates by county, so this exact plate number already exists elsewhere in the state. After
-                        claiming, you may get notifications for reports filed against the same plate in a different
-                        Kansas county — check the location on each report before reacting.
+                      <p className="leading-relaxed">
+                        <span className="font-semibold block mb-1 uppercase tracking-wide">Disclaimer of Unique Identification</span>
+                        The Kansas Department of Revenue issues vanity license plates on a non-exclusive, county-specific basis. The plate number herein is not unique statewide and may be concurrently registered to one or more third parties in other Kansas counties. By proceeding with this claim, you expressly acknowledge and agree that: (i) identical plate registrations may exist outside your county of residence; (ii) any reports, notifications, or alerts received in connection with this plate number are not, without corroborating jurisdictional or locational data, attributable to your specific vehicle; and (iii) Plate State, its officers, agents, and affiliates expressly disclaim any and all liability arising from misidentification, erroneous association, or reputational harm resulting from such duplicate registrations. You assume sole responsibility for independently verifying the location and circumstances of any reported incident prior to taking any responsive action.
                       </p>
                     </div>
                   )}
