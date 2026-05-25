@@ -125,7 +125,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setGeocoding(false);
     setAutoDetectedLocation(null);
     setManualOverride(false);
-    setStateCode("WI");
+    setPlateState(homeState || "WI");
+    setIncidentState(homeState || "WI");
     setDateTime(new Date().toISOString().slice(0, 16));
     setVehicleType("");
     setVehicleColor("");
