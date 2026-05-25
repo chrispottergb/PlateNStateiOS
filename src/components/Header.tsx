@@ -33,33 +33,54 @@ const Header = () => {
           <span className="font-bold text-sm tracking-tight hidden sm:inline">Plate N' State</span>
         </Link>
         <nav className="flex items-center gap-0.5 shrink-0">
-          <Link to="/a-hole-patrol" className={navLinkClass("/a-hole-patrol")}>
-            <span className="text-xs">🚨</span>
-            <span className="hidden sm:inline">A-Hole Patrol</span>
-          </Link>
-          <Link to="/leaderboard" className={navLinkClass("/leaderboard")}>
-            <Trophy className="h-4 w-4" />
-            <span className="hidden md:inline">Board</span>
-          </Link>
-          <Link to="/map" className={navLinkClass("/map")}>
-            <MapPin className="h-4 w-4" />
-            <span className="hidden md:inline">Map</span>
-          </Link>
-          {user ? (
+          {isEnterprise ? (
             <>
-              <div className="flex items-center gap-1 rounded-full bg-warning/10 border border-warning/20 px-3 py-1.5 text-xs font-medium mx-1">
-                <Coins className="h-3.5 w-3.5 text-warning" />
-                <span className="font-mono text-[11px] text-warning">{credits ?? "–"}</span>
-              </div>
-              <Link to="/claim" className={navLinkClass("/claim")}>
-                <Car className="h-4 w-4" />
+              <Link to="/business" className={navLinkClass("/business")}>
+                <Briefcase className="h-4 w-4" />
+                <span className="hidden sm:inline">Business</span>
               </Link>
               <Link to="/fleet" className={navLinkClass("/fleet")}>
                 <Truck className="h-4 w-4" />
+                <span className="hidden md:inline">Fleet</span>
+              </Link>
+              <Link to="/insurance" className={navLinkClass("/insurance")}>
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden md:inline">Insurance</span>
               </Link>
               <Link to="/law-enforcement" className={navLinkClass("/law-enforcement")}>
                 <Shield className="h-4 w-4" />
+                <span className="hidden md:inline">Law</span>
               </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/a-hole-patrol" className={navLinkClass("/a-hole-patrol")}>
+                <span className="text-xs">🚨</span>
+                <span className="hidden sm:inline">A-Hole Patrol</span>
+              </Link>
+              <Link to="/leaderboard" className={navLinkClass("/leaderboard")}>
+                <Trophy className="h-4 w-4" />
+                <span className="hidden md:inline">Board</span>
+              </Link>
+              <Link to="/map" className={navLinkClass("/map")}>
+                <MapPin className="h-4 w-4" />
+                <span className="hidden md:inline">Map</span>
+              </Link>
+            </>
+          )}
+          {user ? (
+            <>
+              {!isEnterprise && (
+                <div className="flex items-center gap-1 rounded-full bg-warning/10 border border-warning/20 px-3 py-1.5 text-xs font-medium mx-1">
+                  <Coins className="h-3.5 w-3.5 text-warning" />
+                  <span className="font-mono text-[11px] text-warning">{credits ?? "–"}</span>
+                </div>
+              )}
+              {!isEnterprise && (
+                <Link to="/claim" className={navLinkClass("/claim")}>
+                  <Car className="h-4 w-4" />
+                </Link>
+              )}
               <Link to="/profile" className={navLinkClass("/profile")}>
                 <User className="h-4 w-4" />
               </Link>
