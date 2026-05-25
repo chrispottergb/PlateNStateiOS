@@ -537,7 +537,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <PlateScanner onResult={(plate, scannedState) => {
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
-                      setStateCode(scannedState);
+                      setPlateState(scannedState);
                     }
                   }} />
                   <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
