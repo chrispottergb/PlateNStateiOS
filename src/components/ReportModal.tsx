@@ -247,7 +247,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         p_vehicle_features: vehicleFeatures.length > 0 ? vehicleFeatures : [],
         p_driver_gender: driverDescription || null,
         p_comment: comment || null,
-        p_state: stateCode,
+        p_state: plateState,
+        p_incident_state: incidentState,
         p_ip: ip,
       } as any);
       if (error) {
