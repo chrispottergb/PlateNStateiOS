@@ -676,25 +676,35 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       Detecting your location…
                     </div>
                   ) : (
-                    <Select value={location} onValueChange={setLocation}>
-                      <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                      <SelectContent>
-                        {getStateByCode(stateCode).cities.map(city => (
-                          <SelectItem key={city} value={`${city}, ${stateCode}`}>{city}, {stateCode}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
+                      <Select value={incidentState} onValueChange={(v) => { setIncidentState(v); setLocation(""); }}>
+                        <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {US_STATES.map(s => (
+                            <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={location} onValueChange={setLocation}>
+                        <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectContent>
+                          {getStateByCode(incidentState).cities.map(city => (
+                            <SelectItem key={city} value={`${city}, ${incidentState}`}>{city}, {incidentState}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                  {stateCode === "KS" && (
+                  {plateState === "KS" && (
                     <div className="mt-2">
                       <Input
                         value={ksCounty}
                         onChange={e => setKsCounty(e.target.value.slice(0, 40))}
-                        placeholder="County (optional)"
+                        placeholder="County the plate was issued in (optional)"
                         className="rounded-lg text-sm h-9"
                       />
                       <p className="text-[10px] text-muted-foreground mt-1 italic">
-                        Kansas vanity plates are issued per county. Including it improves report accuracy.
+                        Kansas vanity plates are issued per county — include the county the plate was issued in.
                       </p>
                     </div>
                   )}
