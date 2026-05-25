@@ -180,18 +180,51 @@ const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <CaptchaWidget captcha={captcha} />
             {isSignUp && (
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Display name (username)"
-                  required
-                  minLength={2}
-                  maxLength={40}
-                  className="pl-10 rounded-xl h-11"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">I'm signing up as</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPortalMode("consumer")}
+                      className={`rounded-xl border p-3 text-left transition-all ${
+                        portalMode === "consumer"
+                          ? "border-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
+                          : "border-border/60 bg-muted/20 hover:border-border"
+                      }`}
+                    >
+                      <Skull className={`h-4 w-4 mb-1.5 ${portalMode === "consumer" ? "text-primary" : "text-muted-foreground"}`} />
+                      <div className="text-xs font-bold">A-Hole Patrol</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Report drivers, earn XP</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPortalMode("enterprise")}
+                      className={`rounded-xl border p-3 text-left transition-all ${
+                        portalMode === "enterprise"
+                          ? "border-accent bg-accent/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
+                          : "border-border/60 bg-muted/20 hover:border-border"
+                      }`}
+                    >
+                      <Briefcase className={`h-4 w-4 mb-1.5 ${portalMode === "enterprise" ? "text-accent" : "text-muted-foreground"}`} />
+                      <div className="text-xs font-bold">Business & Enterprise</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Fleet, insurance, agencies</div>
+                    </button>
+                  </div>
+                </div>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={displayName}
+                    onChange={e => setDisplayName(e.target.value)}
+                    placeholder="Display name (username)"
+                    required
+                    minLength={2}
+                    maxLength={40}
+                    className="pl-10 rounded-xl h-11"
+                  />
+                </div>
+              </>
             )}
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
