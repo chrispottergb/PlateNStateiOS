@@ -815,7 +815,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location</span>
-                    <span>{stateCode === "KS" && ksCounty ? `${location} — ${ksCounty} County` : location}</span>
+                    <span>{plateState === "KS" && ksCounty ? `${location} — ${ksCounty} County` : location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">When</span>
