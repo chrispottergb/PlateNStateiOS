@@ -789,7 +789,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Plate</span>
-                    <span className="font-mono font-bold">{plateNumber} <span className="text-xs text-muted-foreground">({stateCode})</span></span>
+                    <span className="font-mono font-bold">{plateNumber} <span className="text-xs text-muted-foreground">({plateState})</span></span>
                   </div>
                   {(vehicleType || vehicleColor || vehicleMake || vehicleModel) && (
                     <div className="flex justify-between">
