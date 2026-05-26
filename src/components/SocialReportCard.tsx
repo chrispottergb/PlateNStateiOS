@@ -49,6 +49,7 @@ interface SocialReportCardProps {
     vehicle_features?: string[] | null;
     comment?: string | null;
     is_flagged?: boolean | null;
+    state?: string | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
