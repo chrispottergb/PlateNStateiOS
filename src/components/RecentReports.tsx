@@ -17,6 +17,7 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
+  state?: string | null;
 }
 
 const RecentReports = () => {
