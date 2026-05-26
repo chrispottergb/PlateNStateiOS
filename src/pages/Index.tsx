@@ -2,11 +2,12 @@ import { Shield, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react"
 import heroBg from "@/assets/hero-bg.jpg";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 const FUNNY_TAGLINES = [
   "Because honking isn't enough™",
