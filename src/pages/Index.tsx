@@ -2,11 +2,12 @@ import { Shield, ArrowRight, Zap, Users, MapPin, Megaphone } from "lucide-react"
 import heroBg from "@/assets/hero-bg.jpg";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 const FUNNY_TAGLINES = [
   "Because honking isn't enough™",
@@ -23,6 +24,7 @@ const STAT_ICONS = [
 ];
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const { data: liveStats = [] } = useQuery({
     queryKey: ["homepage-stats"],
@@ -43,6 +45,9 @@ const Index = () => {
     const interval = setInterval(() => setTaglineIndex(p => (p + 1) % FUNNY_TAGLINES.length), 3500);
     return () => clearInterval(interval);
   }, []);
+
+  if (authLoading) return <div className="min-h-screen bg-background" />;
+  if (user) return <Navigate to="/watch" replace />;
 
   return (
     <div className="min-h-screen bg-background flex flex-col noise-overlay">

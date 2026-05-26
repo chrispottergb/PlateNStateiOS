@@ -154,7 +154,7 @@ const HonkZone = () => {
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
-      let query = supabase.from("reports").select("id, plate_number, state, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged");
+      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged, state");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });

@@ -13,11 +13,11 @@ import { toast } from "sonner";
 interface Report {
   id: string;
   plate_number: string;
-  state?: string | null;
   infraction: string;
   location: string;
   created_at: string;
   upvote_count: number;
+  state?: string | null;
 }
 
 const RecentReports = () => {
@@ -29,7 +29,7 @@ const RecentReports = () => {
   const fetchReports = async () => {
     const { data } = await supabase
       .from("reports")
-      .select("id, plate_number, state, infraction, location, created_at, upvote_count")
+      .select("id, plate_number, infraction, location, created_at, upvote_count, state")
       .order("created_at", { ascending: false })
       .limit(15);
     if (data) setReports(data);

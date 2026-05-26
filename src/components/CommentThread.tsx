@@ -43,7 +43,7 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
       // Fetch display names for comment authors
       const userIds = [...new Set(data.map(c => c.user_id))];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("user_id, display_name")
         .in("user_id", userIds);
 

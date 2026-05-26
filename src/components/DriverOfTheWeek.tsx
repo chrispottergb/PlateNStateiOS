@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 
 interface DriverOfTheWeekProps {
   plateNumber: string;
-  state?: string;
   reportCount: number;
   topInfraction: string;
+  state?: string | null;
 }
 
-const DriverOfTheWeek = ({ plateNumber, state, reportCount, topInfraction }: DriverOfTheWeekProps) => {
+const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction, state }: DriverOfTheWeekProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
