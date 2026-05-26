@@ -996,6 +996,30 @@ export type Database = {
       }
     }
     Views: {
+      public_profiles: {
+        Row: {
+          display_name: string | null
+          joined_at: string | null
+          total_reports: number | null
+          user_id: string | null
+          xp: number | null
+        }
+        Insert: {
+          display_name?: string | null
+          joined_at?: string | null
+          total_reports?: number | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Update: {
+          display_name?: string | null
+          joined_at?: string | null
+          total_reports?: number | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
       reports_public: {
         Row: {
           blacklist_tier: string | null
