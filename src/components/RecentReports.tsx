@@ -106,7 +106,7 @@ const RecentReports = () => {
               to={`/plate/${encodeURIComponent(report.plate_number)}`}
               className="shrink-0"
             >
-              <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+              <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
             </Link>
             <Badge variant="secondary" className="text-xs shrink-0 rounded-full">
               {inf?.label || report.infraction}
