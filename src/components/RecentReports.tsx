@@ -29,7 +29,7 @@ const RecentReports = () => {
   const fetchReports = async () => {
     const { data } = await supabase
       .from("reports")
-      .select("id, plate_number, infraction, location, created_at, upvote_count")
+      .select("id, plate_number, infraction, location, created_at, upvote_count, state")
       .order("created_at", { ascending: false })
       .limit(15);
     if (data) setReports(data);
