@@ -24,6 +24,7 @@ const STAT_ICONS = [
 ];
 
 const Index = () => {
+  const { user, loading: authLoading } = useAuth();
   const [taglineIndex, setTaglineIndex] = useState(0);
   const { data: liveStats = [] } = useQuery({
     queryKey: ["homepage-stats"],
