@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import PlateUploadSection from "@/components/PlateUploadSection";
 import { INFRACTIONS } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
