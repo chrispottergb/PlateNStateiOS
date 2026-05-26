@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Skull, ArrowLeft, AlertTriangle, MapPin, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import ReportModal from "@/components/ReportModal";
 import { useWallOfShame } from "@/hooks/useWallOfShame";
 import { INFRACTIONS } from "@/lib/data";
