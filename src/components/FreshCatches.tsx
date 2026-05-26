@@ -33,7 +33,7 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
             >
               <div className="rounded-full p-[2px] bg-gradient-to-br from-primary via-destructive to-accent">
                 <div className="rounded-full bg-background p-2">
-                  <WisconsinPlate plateNumber={r.plate_number} size="sm" />
+                  <LicensePlate plateNumber={r.plate_number} state={r.state} size="sm" />
                 </div>
               </div>
               <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors max-w-[60px] truncate">
