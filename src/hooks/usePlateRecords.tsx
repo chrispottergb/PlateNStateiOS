@@ -8,6 +8,7 @@ interface RawReport {
   infraction: string;
   location: string;
   created_at: string;
+  state?: string | null;
 }
 
 function buildRecords(rows: RawReport[]): PlateRecord[] {
@@ -17,6 +18,7 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
     if (!rec) {
       rec = {
         plateNumber: r.plate_number,
+        state: r.state ?? null,
         totalScore: 0,
         reportCount: 0,
         lastLocation: r.location,
@@ -36,6 +38,7 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
     if (new Date(r.created_at) > new Date(rec.lastReported)) {
       rec.lastReported = r.created_at;
       rec.lastLocation = r.location;
+      rec.state = r.state ?? rec.state;
     }
   }
   return Array.from(map.values()).sort((a, b) => b.totalScore - a.totalScore);
@@ -49,7 +52,7 @@ export function usePlateRecords(limit?: number) {
     setLoading(true);
     const { data } = await supabase
       .from("reports")
-      .select("plate_number, infraction, location, created_at")
+      .select("plate_number, infraction, location, created_at, state")
       .order("created_at", { ascending: false })
       .limit(1000);
 
@@ -70,7 +73,7 @@ export function usePlateRecords(limit?: number) {
 export function usePlateDetail(plateNumber: string) {
   const [plate, setPlate] = useState<PlateRecord | null>(null);
   const [reports, setReports] = useState<
-    { id: string; infraction: string; location: string; created_at: string; upvote_count: number; is_flagged?: boolean }[]
+    { id: string; infraction: string; location: string; created_at: string; upvote_count: number; is_flagged?: boolean; state?: string | null }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,7 +82,7 @@ export function usePlateDetail(plateNumber: string) {
       setLoading(true);
       const { data } = await supabase
         .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged")
+        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state")
         .eq("plate_number", plateNumber)
         .order("created_at", { ascending: false });
 
