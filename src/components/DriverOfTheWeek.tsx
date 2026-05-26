@@ -37,7 +37,7 @@ const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction, state }: Dri
           to={`/plate/${encodeURIComponent(plateNumber)}`}
           className="block w-fit mx-auto hover:scale-105 transition-transform"
         >
-          <WisconsinPlate plateNumber={plateNumber} size="lg" />
+          <LicensePlate plateNumber={plateNumber} state={state} size="lg" />
         </Link>
 
         {/* Stats */}
