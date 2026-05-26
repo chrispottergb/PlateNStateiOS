@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import FleetVehicleCard from "@/components/FleetVehicleCard";
 import FleetPricing, { FleetTier, TIER_VEHICLE_LIMITS } from "@/components/FleetPricing";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
