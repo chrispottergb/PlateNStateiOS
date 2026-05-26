@@ -74,7 +74,7 @@ const Fleet = () => {
   };
 
   const fetchVehicles = async (companyId: string) => {
-    const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label").eq("company_id", companyId);
+    const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label, state").eq("company_id", companyId);
     if (!fv || fv.length === 0) { setVehicles([]); return; }
     const plateNumbers = fv.map((v) => v.plate_number);
     const { data: reports } = await supabase.from("reports").select("plate_number").in("plate_number", plateNumbers);
