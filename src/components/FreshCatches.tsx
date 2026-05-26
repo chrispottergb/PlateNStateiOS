@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 import { motion } from "framer-motion";
 
 interface FreshCatch {
@@ -7,6 +7,7 @@ interface FreshCatch {
   plate_number: string;
   infraction: string;
   created_at: string;
+  state?: string | null;
 }
 
 interface FreshCatchesProps {
