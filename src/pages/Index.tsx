@@ -46,6 +46,9 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  if (authLoading) return <div className="min-h-screen bg-background" />;
+  if (user) return <Navigate to="/watch" replace />;
+
   return (
     <div className="min-h-screen bg-background flex flex-col noise-overlay">
       <Header />
