@@ -282,7 +282,7 @@ const Fleet = () => {
                   const risk = getRiskBadge(v.report_count);
                   return (
                     <div key={v.id} className="rounded-xl glass-card p-4 flex items-center gap-4">
-                      <WisconsinPlate plateNumber={v.plate_number} size="sm" />
+                      <LicensePlate plateNumber={v.plate_number} state={v.state} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold">{v.vehicle_label || v.plate_number}</p>
                         <p className="text-xs text-muted-foreground">{v.report_count} report{v.report_count !== 1 ? "s" : ""}</p>
