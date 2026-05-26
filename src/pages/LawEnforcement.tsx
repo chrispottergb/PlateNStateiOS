@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import PlateUploadSection from "@/components/PlateUploadSection";
 import { INFRACTIONS } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
@@ -208,7 +208,7 @@ const LawEnforcement = () => {
                     <Card>
                       <CardContent className="pt-6 space-y-4">
                         <div className="flex items-center gap-4">
-                          <WisconsinPlate plateNumber={lookupResult.plate} size="md" />
+                          <LicensePlate plateNumber={lookupResult.plate} state={lookupResult.reports[0]?.state} size="md" />
                           <div>
                             <p className="text-2xl font-bold">{lookupResult.total} report{lookupResult.total !== 1 ? "s" : ""}</p>
                             <p className="text-sm text-muted-foreground">{lookupResult.verified} verified (3+ upvotes)</p>

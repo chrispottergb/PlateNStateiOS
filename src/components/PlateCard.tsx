@@ -3,7 +3,7 @@ import { MapPin, Clock, AlertTriangle } from "lucide-react";
 import { PlateRecord } from "@/lib/types";
 import { getScoreColor, getScoreBg } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 
 interface PlateCardProps {
   plate: PlateRecord;
@@ -24,7 +24,7 @@ const PlateCard = ({ plate, rank }: PlateCardProps) => {
             </span>
           )}
           <div className="flex items-center gap-2 mb-3">
-            <WisconsinPlate plateNumber={plate.plateNumber} size="sm" />
+            <LicensePlate plateNumber={plate.plateNumber} state={plate.state} size="sm" />
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">

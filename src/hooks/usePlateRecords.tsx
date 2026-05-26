@@ -5,6 +5,7 @@ import { PlateRecord, InfractionType } from "@/lib/types";
 
 interface RawReport {
   plate_number: string;
+  state?: string | null;
   infraction: string;
   location: string;
   created_at: string;
@@ -17,6 +18,7 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
     if (!rec) {
       rec = {
         plateNumber: r.plate_number,
+        state: r.state ?? undefined,
         totalScore: 0,
         reportCount: 0,
         lastLocation: r.location,
@@ -36,6 +38,7 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
     if (new Date(r.created_at) > new Date(rec.lastReported)) {
       rec.lastReported = r.created_at;
       rec.lastLocation = r.location;
+      if (r.state) rec.state = r.state;
     }
   }
   return Array.from(map.values()).sort((a, b) => b.totalScore - a.totalScore);
@@ -49,7 +52,7 @@ export function usePlateRecords(limit?: number) {
     setLoading(true);
     const { data } = await supabase
       .from("reports")
-      .select("plate_number, infraction, location, created_at")
+      .select("plate_number, state, infraction, location, created_at")
       .order("created_at", { ascending: false })
       .limit(1000);
 
@@ -79,7 +82,7 @@ export function usePlateDetail(plateNumber: string) {
       setLoading(true);
       const { data } = await supabase
         .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged")
+        .select("id, plate_number, state, infraction, location, created_at, upvote_count, is_flagged")
         .eq("plate_number", plateNumber)
         .order("created_at", { ascending: false });
 

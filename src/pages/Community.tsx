@@ -50,7 +50,7 @@ const Community = () => {
     const fetchReports = async () => {
       const { data } = await supabase
         .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged")
+        .select("id, plate_number, state, infraction, location, created_at, upvote_count, is_flagged")
         .order("created_at", { ascending: false })
         .limit(12);
       if (data) setReports(data);

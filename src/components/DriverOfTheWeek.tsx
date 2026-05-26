@@ -1,15 +1,16 @@
 import { Trophy, Flame } from "lucide-react";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 interface DriverOfTheWeekProps {
   plateNumber: string;
+  state?: string;
   reportCount: number;
   topInfraction: string;
 }
 
-const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction }: DriverOfTheWeekProps) => {
+const DriverOfTheWeek = ({ plateNumber, state, reportCount, topInfraction }: DriverOfTheWeekProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -36,7 +37,7 @@ const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction }: DriverOfTh
           to={`/plate/${encodeURIComponent(plateNumber)}`}
           className="block w-fit mx-auto hover:scale-105 transition-transform"
         >
-          <WisconsinPlate plateNumber={plateNumber} size="lg" />
+          <LicensePlate plateNumber={plateNumber} state={state} size="lg" />
         </Link>
 
         {/* Stats */}

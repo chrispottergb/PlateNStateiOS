@@ -62,6 +62,7 @@ export interface PlateReport {
 
 export interface PlateRecord {
   plateNumber: string;
+  state?: string;
   totalScore: number;
   reportCount: number;
   lastLocation: string;

@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ const PlateDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container py-16 text-center">
-          <WisconsinPlate plateNumber={decoded} size="lg" className="mx-auto mb-6" />
+          <LicensePlate plateNumber={decoded} size="lg" className="mx-auto mb-6" />
           <p className="text-muted-foreground mb-6">No reports found for this plate.</p>
           <ReportModal
             trigger={
@@ -125,7 +125,7 @@ const PlateDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <WisconsinPlate plateNumber={plate.plateNumber} size="lg" className="mx-auto mb-4" />
+          <LicensePlate plateNumber={plate.plateNumber} state={plate.state} size="lg" className="mx-auto mb-4" />
           
           {/* Safety Score Pill */}
           <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${severity.color}`}>
