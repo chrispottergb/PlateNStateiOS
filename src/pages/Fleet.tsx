@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import FleetVehicleCard from "@/components/FleetVehicleCard";
 import FleetPricing, { FleetTier, TIER_VEHICLE_LIMITS } from "@/components/FleetPricing";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ interface VehicleWithReports {
   plate_number: string;
   vehicle_label: string | null;
   report_count: number;
+  state?: string | null;
 }
 
 const TIER_LABELS: Record<FleetTier, string> = { starter: "Starter", business: "Business", premium: "Premium" };
@@ -73,7 +74,7 @@ const Fleet = () => {
   };
 
   const fetchVehicles = async (companyId: string) => {
-    const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label").eq("company_id", companyId);
+    const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label, state").eq("company_id", companyId);
     if (!fv || fv.length === 0) { setVehicles([]); return; }
     const plateNumbers = fv.map((v) => v.plate_number);
     const { data: reports } = await supabase.from("reports").select("plate_number").in("plate_number", plateNumbers);
@@ -281,7 +282,7 @@ const Fleet = () => {
                   const risk = getRiskBadge(v.report_count);
                   return (
                     <div key={v.id} className="rounded-xl glass-card p-4 flex items-center gap-4">
-                      <WisconsinPlate plateNumber={v.plate_number} size="sm" />
+                      <LicensePlate plateNumber={v.plate_number} state={v.state} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold">{v.vehicle_label || v.plate_number}</p>
                         <p className="text-xs text-muted-foreground">{v.report_count} report{v.report_count !== 1 ? "s" : ""}</p>

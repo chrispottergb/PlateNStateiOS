@@ -1,53 +1,46 @@
-## Goal
-Move the portal selection (A-Hole Patrol vs Business & Enterprise) so it only appears during sign-up. Remove it from the public marketing landing page and make the header navigation reflect the chosen mode after login.
+# Fix: Plates Display the Wrong State
 
-## Current State
-- `Index.tsx` (web landing) shows two large path cards: "The A-Hole Patrol" and "Business & Enterprise"
-- `Auth.tsx` has no mode selection — just Sign In / Sign Up tabs with a tiny "Enterprise?" footer link
-- `Header.tsx` shows all nav links regardless of user type
-- `profiles` table has no `account_type` / `portal_mode` field
+## The bug
 
-## Plan
+When you report a plate and pick a state (e.g. Virginia), the database **does** store it correctly. Confirmed for `BNMVHJBMN`:
 
-### 1. Database — Add `account_type` to profiles
-- Add a `portal_mode` enum column to `public.profiles` with values `'consumer'` and `'enterprise'`
-- Default existing users to `'consumer'`
+```
+plate_number | state | incident_state | location
+BNMVHJBMN    | VA    | WI             | Oconto Falls, WI
+```
 
-### 2. Sign-up flow (`Auth.tsx`)
-- Add a portal-selection step that appears when the user is on the **Sign Up** tab
-- Two cards: "A-Hole Patrol" (consumer/social) and "Business & Enterprise" (enterprise)
-- Store the chosen `portal_mode` in the profile on sign-up
-- On native: default to consumer (since native home is already HonkZone)
+But every plate visual in the app renders `<WisconsinPlate />`, which hardcodes `state="WI"`. So no matter what state you select, the UI always shows a Wisconsin plate. The data is right — the display is wrong.
 
-### 3. Marketing landing (`Index.tsx`)
-- Remove the two dual-path cards entirely
-- Replace with a single primary CTA: "Get Started" → links to `/auth`
-- Keep stats, tagline, and hero layout
+## What to change
 
-### 4. Header navigation (`Header.tsx`)
-- Conditionally render nav links based on the logged-in user's `portal_mode`
-- **Consumer**: A-Hole Patrol, Leaderboard, Map, Claim, Profile
-- **Enterprise**: Business, Fleet, Insurance, Law Enforcement, Profile
-- Unauthenticated visitors: show both paths? No — show minimal nav with Sign In + a link to `/business` as "Enterprise"
+### 1. Carry `state` through the data layer
 
-### 5. Post-auth routing
-- After sign-in or sign-up, route to the appropriate home based on `portal_mode`:
-  - consumer → `/a-hole-patrol` (or `/` on native)
-  - enterprise → `/business`
+`src/hooks/usePlateRecords.tsx`:
+- Add `state` to `RawReport` and to the `PlateRecord` shape (`src/lib/types.ts`).
+- Select `state` in both `usePlateRecords` and `usePlateDetail` queries.
+- Populate `rec.state` in `buildRecords` (use the most recent report's state if multiple).
+- Include `state` in the per-report rows returned by `usePlateDetail`.
 
-### 6. `useAuth` hook update
-- Fetch the user's `portal_mode` from `profiles` alongside session data
-- Expose it in `AuthContext` so Header and routing logic can consume it
+### 2. Replace hardcoded `WisconsinPlate` with state-aware `LicensePlate`
 
-## Files to modify
-- `supabase` migration (new)
-- `src/hooks/useAuth.tsx`
-- `src/pages/Auth.tsx`
-- `src/pages/Index.tsx`
-- `src/components/Header.tsx`
-- `src/App.tsx` (post-login redirect logic)
+Swap `WisconsinPlate` for `LicensePlate` and pass the actual state in:
 
-## Outcome
-- First-time visitors to platenstate.com see a clean single-CTA landing page
-- Only during sign-up do users explicitly choose A-Hole Patrol or Business & Enterprise
-- After logging in, the entire UI (header, nav, home route) is scoped to their chosen portal
+- `src/pages/PlateDetail.tsx` — hero plate uses `plate.state`; "not found" fallback can stay `WisconsinPlate` (no data) or be neutral.
+- `src/components/RecentReports.tsx`, `FreshCatches.tsx`, `SocialReportCard.tsx`, `PlateCard.tsx`, `DriverOfTheWeek.tsx` — pass `report.state` / `plate.state`.
+- `src/pages/WallOfShame.tsx`, `Profile.tsx`, `Fleet.tsx`, `LawEnforcement.tsx` — same pattern; confirm the underlying query returns `state` and forward it.
+
+### 3. Leave `WisconsinPlate.tsx` alone
+
+Keep it as a thin convenience wrapper (still useful for true Wisconsin-only contexts and for empty/unknown-state fallback).
+
+## Out of scope
+
+- No DB or RPC changes — the backend already stores the right value.
+- No design changes to the plate components themselves; `LicensePlate` already handles per-state styling via `getStateByCode`.
+- `incident_state` (where the incident happened) stays separate from `state` (where the plate is registered). The plate visual uses the registration state.
+
+## Verification
+
+- Load `/plate/BNMVHJBMN` — should render a **Virginia** plate, not Wisconsin.
+- Submit a fresh report picking a non-WI state — feed cards, Wall of Shame, and the plate detail page should all show the chosen state's plate.
+- Existing WI reports continue to render as Wisconsin (default).

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp, MessageCircle, Share2, Car, Flag, AlertCircle } from "lucide-react";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +49,7 @@ interface SocialReportCardProps {
     vehicle_features?: string[] | null;
     comment?: string | null;
     is_flagged?: boolean | null;
+    state?: string | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
@@ -123,7 +124,7 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
       {/* Plate & infraction */}
       <div className="px-4 py-3 space-y-2">
         <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="block w-fit mx-auto group-hover:scale-105 transition-transform">
-          <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+          <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
         </Link>
 
         {/* Vehicle description */}

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Skull, ArrowLeft, AlertTriangle, MapPin, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 import ReportModal from "@/components/ReportModal";
 import { useWallOfShame } from "@/hooks/useWallOfShame";
 import { INFRACTIONS } from "@/lib/data";
@@ -24,6 +24,7 @@ const WallOfShame = () => {
     const topInf = INFRACTIONS.find((i) => i.type === top.top_infraction);
     return {
       plateNumber: top.plate_number,
+      state: top.state,
       totalScore: top.total_score,
       reportCount: top.report_count,
       topInfraction: topInf?.label || top.top_infraction || "Various",
@@ -88,7 +89,7 @@ const WallOfShame = () => {
               </Badge>
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <Link to={`/plate/${encodeURIComponent(driverOfTheWeek.plateNumber)}`}>
-                  <WisconsinPlate plateNumber={driverOfTheWeek.plateNumber} size="lg" className="hover:scale-105 transition-transform" />
+                  <LicensePlate plateNumber={driverOfTheWeek.plateNumber} state={driverOfTheWeek.state} size="lg" className="hover:scale-105 transition-transform" />
                 </Link>
                 <div className="text-center sm:text-left space-y-2">
                   <p className="text-4xl font-black font-mono gradient-text-fire">{driverOfTheWeek.totalScore} pts</p>
@@ -139,7 +140,7 @@ const WallOfShame = () => {
                               }`}>
                                 #{i + 1}
                               </div>
-                              <WisconsinPlate plateNumber={plate.plate_number} size="sm" />
+                              <LicensePlate plateNumber={plate.plate_number} state={plate.state} size="sm" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-lg font-bold font-mono gradient-text-fire">{plate.total_score} pts</p>
                                 <p className="text-xs text-muted-foreground truncate">

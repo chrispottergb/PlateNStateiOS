@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp } from "lucide-react";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
+  state?: string | null;
 }
 
 const RecentReports = () => {
@@ -28,7 +29,7 @@ const RecentReports = () => {
   const fetchReports = async () => {
     const { data } = await supabase
       .from("reports")
-      .select("id, plate_number, infraction, location, created_at, upvote_count")
+      .select("id, plate_number, infraction, location, created_at, upvote_count, state")
       .order("created_at", { ascending: false })
       .limit(15);
     if (data) setReports(data);
@@ -105,7 +106,7 @@ const RecentReports = () => {
               to={`/plate/${encodeURIComponent(report.plate_number)}`}
               className="shrink-0"
             >
-              <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+              <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
             </Link>
             <Badge variant="secondary" className="text-xs shrink-0 rounded-full">
               {inf?.label || report.infraction}
