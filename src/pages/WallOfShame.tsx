@@ -24,6 +24,7 @@ const WallOfShame = () => {
     const topInf = INFRACTIONS.find((i) => i.type === top.top_infraction);
     return {
       plateNumber: top.plate_number,
+      state: top.state,
       totalScore: top.total_score,
       reportCount: top.report_count,
       topInfraction: topInf?.label || top.top_infraction || "Various",
