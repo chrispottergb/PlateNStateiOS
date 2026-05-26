@@ -140,7 +140,7 @@ const WallOfShame = () => {
                               }`}>
                                 #{i + 1}
                               </div>
-                              <WisconsinPlate plateNumber={plate.plate_number} size="sm" />
+                              <LicensePlate plateNumber={plate.plate_number} state={plate.state} size="sm" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-lg font-bold font-mono gradient-text-fire">{plate.total_score} pts</p>
                                 <p className="text-xs text-muted-foreground truncate">
