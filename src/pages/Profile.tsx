@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
-import WisconsinPlate from "@/components/WisconsinPlate";
+import LicensePlate from "@/components/LicensePlate";
 
 const BADGE_DEFS: Record<string, { label: string; icon: string; description: string }> = {
   first_report: { label: "First Report", icon: "🛡️", description: "Filed your first report" },
