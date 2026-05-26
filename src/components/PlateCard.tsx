@@ -3,7 +3,7 @@ import { MapPin, Clock, AlertTriangle } from "lucide-react";
 import { PlateRecord } from "@/lib/types";
 import { getScoreColor, getScoreBg } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
-import WisconsinPlate from "./WisconsinPlate";
+import LicensePlate from "./LicensePlate";
 
 interface PlateCardProps {
   plate: PlateRecord;
