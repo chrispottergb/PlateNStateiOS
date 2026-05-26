@@ -93,7 +93,7 @@ const PlateDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container py-16 text-center">
-          <WisconsinPlate plateNumber={decoded} size="lg" className="mx-auto mb-6" />
+          <LicensePlate plateNumber={decoded} size="lg" className="mx-auto mb-6" />
           <p className="text-muted-foreground mb-6">No reports found for this plate.</p>
           <ReportModal
             trigger={
