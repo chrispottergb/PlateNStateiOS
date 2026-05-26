@@ -212,7 +212,7 @@ const Profile = () => {
               return (
                 <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} key={report.id} className="block">
                   <div className="flex items-center gap-3 rounded-xl glass-card p-3 hover:border-primary/30 transition-all">
-                    <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+                    <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
                     <div className="flex-1 min-w-0">
                       <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5">{inf?.label || report.infraction}</Badge>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
