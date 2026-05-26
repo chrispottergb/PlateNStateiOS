@@ -28,6 +28,7 @@ interface VehicleWithReports {
   plate_number: string;
   vehicle_label: string | null;
   report_count: number;
+  state?: string | null;
 }
 
 const TIER_LABELS: Record<FleetTier, string> = { starter: "Starter", business: "Business", premium: "Premium" };
