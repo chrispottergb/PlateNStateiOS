@@ -125,7 +125,7 @@ const PlateDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <WisconsinPlate plateNumber={plate.plateNumber} size="lg" className="mx-auto mb-4" />
+          <LicensePlate plateNumber={plate.plateNumber} state={plate.state} size="lg" className="mx-auto mb-4" />
           
           {/* Safety Score Pill */}
           <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${severity.color}`}>
