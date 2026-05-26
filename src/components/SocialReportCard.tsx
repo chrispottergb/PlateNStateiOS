@@ -124,7 +124,7 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
       {/* Plate & infraction */}
       <div className="px-4 py-3 space-y-2">
         <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="block w-fit mx-auto group-hover:scale-105 transition-transform">
-          <WisconsinPlate plateNumber={report.plate_number} size="sm" />
+          <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
         </Link>
 
         {/* Vehicle description */}
