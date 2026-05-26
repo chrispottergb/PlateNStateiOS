@@ -252,7 +252,7 @@ const Profile = () => {
                   d.paid ? "Pending review" : "Awaiting payment";
                 return (
                   <div key={d.id} className="rounded-xl glass-card p-3 flex items-center gap-3">
-                    <WisconsinPlate plateNumber={d.plate_number} size="sm" />
+                    <LicensePlate plateNumber={d.plate_number} size="sm" />
                     <div className="flex-1 min-w-0">
                       <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5 capitalize">{d.reason.replace(/_/g, " ")}</Badge>
                       <p className="text-[10px] text-muted-foreground">
