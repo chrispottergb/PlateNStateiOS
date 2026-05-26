@@ -89,7 +89,7 @@ const WallOfShame = () => {
               </Badge>
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <Link to={`/plate/${encodeURIComponent(driverOfTheWeek.plateNumber)}`}>
-                  <WisconsinPlate plateNumber={driverOfTheWeek.plateNumber} size="lg" className="hover:scale-105 transition-transform" />
+                  <LicensePlate plateNumber={driverOfTheWeek.plateNumber} state={driverOfTheWeek.state} size="lg" className="hover:scale-105 transition-transform" />
                 </Link>
                 <div className="text-center sm:text-left space-y-2">
                   <p className="text-4xl font-black font-mono gradient-text-fire">{driverOfTheWeek.totalScore} pts</p>
