@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { INFRACTIONS } from "@/lib/data";
 import { PlateRecord, InfractionType } from "@/lib/types";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,7 +45,7 @@ function mvRowToRecord(row: {
 // ---------------------------------------------------------------------------
 export function usePlateRecords(limit?: number, infractionFilter?: string) {
   const { data = [], isLoading } = useQuery<PlateRecord[]>({
-    queryKey: ["plate-records", limit ?? "all", infractionFilter ?? "all"],
+    queryKey: queryKeys.plateRecords(limit ?? "all", infractionFilter ?? "all"),
     queryFn: async () => {
       if (infractionFilter && infractionFilter !== "all") {
         // Server-side per-infraction aggregation
@@ -128,7 +129,7 @@ function buildRecords(rows: {
 
 export function usePlateDetail(plateNumber: string) {
   const { data, isLoading } = useQuery({
-    queryKey: ["plate-detail", plateNumber],
+    queryKey: queryKeys.plateDetail(plateNumber),
     queryFn: async () => {
       const { data } = await supabase
         .from("reports")

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Returns the authenticated user's credit balance.
@@ -12,7 +13,7 @@ export const useCredits = () => {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["credits", user?.id],
+    queryKey: queryKeys.credits(user?.id),
     queryFn: async () => {
       if (!user) return null;
       const { data } = await supabase
@@ -27,7 +28,7 @@ export const useCredits = () => {
   });
 
   const refetch = () =>
-    queryClient.invalidateQueries({ queryKey: ["credits", user?.id] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.credits(user?.id) });
 
   return {
     credits: data ?? null,

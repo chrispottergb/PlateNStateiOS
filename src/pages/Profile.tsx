@@ -10,6 +10,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
+import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import LicensePlate from "@/components/LicensePlate";
@@ -86,7 +87,7 @@ const Profile = () => {
   }, [authLoading, user]);
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: queryKeys.profile(user?.id),
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
       return data;
@@ -96,7 +97,7 @@ const Profile = () => {
   });
 
   const { data: reports = [], refetch: refetchReports } = useQuery<Report[]>({
-    queryKey: ["my-reports", user?.id],
+    queryKey: queryKeys.myReports(user?.id),
     queryFn: async () => {
       const { data } = await supabase.from("reports")
         .select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender, edited_at")
@@ -110,7 +111,7 @@ const Profile = () => {
   });
 
   const { data: badges = [] } = useQuery<UserBadge[]>({
-    queryKey: ["badges", user?.id],
+    queryKey: queryKeys.badges(user?.id),
     queryFn: async () => {
       const { data } = await supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user!.id).order("earned_at", { ascending: false });
       return (data ?? []) as UserBadge[];
@@ -120,7 +121,7 @@ const Profile = () => {
   });
 
   const { data: disputes = [] } = useQuery({
-    queryKey: ["disputes", user?.id],
+    queryKey: queryKeys.disputes(user?.id),
     queryFn: async () => {
       const { data } = await supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user!.id).order("created_at", { ascending: false }).limit(20);
       return data ?? [];
@@ -142,7 +143,7 @@ const Profile = () => {
     if (toAward.length > 0 && user) {
       await supabase.from("user_badges").insert(toAward.map((key) => ({ user_id: user.id, badge_key: key })));
       // Invalidate badges cache so the new badges appear
-      queryClient.invalidateQueries({ queryKey: ["badges", user.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.badges(user.id) });
     }
   }, [user, queryClient]);
 
