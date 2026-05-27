@@ -2,7 +2,6 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import PlateCard from "@/components/PlateCard";
 import { INFRACTIONS } from "@/lib/data";
-import { InfractionType } from "@/lib/types";
 import { usePlateRecords } from "@/hooks/usePlateRecords";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trophy } from "lucide-react";
@@ -11,13 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Leaderboard = () => {
   const [filter, setFilter] = useState<string>("all");
-  const { plates, loading } = usePlateRecords();
-
-  const filtered = filter === "all"
-    ? plates
-    : plates
-        .filter(p => p.infractions[filter as InfractionType] > 0)
-        .sort((a, b) => b.infractions[filter as InfractionType] - a.infractions[filter as InfractionType]);
+  // Pass filter to hook — server does the GROUP BY instead of client-side scan
+  const { plates: filtered, loading } = usePlateRecords(100, filter);
 
   return (
     <div className="min-h-screen bg-background">

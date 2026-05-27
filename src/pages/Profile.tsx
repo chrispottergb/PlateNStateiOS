@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import { INFRACTIONS } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
@@ -76,10 +77,7 @@ const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const { credits } = useCredits();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [badges, setBadges] = useState<UserBadge[]>([]);
-  const [disputes, setDisputes] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   const [editingReport, setEditingReport] = useState<EditableReport | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
@@ -87,25 +85,51 @@ const Profile = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user]);
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchData = async () => {
-      const [profileRes, reportsRes, badgesRes, disputesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender, edited_at").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user.id).order("earned_at", { ascending: false }),
-        supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user.id).order("created_at", { ascending: false }).limit(20),
-      ]);
-      if (profileRes.data) setProfile(profileRes.data);
-      if (reportsRes.data) setReports(reportsRes.data);
-      if (badgesRes.data) setBadges(badgesRes.data as UserBadge[]);
-      if (disputesRes.data) setDisputes(disputesRes.data);
-      if (profileRes.data) autoAwardBadges(profileRes.data, badgesRes.data as UserBadge[] || []);
-    };
-    fetchData();
-  }, [user]);
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+  });
 
-  const autoAwardBadges = async (p: any, existing: UserBadge[]) => {
+  const { data: reports = [], refetch: refetchReports } = useQuery<Report[]>({
+    queryKey: ["my-reports", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("reports")
+        .select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender, edited_at")
+        .eq("reporter_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (data ?? []) as Report[];
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+  });
+
+  const { data: badges = [] } = useQuery<UserBadge[]>({
+    queryKey: ["badges", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user!.id).order("earned_at", { ascending: false });
+      return (data ?? []) as UserBadge[];
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  const { data: disputes = [] } = useQuery({
+    queryKey: ["disputes", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user!.id).order("created_at", { ascending: false }).limit(20);
+      return data ?? [];
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  const autoAwardBadges = useCallback(async (p: any, existing: UserBadge[]) => {
     const earned = new Set(existing.map((b) => b.badge_key));
     const toAward: string[] = [];
     if (p.total_reports >= 1 && !earned.has("first_report")) toAward.push("first_report");
@@ -117,9 +141,15 @@ const Profile = () => {
     if (p.xp >= 1000 && !earned.has("thousand_xp")) toAward.push("thousand_xp");
     if (toAward.length > 0 && user) {
       await supabase.from("user_badges").insert(toAward.map((key) => ({ user_id: user.id, badge_key: key })));
-      setBadges((prev) => [...toAward.map((key) => ({ badge_key: key, earned_at: new Date().toISOString() })), ...prev]);
+      // Invalidate badges cache so the new badges appear
+      queryClient.invalidateQueries({ queryKey: ["badges", user.id] });
     }
-  };
+  }, [user, queryClient]);
+
+  // Award badges once profile + badges are loaded
+  useEffect(() => {
+    if (profile && badges.length >= 0) autoAwardBadges(profile, badges);
+  }, [profile?.id]); // only run when profile first loads, not on every badge change
 
   if (authLoading || !profile) {
     return (

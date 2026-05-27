@@ -56,14 +56,9 @@ const Community = () => {
       if (data) setReports(data);
     };
     fetchReports();
-
-    const channel = supabase
-      .channel("community-reports")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => {
-        fetchReports();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Poll every 30 s instead of holding an open WebSocket
+    const timer = setInterval(fetchReports, 30_000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {

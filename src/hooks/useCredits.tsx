@@ -1,30 +1,37 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+/**
+ * Returns the authenticated user's credit balance.
+ * Uses React Query so any number of components calling this hook share
+ * a single in-flight request and a single cache entry — no duplicate fetches.
+ */
 export const useCredits = () => {
   const { user } = useAuth();
-  const [credits, setCredits] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchCredits = async () => {
-    if (!user) {
-      setCredits(null);
-      setLoading(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("profiles")
-      .select("credits")
-      .eq("user_id", user.id)
-      .single();
-    setCredits(data?.credits ?? null);
-    setLoading(false);
+  const { data, isLoading } = useQuery({
+    queryKey: ["credits", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("user_id", user.id)
+        .single();
+      return data?.credits ?? null;
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+  });
+
+  const refetch = () =>
+    queryClient.invalidateQueries({ queryKey: ["credits", user?.id] });
+
+  return {
+    credits: data ?? null,
+    loading: isLoading,
+    refetch,
   };
-
-  useEffect(() => {
-    fetchCredits();
-  }, [user]);
-
-  return { credits, loading, refetch: fetchCredits };
 };

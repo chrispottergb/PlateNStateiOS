@@ -163,8 +163,9 @@ const HonkZone = () => {
       setLoading(false);
     };
     fetchReports();
-    const channel = supabase.channel("patrol-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, () => fetchReports()).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Poll every 30 s instead of holding an open WebSocket — saves a Realtime connection
+    const timer = setInterval(fetchReports, 30_000);
+    return () => clearInterval(timer);
   }, [sortMode]);
 
   useEffect(() => {

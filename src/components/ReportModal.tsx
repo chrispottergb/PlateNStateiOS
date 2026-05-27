@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCaptcha } from "@/hooks/useCaptcha";
+import { useCredits } from "@/hooks/useCredits";
 import { getClientIp } from "@/lib/clientIp";
 import { useHomeState } from "@/hooks/useHomeState";
 
@@ -71,6 +72,7 @@ const TOTAL_STEPS = 6;
 const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
   const { homeState } = useHomeState();
+  const { refetch: refetchCredits } = useCredits();
   const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -276,6 +278,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
           ? `${plateNumber} reported for ${inf.label}`
           : `${plateNumber} report filed`,
       });
+      refetchCredits(); // keep header coin count in sync
       reset();
       setOpen(false);
     } catch (err: any) {

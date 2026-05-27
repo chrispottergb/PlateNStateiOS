@@ -1,17 +1,99 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { INFRACTIONS } from "@/lib/data";
 import { PlateRecord, InfractionType } from "@/lib/types";
 
-interface RawReport {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function mvRowToRecord(row: {
+  plate_number: string;
+  state: string | null;
+  total_score: number;
+  report_count: number;
+  last_reported_at: string;
+  last_location: string | null;
+  top_infraction: string | null;
+}): PlateRecord {
+  // Build a minimal infractions map — only top_infraction is known from the MV.
+  // The full per-infraction breakdown lives in usePlateDetail (plate detail page).
+  const infractions = Object.fromEntries(
+    INFRACTIONS.map(i => [i.type, 0])
+  ) as Record<InfractionType, number>;
+  if (row.top_infraction && row.top_infraction in infractions) {
+    infractions[row.top_infraction as InfractionType] = row.report_count;
+  }
+  return {
+    plateNumber: row.plate_number,
+    state: row.state,
+    totalScore: row.total_score,
+    reportCount: row.report_count,
+    lastReported: row.last_reported_at,
+    lastLocation: row.last_location ?? row.state ?? "",
+    infractions,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// usePlateRecords
+// Replaces the old 1000-row client-side fetch + JS aggregation.
+//   • No infraction filter → reads wall_of_shame_mv (pre-aggregated, fast).
+//   • Infraction filter set → calls get_plates_by_infraction RPC (server GROUP BY).
+// Both paths are cached by React Query and shared across all consumers.
+// ---------------------------------------------------------------------------
+export function usePlateRecords(limit?: number, infractionFilter?: string) {
+  const { data = [], isLoading } = useQuery<PlateRecord[]>({
+    queryKey: ["plate-records", limit ?? "all", infractionFilter ?? "all"],
+    queryFn: async () => {
+      if (infractionFilter && infractionFilter !== "all") {
+        // Server-side per-infraction aggregation
+        const { data, error } = await supabase.rpc("get_plates_by_infraction", {
+          p_infraction: infractionFilter,
+          p_limit: limit ?? 100,
+        } as any);
+        if (error) throw error;
+        return (data as any[]).map(row => mvRowToRecord({
+          plate_number: row.plate_number,
+          state: row.state,
+          total_score: row.total_score,
+          report_count: row.report_count,
+          last_reported_at: row.last_reported,
+          last_location: row.last_location,
+          top_infraction: row.top_infraction,
+        }));
+      }
+
+      // General leaderboard — query pre-aggregated MV
+      let query = supabase
+        .from("wall_of_shame_mv")
+        .select("plate_number, state, total_score, report_count, last_reported_at, last_location, top_infraction")
+        .order("total_score", { ascending: false });
+      if (limit) query = query.limit(limit);
+      else query = query.limit(100);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data as any[]).map(mvRowToRecord);
+    },
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+  });
+
+  return { plates: data, loading: isLoading };
+}
+
+// ---------------------------------------------------------------------------
+// usePlateDetail — fetches all reports for a single plate.
+// Keeps the full per-infraction breakdown needed by PlateDetail page.
+// ---------------------------------------------------------------------------
+function buildRecords(rows: {
   plate_number: string;
   infraction: string;
   location: string;
   created_at: string;
   state?: string | null;
-}
-
-function buildRecords(rows: RawReport[]): PlateRecord[] {
+}[]): PlateRecord[] {
   const map = new Map<string, PlateRecord>();
   for (const r of rows) {
     let rec = map.get(r.plate_number);
@@ -24,12 +106,12 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
         lastLocation: r.location,
         lastReported: r.created_at,
         infractions: Object.fromEntries(
-          INFRACTIONS.map((i) => [i.type, 0])
+          INFRACTIONS.map(i => [i.type, 0])
         ) as Record<InfractionType, number>,
       };
       map.set(r.plate_number, rec);
     }
-    const inf = INFRACTIONS.find((i) => i.type === r.infraction);
+    const inf = INFRACTIONS.find(i => i.type === r.infraction);
     rec.totalScore += inf?.points ?? 3;
     rec.reportCount += 1;
     if (r.infraction in rec.infractions) {
@@ -44,60 +126,30 @@ function buildRecords(rows: RawReport[]): PlateRecord[] {
   return Array.from(map.values()).sort((a, b) => b.totalScore - a.totalScore);
 }
 
-export function usePlateRecords(limit?: number) {
-  const [plates, setPlates] = useState<PlateRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetch = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from("reports")
-      .select("plate_number, infraction, location, created_at, state")
-      .order("created_at", { ascending: false })
-      .limit(1000);
-
-    if (data) {
-      const records = buildRecords(data as RawReport[]);
-      setPlates(limit ? records.slice(0, limit) : records);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetch();
-  }, []);
-
-  return { plates, loading, refetch: fetch };
-}
-
 export function usePlateDetail(plateNumber: string) {
-  const [plate, setPlate] = useState<PlateRecord | null>(null);
-  const [reports, setReports] = useState<
-    { id: string; infraction: string; location: string; created_at: string; upvote_count: number; is_flagged?: boolean; state?: string | null }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetch = async () => {
-      setLoading(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["plate-detail", plateNumber],
+    queryFn: async () => {
       const { data } = await supabase
         .from("reports")
         .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state")
         .eq("plate_number", plateNumber)
         .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 30_000,
+    enabled: !!plateNumber,
+  });
 
-      if (data && data.length > 0) {
-        const records = buildRecords(data as RawReport[]);
-        setPlate(records[0]);
-        setReports(data);
-      } else {
-        setPlate(null);
-        setReports([]);
-      }
-      setLoading(false);
-    };
-    fetch();
-  }, [plateNumber]);
+  const rows = data ?? [];
+  const records = rows.length > 0 ? buildRecords(rows as any) : [];
 
-  return { plate, reports, loading };
+  return {
+    plate: records[0] ?? null,
+    reports: rows as {
+      id: string; infraction: string; location: string;
+      created_at: string; upvote_count: number; is_flagged?: boolean; state?: string | null;
+    }[],
+    loading: isLoading,
+  };
 }
