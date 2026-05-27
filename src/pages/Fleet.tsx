@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, Plus, Truck, BarChart3, Crown, AlertTriangle, Search, Settings, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import FleetVehicleCard from "@/components/FleetVehicleCard";
 import FleetPricing, { FleetTier, TIER_VEHICLE_LIMITS } from "@/components/FleetPricing";
@@ -43,9 +44,7 @@ const Fleet = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [company, setCompany] = useState<Company | null>(null);
-  const [vehicles, setVehicles] = useState<VehicleWithReports[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [selectedTier, setSelectedTier] = useState<FleetTier | null>(null);
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
@@ -55,33 +54,42 @@ const Fleet = () => {
   const [addLoading, setAddLoading] = useState(false);
   const [vehicleSearch, setVehicleSearch] = useState("");
 
-  useEffect(() => { if (!user) { navigate("/auth"); return; } fetchCompany(); }, [user]);
+  useEffect(() => { if (!user) navigate("/auth"); }, [user]);
 
-  useEffect(() => {
-    if (!company || vehicles.length === 0) return;
-    const plateNumbers = vehicles.map((v) => v.plate_number);
-    const channel = supabase.channel("fleet-reports").on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, (payload) => {
-      if (plateNumbers.includes((payload.new as { plate_number: string }).plate_number)) fetchVehicles(company.id);
-    }).subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [company, vehicles.length]);
+  // Company — cached, stale after 60s
+  const { data: company = null, isLoading: companyLoading } = useQuery<Company | null>({
+    queryKey: ["fleet-company", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, name, contact_email, tier").eq("owner_id", user!.id).maybeSingle();
+      return (data as Company | null) ?? null;
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
 
-  const fetchCompany = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("companies").select("id, name, contact_email, tier").eq("owner_id", user!.id).maybeSingle();
-    if (data) { setCompany(data as Company); await fetchVehicles(data.id); }
-    setLoading(false);
-  };
+  // Vehicles with report counts — refetches every 60s (replaces Realtime channel)
+  const { data: vehicles = [], isLoading: vehiclesLoading } = useQuery<VehicleWithReports[]>({
+    queryKey: ["fleet-vehicles", company?.id],
+    queryFn: async () => {
+      const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label, state").eq("company_id", company!.id);
+      if (!fv || fv.length === 0) return [];
+      const plateNumbers = fv.map((v) => v.plate_number);
+      const { data: reports } = await supabase.from("reports").select("plate_number").in("plate_number", plateNumbers);
+      const countMap: Record<string, number> = {};
+      (reports || []).forEach((r: any) => { countMap[r.plate_number] = (countMap[r.plate_number] || 0) + 1; });
+      return fv.map((v) => ({ ...v, report_count: countMap[v.plate_number] || 0 }));
+    },
+    enabled: !!company?.id,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
 
-  const fetchVehicles = async (companyId: string) => {
-    const { data: fv } = await supabase.from("fleet_vehicles").select("id, plate_number, vehicle_label, state").eq("company_id", companyId);
-    if (!fv || fv.length === 0) { setVehicles([]); return; }
-    const plateNumbers = fv.map((v) => v.plate_number);
-    const { data: reports } = await supabase.from("reports").select("plate_number").in("plate_number", plateNumbers);
-    const countMap: Record<string, number> = {};
-    (reports || []).forEach((r) => { countMap[r.plate_number] = (countMap[r.plate_number] || 0) + 1; });
-    setVehicles(fv.map((v) => ({ ...v, report_count: countMap[v.plate_number] || 0 })));
-  };
+  const loading = companyLoading;
+
+  const invalidateFleet = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["fleet-company", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["fleet-vehicles", company?.id] });
+  }, [queryClient, user?.id, company?.id]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +98,7 @@ const Fleet = () => {
     const { error } = await supabase.from("companies").insert({ owner_id: user!.id, name: regName.trim(), contact_email: regEmail.trim(), tier: selectedTier });
     setRegLoading(false);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-    else { toast({ title: "Company registered!", description: `You're on the ${TIER_LABELS[selectedTier]} plan.` }); fetchCompany(); }
+    else { toast({ title: "Company registered!", description: `You're on the ${TIER_LABELS[selectedTier]} plan.` }); invalidateFleet(); }
   };
 
   const handleAddVehicle = async (e: React.FormEvent) => {
@@ -105,12 +113,12 @@ const Fleet = () => {
     const { error } = await supabase.from("fleet_vehicles").insert({ company_id: company.id, plate_number: newPlate.trim().toUpperCase(), vehicle_label: newLabel.trim() || null });
     setAddLoading(false);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-    else { setNewPlate(""); setNewLabel(""); fetchVehicles(company.id); }
+    else { setNewPlate(""); setNewLabel(""); queryClient.invalidateQueries({ queryKey: ["fleet-vehicles", company.id] }); }
   };
 
   const handleRemoveVehicle = async (vehicleId: string) => {
     await supabase.from("fleet_vehicles").delete().eq("id", vehicleId);
-    if (company) fetchVehicles(company.id);
+    queryClient.invalidateQueries({ queryKey: ["fleet-vehicles", company?.id] });
   };
 
   if (loading) {

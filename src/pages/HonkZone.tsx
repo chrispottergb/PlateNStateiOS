@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlateRecords } from "@/hooks/usePlateRecords";
 import { INFRACTIONS } from "@/lib/data";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const FUNNY_TAGLINES = [
   "Because honking isn't enough™",
@@ -135,11 +136,9 @@ const HonkZone = () => {
   const [viewMode, setViewMode] = useState<"feed" | "grid">("feed");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { plates: trendingPlatesRaw } = usePlateRecords(5);
 
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [myUpvotes, setMyUpvotes] = useState<Set<string>>(new Set());
   const [votingId, setVotingId] = useState<string | null>(null);
 
   const trendingPlates = useMemo(() =>
@@ -151,31 +150,32 @@ const HonkZone = () => {
     [trendingPlatesRaw]
   );
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true);
+  // Feed — React Query handles caching + 30s background refresh (no setInterval needed)
+  const { data: reports = [], isLoading: loading } = useQuery<Report[]>({
+    queryKey: ["honkzone-reports", sortMode],
+    queryFn: async () => {
       let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged, state");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });
       const { data } = await query.limit(30);
-      if (data) setReports(data);
-      setLoading(false);
-    };
-    fetchReports();
-    // Poll every 30 s instead of holding an open WebSocket — saves a Realtime connection
-    const timer = setInterval(fetchReports, 30_000);
-    return () => clearInterval(timer);
-  }, [sortMode]);
+      return (data ?? []) as Report[];
+    },
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchUpvotes = async () => {
-      const { data } = await supabase.from("report_upvotes").select("report_id").eq("user_id", user.id);
-      if (data) setMyUpvotes(new Set(data.map(u => u.report_id)));
-    };
-    fetchUpvotes();
-  }, [user]);
+  // User's existing upvotes — cached per session, only refetched on mount
+  const { data: upvoteRows = [] } = useQuery({
+    queryKey: ["my-upvotes", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("report_upvotes").select("report_id").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+  });
+  const myUpvotes = useMemo(() => new Set(upvoteRows.map((u: any) => u.report_id)), [upvoteRows]);
 
   useEffect(() => {
     const interval = setInterval(() => setTaglineIndex(p => (p + 1) % FUNNY_TAGLINES.length), 3000);
@@ -197,8 +197,13 @@ const HonkZone = () => {
         else if (error.message.includes("own report")) toast.info("Can't upvote your own report");
         else toast.error(error.message);
       } else {
-        setMyUpvotes(prev => new Set(prev).add(reportId));
-        setReports(prev => prev.map(r => r.id === reportId ? { ...r, upvote_count: r.upvote_count + 1 } : r));
+        // Optimistic cache updates — no need to re-fetch just for a +1
+        queryClient.setQueryData<Report[]>(["honkzone-reports", sortMode], prev =>
+          prev?.map(r => r.id === reportId ? { ...r, upvote_count: r.upvote_count + 1 } : r) ?? []
+        );
+        queryClient.setQueryData<{ report_id: string }[]>(["my-upvotes", user.id], prev =>
+          [...(prev ?? []), { report_id: reportId }]
+        );
         toast.success("Upvoted! +1 XP");
       }
     } finally { setVotingId(null); }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,60 +25,54 @@ const AdminPanel = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const navigate = useNavigate();
-  const [insuranceApps, setInsuranceApps] = useState<InsuranceApp[]>([]);
-  const [leApps, setLeApps] = useState<LEApp[]>([]);
-  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
-  const [recentReports, setRecentReports] = useState<ReportRow[]>([]);
-  const [companies, setCompanies] = useState<CompanyRow[]>([]);
-  const [fleetCounts, setFleetCounts] = useState<Record<string, number>>({});
-  const [disputes, setDisputes] = useState<any[]>([]);
-  const [appeals, setAppeals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => { if (!authLoading && !user) navigate("/auth"); }, [authLoading, user]);
   useEffect(() => { if (!adminLoading && !isAdmin && !authLoading) { navigate("/"); toast.error("Admin access required"); } }, [adminLoading, isAdmin, authLoading]);
-  useEffect(() => { if (isAdmin) fetchAll(); }, [isAdmin]);
 
-  const fetchAll = async () => {
-    setLoading(true);
-    const [insRes, leRes, profRes, repRes, compRes] = await Promise.all([
-      supabase.from("insurance_accounts").select("*").order("created_at", { ascending: false }),
-      supabase.from("law_enforcement_accounts").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id, user_id, display_name, total_reports, xp, credits, joined_at").order("total_reports", { ascending: false }).limit(50),
-      supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, reporter_id").order("created_at", { ascending: false }).limit(30),
-      supabase.from("companies").select("id, name, contact_email, tier, owner_id, created_at").order("created_at", { ascending: false }),
-    ]);
-    if (insRes.data) setInsuranceApps(insRes.data);
-    if (leRes.data) setLeApps(leRes.data as LEApp[]);
-    if (profRes.data) setProfiles(profRes.data as ProfileRow[]);
-    if (repRes.data) setRecentReports(repRes.data as ReportRow[]);
-    if (compRes.data) {
-      setCompanies(compRes.data as CompanyRow[]);
-      // Fetch vehicle counts
-      const { data: vehicles } = await supabase.from("fleet_vehicles").select("company_id");
-      const counts: Record<string, number> = {};
-      (vehicles || []).forEach((v: any) => { counts[v.company_id] = (counts[v.company_id] || 0) + 1; });
-      setFleetCounts(counts);
-    }
-    // Pending paid disputes
-    const { data: dispRes } = await supabase
-      .from("report_disputes")
-      .select("id, report_id, plate_number, reason, note, status, paid, created_at")
-      .eq("paid", true)
-      .eq("status", "pending")
-      .order("created_at", { ascending: true });
-    setDisputes(dispRes || []);
+  // Single query that fetches all admin data in parallel — cached and invalidated after mutations
+  const { data: adminData, isLoading: loading } = useQuery({
+    queryKey: ["admin-data"],
+    queryFn: async () => {
+      const [insRes, leRes, profRes, repRes, compRes, dispRes, appealsRes] = await Promise.all([
+        supabase.from("insurance_accounts").select("*").order("created_at", { ascending: false }),
+        supabase.from("law_enforcement_accounts").select("*").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, user_id, display_name, total_reports, xp, credits, joined_at").order("total_reports", { ascending: false }).limit(50),
+        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, reporter_id").order("created_at", { ascending: false }).limit(30),
+        supabase.from("companies").select("id, name, contact_email, tier, owner_id, created_at").order("created_at", { ascending: false }),
+        supabase.from("report_disputes").select("id, report_id, plate_number, reason, note, status, paid, created_at").eq("paid", true).eq("status", "pending").order("created_at", { ascending: true }),
+        supabase.from("appeals").select("id, report_id, plate_number, reason, status, created_at, user_id").eq("status", "pending").order("created_at", { ascending: true }),
+      ]);
+      const companies = (compRes.data ?? []) as CompanyRow[];
+      const { data: vehiclesRaw } = await supabase.from("fleet_vehicles").select("company_id");
+      const fleetCounts: Record<string, number> = {};
+      (vehiclesRaw || []).forEach((v: any) => { fleetCounts[v.company_id] = (fleetCounts[v.company_id] || 0) + 1; });
+      return {
+        insuranceApps: (insRes.data ?? []) as InsuranceApp[],
+        leApps: (leRes.data ?? []) as LEApp[],
+        profiles: (profRes.data ?? []) as ProfileRow[],
+        recentReports: (repRes.data ?? []) as ReportRow[],
+        companies,
+        fleetCounts,
+        disputes: dispRes.data ?? [],
+        appeals: appealsRes.data ?? [],
+      };
+    },
+    enabled: !!isAdmin,
+    staleTime: 60_000,
+  });
 
-    const { data: appealsRes } = await supabase
-      .from("appeals")
-      .select("id, report_id, plate_number, reason, status, created_at, user_id")
-      .eq("status", "pending")
-      .order("created_at", { ascending: true });
-    setAppeals(appealsRes || []);
+  const insuranceApps = adminData?.insuranceApps ?? [];
+  const leApps = adminData?.leApps ?? [];
+  const profiles = adminData?.profiles ?? [];
+  const recentReports = adminData?.recentReports ?? [];
+  const companies = adminData?.companies ?? [];
+  const fleetCounts = adminData?.fleetCounts ?? {};
+  const disputes = adminData?.disputes ?? [];
+  const appeals = adminData?.appeals ?? [];
 
-    setLoading(false);
-  };
+  const invalidateAdmin = () => queryClient.invalidateQueries({ queryKey: ["admin-data"] });
 
   const handleResolveAppeal = async (appealId: string, reportId: string, decision: "upheld" | "dismissed") => {
     setUpdating(appealId);
@@ -94,7 +89,7 @@ const AdminPanel = () => {
     if (error) toast.error("Failed: " + error.message);
     else {
       toast.success(decision === "upheld" ? "Appeal upheld — report removed" : "Appeal dismissed");
-      setAppeals((prev) => prev.filter((a) => a.id !== appealId));
+      invalidateAdmin();
     }
     setUpdating(null);
   };
@@ -105,7 +100,7 @@ const AdminPanel = () => {
     if (error) toast.error("Failed: " + error.message);
     else {
       toast.success(decision === "upheld" ? "Dispute upheld — post removed" : "Dispute denied");
-      setDisputes((prev) => prev.filter((d) => d.id !== id));
+      invalidateAdmin();
     }
     setUpdating(null);
   };
@@ -114,7 +109,7 @@ const AdminPanel = () => {
     setUpdating(id);
     const { error } = await supabase.from("insurance_accounts").update({ approved }).eq("id", id);
     if (error) toast.error("Failed: " + error.message);
-    else { toast.success(approved ? "Approved" : "Rejected"); setInsuranceApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a))); }
+    else { toast.success(approved ? "Approved" : "Rejected"); invalidateAdmin(); }
     setUpdating(null);
   };
 
@@ -122,7 +117,7 @@ const AdminPanel = () => {
     setUpdating(id);
     const { error } = await supabase.from("law_enforcement_accounts").update({ approved }).eq("id", id);
     if (error) toast.error("Failed: " + error.message);
-    else { toast.success(approved ? "Approved" : "Rejected"); setLeApps((prev) => prev.map((a) => (a.id === id ? { ...a, approved } : a))); }
+    else { toast.success(approved ? "Approved" : "Rejected"); invalidateAdmin(); }
     setUpdating(null);
   };
 
@@ -130,7 +125,7 @@ const AdminPanel = () => {
     setUpdating(id);
     const { error } = await supabase.from("reports").delete().eq("id", id);
     if (error) toast.error("Failed: " + error.message);
-    else { toast.success("Report deleted"); setRecentReports((prev) => prev.filter((r) => r.id !== id)); }
+    else { toast.success("Report deleted"); invalidateAdmin(); }
     setUpdating(null);
   };
 
