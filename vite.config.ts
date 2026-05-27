@@ -29,18 +29,18 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            // Core React runtime — tiny, cached across all routes
+            // Core React runtime — cached across all routes
             vendor: ["react", "react-dom", "react-router-dom"],
-            // Data layer
+            // Data layer — loaded on almost every page
             supabase: ["@supabase/supabase-js"],
             query: ["@tanstack/react-query"],
-            // Heavy libs only loaded when their routes are visited
-            maps: ["leaflet"],
-            charts: ["recharts"],
+            // Animation — used on landing page and most routes
             motion: ["framer-motion"],
-            stripe: ["@stripe/stripe-js", "@stripe/react-stripe-js"],
-            // Form utilities
+            // Form utilities — shared by ReportModal, Auth, ClaimPlate
             forms: ["react-hook-form", "@hookform/resolvers", "zod"],
+            // NOTE: recharts, leaflet, and stripe are intentionally NOT listed here.
+            // They are only consumed by lazy-loaded routes (Fleet, WatchMap, ClaimPlate)
+            // so Rollup bundles them into those page chunks — no preload on initial visit.
           },
         },
       },
