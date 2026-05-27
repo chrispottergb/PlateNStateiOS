@@ -235,7 +235,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       // Build location with KS county if provided; fall back to incident state if no city selected
       let finalLocation = location.trim() || incidentState;
       if (plateState === "KS" && ksCounty.trim()) {
-        finalLocation = `${location} — ${ksCounty.trim()} County`;
+        finalLocation = `${finalLocation} — ${ksCounty.trim()} County`;
       }
       // Infraction is now OPTIONAL — use sentinel when missing
       const finalInfraction = infraction ?? "unspecified";
