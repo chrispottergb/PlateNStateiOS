@@ -232,8 +232,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     try {
       const ip = await getClientIp();
       void captcha.token;
-      // Build location with KS county if provided
-      let finalLocation = location;
+      // Build location with KS county if provided; fall back to incident state if no city selected
+      let finalLocation = location.trim() || incidentState;
       if (plateState === "KS" && ksCounty.trim()) {
         finalLocation = `${location} — ${ksCounty.trim()} County`;
       }
@@ -288,7 +288,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   // Allow up to 10 chars
   const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 10);
 
-  const canSubmitQuick = plateNumber.trim().length >= 4 && location.trim().length > 0;
+  const canSubmitQuick = plateNumber.trim().length >= 4;
 
   const canProceed = () => {
     if (step === 1) return plateNumber.trim().length >= 4;
@@ -385,7 +385,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
           className="text-xs text-primary hover:underline text-left -mt-2 mb-1"
         >
           {mode === "quick"
-            ? "Need to add details? Switch to Detailed Report →"
+            ? "Have more details? Switch to Detailed Report →"
             : "⚡ Just need the basics? Quick Report"}
         </button>
 
@@ -417,14 +417,6 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               <p className="text-xs text-muted-foreground mt-1">
                 Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
               </p>
-            </div>
-
-            {/* Behavior tabs */}
-            <div>
-              <Label className="text-sm font-medium">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-              <div className="mt-1.5">
-                {renderBehaviorTabs("quick")}
-              </div>
             </div>
 
             {/* Location */}
@@ -464,7 +456,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     </SelectContent>
                   </Select>
                   <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city (optional)" /></SelectTrigger>
                     <SelectContent>
                       {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
                         <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
@@ -493,6 +485,35 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               )}
             </div>
 
+            {/* Submit button — above optional fields */}
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmitQuick || submitting}
+              className="w-full rounded-lg h-12 text-base glow"
+            >
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting…</>
+              ) : (
+                <><Zap className="h-4 w-4 mr-2" /> Submit Quick Report <Coins className="h-3.5 w-3.5 ml-1" /> 1</>
+              )}
+            </Button>
+
+            {/* Optional details divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/30" /></div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                <span className="bg-card px-2 text-muted-foreground">optional details</span>
+              </div>
+            </div>
+
+            {/* Behavior tabs */}
+            <div>
+              <Label className="text-sm font-medium">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <div className="mt-1.5">
+                {renderBehaviorTabs("quick")}
+              </div>
+            </div>
+
             {/* Optional note */}
             <div>
               <Label htmlFor="quick-comment" className="text-sm font-medium flex items-center gap-2">
@@ -513,18 +534,6 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 maxLength={500}
               />
             </div>
-
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmitQuick || submitting}
-              className="w-full rounded-lg h-12 text-base glow"
-            >
-              {submitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting…</>
-              ) : (
-                <><Zap className="h-4 w-4 mr-2" /> Submit Quick Report <Coins className="h-3.5 w-3.5 ml-1" /> 1</>
-              )}
-            </Button>
           </div>
         )}
 
