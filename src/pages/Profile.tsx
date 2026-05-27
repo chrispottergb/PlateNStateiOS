@@ -4,7 +4,7 @@ import { INFRACTIONS } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope } from "lucide-react";
+import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope, Pencil } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,8 @@ import { useCredits } from "@/hooks/useCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import LicensePlate from "@/components/LicensePlate";
+import EditReportModal, { EditableReport } from "@/components/EditReportModal";
+import { differenceInHours } from "date-fns";
 
 const BADGE_DEFS: Record<string, { label: string; icon: string; description: string }> = {
   first_report: { label: "First Report", icon: "🛡️", description: "Filed your first report" },
@@ -54,6 +56,15 @@ interface Report {
   created_at: string;
   upvote_count: number;
   state?: string | null;
+  // editable fields
+  comment?: string | null;
+  vehicle_type?: string | null;
+  vehicle_color?: string | null;
+  vehicle_make?: string | null;
+  vehicle_model?: string | null;
+  vehicle_features?: string[] | null;
+  driver_gender?: string | null;
+  edited_at?: string | null;
 }
 
 interface UserBadge {
@@ -69,6 +80,8 @@ const Profile = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [badges, setBadges] = useState<UserBadge[]>([]);
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [editingReport, setEditingReport] = useState<EditableReport | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -79,7 +92,7 @@ const Profile = () => {
     const fetchData = async () => {
       const [profileRes, reportsRes, badgesRes, disputesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, state").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender, edited_at").eq("reporter_id", user.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("user_badges").select("badge_key, earned_at").eq("user_id", user.id).order("earned_at", { ascending: false }),
         supabase.from("report_disputes").select("id, plate_number, reason, status, paid, created_at").eq("disputer_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
@@ -209,22 +222,42 @@ const Profile = () => {
             )}
             {reports.map((report) => {
               const inf = INFRACTIONS.find((i) => i.type === report.infraction);
+              const editable = differenceInHours(new Date(), new Date(report.created_at)) < 24;
               return (
-                <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} key={report.id} className="block">
-                  <div className="flex items-center gap-3 rounded-xl glass-card p-3 hover:border-primary/30 transition-all">
-                    <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5">{inf?.label || report.infraction}</Badge>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> {report.location}
-                      </p>
+                <div key={report.id} className="flex items-center gap-2">
+                  <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 rounded-xl glass-card p-3 hover:border-primary/30 transition-all">
+                      <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant="secondary" className="rounded-full text-[10px]">{inf?.label || report.infraction}</Badge>
+                          {report.edited_at && (
+                            <span className="text-[9px] text-muted-foreground italic">edited</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-3 w-3" /> {report.location}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <Badge variant="outline" className="text-[10px] text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <Badge variant="outline" className="text-[10px] text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
+                  {editable && (
+                    <button
+                      title="Edit report"
+                      onClick={() => {
+                        setEditingReport(report as EditableReport);
+                        setEditModalOpen(true);
+                      }}
+                      className="shrink-0 rounded-lg border border-border/50 p-2.5 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -234,6 +267,17 @@ const Profile = () => {
             </div>
           )}
         </motion.div>
+
+        <EditReportModal
+          report={editingReport}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onSaved={(updated) => {
+            setReports(prev => prev.map(r =>
+              r.id === editingReport?.id ? { ...r, ...updated } : r
+            ));
+          }}
+        />
         {/* My Disputes */}
         {disputes.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mt-8">
