@@ -119,6 +119,17 @@ export const US_STATES: USState[] = [
     plate: { bg: "linear-gradient(180deg,#f5f3eb,#f0ede4)", text: "#1a2744", accent: "#c41e3a", slogan: "AMERICA'S DAIRYLAND" } },
   { code: "WY", name: "Wyoming", cities: ["Cheyenne","Casper","Laramie","Gillette","Rock Springs"],
     plate: { bg: "linear-gradient(180deg,#fff,#fef3c7)", text: "#7c2d12", accent: "#b91c1c", slogan: "FOREVER WEST" } },
+  // US territories — appear after the 50 states + DC, sorted alphabetically by name
+  { code: "AS", name: "American Samoa", cities: ["Pago Pago","Tafuna","Leone","Pava'ia'i"],
+    plate: { bg: "linear-gradient(180deg,#fff,#dbeafe)", text: "#1e3a8a", accent: "#b91c1c", slogan: "AMERICAN SAMOA" } },
+  { code: "GU", name: "Guam", cities: ["Dededo","Yigo","Tamuning","Mangilao","Barrigada"],
+    plate: { bg: "linear-gradient(180deg,#bae6fd,#fed7aa)", text: "#0c4a6e", accent: "#b91c1c", slogan: "GUAM USA" } },
+  { code: "MP", name: "Northern Mariana Islands", cities: ["Saipan","San Jose","San Vicente","Susupe"],
+    plate: { bg: "linear-gradient(180deg,#fff,#dbeafe)", text: "#1e3a8a", accent: "#1e3a8a", slogan: "CNMI" } },
+  { code: "PR", name: "Puerto Rico", cities: ["San Juan","Bayamón","Carolina","Ponce","Caguas"],
+    plate: { bg: "linear-gradient(180deg,#fff,#dbeafe)", text: "#1e3a8a", accent: "#b91c1c", slogan: "LA ISLA DEL ENCANTO" } },
+  { code: "VI", name: "U.S. Virgin Islands", cities: ["Charlotte Amalie","Christiansted","Frederiksted","Cruz Bay"],
+    plate: { bg: "linear-gradient(180deg,#bae6fd,#fef3c7)", text: "#0c4a6e", accent: "#14532d", slogan: "UNITED STATES VIRGIN ISLANDS" } },
 ];
 
 export const STATE_BY_CODE: Record<string, USState> = Object.fromEntries(
