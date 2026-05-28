@@ -23,8 +23,8 @@ const HIGH_RISK_INFRACTIONS = new Set([
 const getSeverityLabel = (score: number, hasHighRiskInfraction = false) => {
   if (score >= 40) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
   if (score >= 25 || hasHighRiskInfraction) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
-  if (score >= 15) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 border-amber-500/30" };
-  return { label: "LOW RISK", color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" };
+  if (score >= 15) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
+  return { label: "LOW RISK", color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" };
 };
 
 const PlateDetail = () => {
@@ -219,7 +219,7 @@ const PlateDetail = () => {
                         <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
                         <span className="text-[10px] text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
                         {report.upvote_count >= 3 && (
-                          <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30 gap-0.5">
+                          <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" /> Verified
                           </Badge>
                         )}
