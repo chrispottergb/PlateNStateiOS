@@ -6,7 +6,7 @@ import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc, Flag } from "lucide-react";
+import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc, Flag, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,6 +67,25 @@ const PlateDetail = () => {
     else toast.success("Appeal submitted for admin review");
   };
 
+  const sharePlate = async () => {
+    const topInfraction = INFRACTIONS.filter(inf => plate?.infractions[inf.type] > 0)
+      .sort((a, b) => (plate?.infractions[b.type] ?? 0) - (plate?.infractions[a.type] ?? 0))[0];
+    const shareText = `Plate ${plate?.plateNumber}${plate?.state ? ` (${plate.state})` : ""} has ${plate?.reportCount} report${(plate?.reportCount ?? 0) !== 1 ? "s" : ""}. Top infraction: ${topInfraction?.label ?? "Unknown"}.`;
+    const shareUrl = `https://platenstate.com/plate/${encodeURIComponent(plate?.plateNumber ?? "")}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: "Plate N State Report", text: shareText, url: shareUrl });
+        return;
+      } catch { /* cancelled or unsupported — fall through */ }
+    }
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Could not share or copy");
+    }
+  };
+
   const sortedReports = [...reports].sort((a, b) =>
     sortOrder === "newest"
       ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -125,8 +144,19 @@ const PlateDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <LicensePlate plateNumber={plate.plateNumber} state={plate.state} size="lg" className="mx-auto mb-4" />
-          
+          <div className="relative inline-block mb-4">
+            <LicensePlate plateNumber={plate.plateNumber} state={plate.state} size="lg" />
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={sharePlate}
+              className="absolute -top-2 -right-10 rounded-full h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              title="Share this plate report"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+
           {/* Safety Score Pill */}
           <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${severity.color}`}>
             <Shield className="h-4 w-4" />
