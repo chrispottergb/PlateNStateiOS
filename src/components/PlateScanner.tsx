@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { isNative, pickImageFromLibrary, takePhotoNative } from "@/lib/native";
+import { correctOcrPlate } from "@/lib/ocrCorrection";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,8 +61,8 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       if (error) throw error;
 
       if (data?.plate_number) {
-        // Plates can be up to 10 chars
-        const cleaned = String(data.plate_number).toUpperCase().slice(0, 10);
+        // Plates can be up to 10 chars; apply OCR character correction
+        const cleaned = correctOcrPlate(String(data.plate_number)).slice(0, 10);
         onResult(cleaned, data.state || null);
         toast.success(`Plate detected: ${data.plate_number}`, {
           description: data.state ? `State: ${data.state} (${data.confidence} confidence)` : `Confidence: ${data.confidence}`,
