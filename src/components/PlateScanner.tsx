@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { isNative, pickImageFromLibrary, takePhotoNative } from "@/lib/native";
 import { correctOcrPlate } from "@/lib/ocrCorrection";
+import { useScanHistory } from "@/hooks/useScanHistory";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,7 @@ const ACK_KEY = "plate_scan_liability_ack";
 
 const PlateScanner = ({ onResult }: PlateScannerProps) => {
   const isMobile = useIsMobile();
+  const { addScan } = useScanHistory();
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
@@ -63,7 +65,9 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       if (data?.plate_number) {
         // Plates can be up to 10 chars; apply OCR character correction
         const cleaned = correctOcrPlate(String(data.plate_number)).slice(0, 10);
-        onResult(cleaned, data.state || null);
+        const resolvedState: string | null = data.state || null;
+        onResult(cleaned, resolvedState);
+        addScan(cleaned, resolvedState, { confidence: data.confidence, raw: data.plate_number });
         toast.success(`Plate detected: ${data.plate_number}`, {
           description: data.state ? `State: ${data.state} (${data.confidence} confidence)` : `Confidence: ${data.confidence}`,
         });
@@ -79,7 +83,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
       setPreview(null);
       stopCamera();
     }
-  }, [onResult, captcha, stopCamera]);
+  }, [onResult, captcha, stopCamera, addScan]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
