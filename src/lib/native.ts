@@ -4,9 +4,13 @@ export const isNative = Capacitor.isNativePlatform();
 
 // Camera — picks from photo library on native, returns base64 data URL.
 // Returns null on web (caller should trigger a file input instead).
+// NOTE: AndroidManifest.xml must include <uses-permission android:name="android.permission.CAMERA" />
+// (Capacitor's Camera plugin adds this automatically via its own manifest fragment,
+//  but verify it is present after `npx cap sync android`).
 export async function pickImageFromLibrary(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+  await Camera.requestPermissions({ permissions: ['photos'] });
   const photo = await Camera.getPhoto({
     quality: 85,
     allowEditing: false,
@@ -19,9 +23,11 @@ export async function pickImageFromLibrary(): Promise<string | null> {
 
 // Camera — opens native camera app on native, returns base64 data URL.
 // Returns null on web (caller should use getUserMedia instead).
+// NOTE: AndroidManifest.xml must include <uses-permission android:name="android.permission.CAMERA" />
 export async function takePhotoNative(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+  await Camera.requestPermissions({ permissions: ['camera'] });
   const photo = await Camera.getPhoto({
     quality: 85,
     allowEditing: false,
