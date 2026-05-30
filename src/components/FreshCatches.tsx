@@ -8,7 +8,6 @@ interface FreshCatch {
   state?: string | null;
   infraction: string;
   created_at: string;
-  state?: string | null;
 }
 
 interface FreshCatchesProps {

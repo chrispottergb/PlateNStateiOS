@@ -49,10 +49,10 @@ export function usePlateRecords(limit?: number, infractionFilter?: string) {
     queryFn: async () => {
       if (infractionFilter && infractionFilter !== "all") {
         // Server-side per-infraction aggregation
-        const { data, error } = await supabase.rpc("get_plates_by_infraction", {
+        const { data, error } = await (supabase.rpc as any)("get_plates_by_infraction", {
           p_infraction: infractionFilter,
           p_limit: limit ?? 100,
-        } as any);
+        });
         if (error) throw error;
         return (data as any[]).map(row => mvRowToRecord({
           plate_number: row.plate_number,
