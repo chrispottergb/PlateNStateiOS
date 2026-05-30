@@ -80,7 +80,7 @@ const EditReportModal = ({ report, open, onOpenChange, onSaved }: EditReportModa
     setPlateNumber(report.plate_number);
     setPlateState(report.state || "WI");
     const inf = report.infraction as InfractionType;
-    setInfraction(inf === "unspecified" ? null : inf);
+    setInfraction((inf as string) === "unspecified" ? null : inf);
     const goodType = GOOD_BEHAVIORS.find(b => b.type === inf);
     setBehaviorTab(goodType ? "good" : "bad");
     setComment(report.comment || "");
@@ -111,7 +111,7 @@ const EditReportModal = ({ report, open, onOpenChange, onSaved }: EditReportModa
     }
     setSaving(true);
     try {
-      const { error } = await supabase.rpc("edit_own_report", {
+      const { error } = await (supabase.rpc as any)("edit_own_report", {
         p_report_id: report.id,
         p_plate_number: plateNumber,
         p_state: plateState,

@@ -100,11 +100,11 @@ const Profile = () => {
     queryKey: queryKeys.myReports(user?.id),
     queryFn: async () => {
       const { data } = await supabase.from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender, edited_at")
+        .select("id, plate_number, infraction, location, created_at, upvote_count, state, comment, vehicle_type, vehicle_color, vehicle_make, vehicle_model, vehicle_features, driver_gender")
         .eq("reporter_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
-      return (data ?? []) as Report[];
+      return ((data ?? []) as unknown) as Report[];
     },
     enabled: !!user,
     staleTime: 30_000,
@@ -303,10 +303,8 @@ const Profile = () => {
           report={editingReport}
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
-          onSaved={(updated) => {
-            setReports(prev => prev.map(r =>
-              r.id === editingReport?.id ? { ...r, ...updated } : r
-            ));
+          onSaved={() => {
+            refetchReports();
           }}
         />
         {/* My Disputes */}
