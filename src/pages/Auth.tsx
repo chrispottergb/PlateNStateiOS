@@ -199,7 +199,39 @@ const Auth = () => {
                 if (result.redirected) return;
                 navigate("/");
               } catch (error: any) {
-                toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
+                const raw = (error?.message || error?.error_description || String(error || "")).toLowerCase();
+                let title = "Apple sign-in failed";
+                let description = error?.message || "Something went wrong. Please try again.";
+
+                if (raw.includes("redirect") || raw.includes("redirect_uri") || raw.includes("invalid_request")) {
+                  title = "Redirect not configured";
+                  description = "This domain isn't approved for Apple sign-in yet. Try again from platenstate.com, or contact support if the issue persists.";
+                } else if (
+                  raw.includes("access_denied") ||
+                  raw.includes("user_cancelled") ||
+                  raw.includes("user canceled") ||
+                  raw.includes("user cancelled") ||
+                  raw.includes("denied") ||
+                  raw.includes("popup_closed") ||
+                  raw.includes("canceled")
+                ) {
+                  title = "Sign-in cancelled";
+                  description = "You closed the Apple sign-in window or didn't grant access. Tap Continue with Apple to try again.";
+                } else if (
+                  raw.includes("expired") ||
+                  raw.includes("invalid_grant") ||
+                  raw.includes("token") ||
+                  raw.includes("session") ||
+                  raw.includes("jwt")
+                ) {
+                  title = "Session expired";
+                  description = "Your Apple sign-in session timed out. Please tap Continue with Apple again to start a fresh login.";
+                } else if (raw.includes("network") || raw.includes("fetch") || raw.includes("failed to send")) {
+                  title = "Connection problem";
+                  description = "We couldn't reach Apple. Check your internet connection and try again.";
+                }
+
+                toast({ title, description, variant: "destructive" });
               } finally {
                 setLoading(false);
               }
