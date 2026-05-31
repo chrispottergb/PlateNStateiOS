@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag } from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
+import { Input } from "@/components/ui/input";
 import { INFRACTIONS } from "@/lib/data";
 
 interface InsuranceApp { id: string; user_id: string; company_name: string; contact_email: string; approved: boolean; created_at: string; }
@@ -35,7 +36,7 @@ const AdminPanel = () => {
   const { data: adminData, isLoading: loading } = useQuery({
     queryKey: ["admin-data"],
     queryFn: async () => {
-      const [insRes, leRes, profRes, repRes, compRes, dispRes, appealsRes] = await Promise.all([
+      const [insRes, leRes, profRes, repRes, compRes, dispRes, appealsRes, blockRes] = await Promise.all([
         supabase.from("insurance_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("law_enforcement_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("id, user_id, display_name, total_reports, xp, credits, joined_at").order("total_reports", { ascending: false }).limit(50),
@@ -43,6 +44,7 @@ const AdminPanel = () => {
         supabase.from("companies").select("id, name, contact_email, tier, owner_id, created_at").order("created_at", { ascending: false }),
         supabase.from("report_disputes").select("id, report_id, plate_number, reason, note, status, paid, created_at").eq("paid", true).eq("status", "pending").order("created_at", { ascending: true }),
         supabase.from("appeals").select("id, report_id, plate_number, reason, status, created_at, user_id").eq("status", "pending").order("created_at", { ascending: true }),
+        supabase.from("blocked_emails").select("id, kind, value, reason, created_at").order("created_at", { ascending: false }),
       ]);
       const companies = (compRes.data ?? []) as CompanyRow[];
       const { data: vehiclesRaw } = await supabase.from("fleet_vehicles").select("company_id");
@@ -57,6 +59,7 @@ const AdminPanel = () => {
         fleetCounts,
         disputes: dispRes.data ?? [],
         appeals: appealsRes.data ?? [],
+        blocklist: (blockRes.data ?? []) as Array<{ id: string; kind: "email" | "domain"; value: string; reason: string | null; created_at: string }>,
       };
     },
     enabled: !!isAdmin,
@@ -71,8 +74,34 @@ const AdminPanel = () => {
   const fleetCounts = adminData?.fleetCounts ?? {};
   const disputes = adminData?.disputes ?? [];
   const appeals = adminData?.appeals ?? [];
+  const blocklist = adminData?.blocklist ?? [];
+
+  const [blockValue, setBlockValue] = useState("");
+  const [blockReason, setBlockReason] = useState("");
 
   const invalidateAdmin = () => queryClient.invalidateQueries({ queryKey: ["admin-data"] });
+
+  const handleAddBlock = async (kind: "email" | "domain") => {
+    const value = blockValue.trim().toLowerCase();
+    if (!value) { toast.error("Enter a value"); return; }
+    if (kind === "email" && !value.includes("@")) { toast.error("Email must contain @"); return; }
+    if (kind === "domain" && value.includes("@")) { toast.error("Domain must not contain @"); return; }
+    setUpdating("add-block");
+    const { error } = await supabase.from("blocked_emails").insert({
+      kind, value, reason: blockReason.trim() || null, created_by: user!.id,
+    });
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success(`Blocked ${kind}: ${value}`); setBlockValue(""); setBlockReason(""); invalidateAdmin(); }
+    setUpdating(null);
+  };
+
+  const handleRemoveBlock = async (id: string) => {
+    setUpdating(id);
+    const { error } = await supabase.from("blocked_emails").delete().eq("id", id);
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success("Removed from blocklist"); invalidateAdmin(); }
+    setUpdating(null);
+  };
 
   const handleResolveAppeal = async (appealId: string, reportId: string, decision: "upheld" | "dismissed") => {
     setUpdating(appealId);
@@ -188,6 +217,7 @@ const AdminPanel = () => {
               {appeals.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{appeals.length}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
+            <TabsTrigger value="blocklist" className="flex-1 gap-1"><Ban className="h-3.5 w-3.5" />Blocklist</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}
@@ -371,6 +401,45 @@ const AdminPanel = () => {
                 </div>
               </div>
             ))}
+          </TabsContent>
+
+          <TabsContent value="blocklist" className="space-y-4">
+            <div className="rounded-xl glass-card p-4 space-y-3">
+              <h3 className="text-sm font-bold flex items-center gap-2"><Ban className="h-4 w-4 text-destructive" /> Add to blocklist</h3>
+              <p className="text-xs text-muted-foreground">
+                Block by full email (e.g. <span className="font-mono">user@example.com</span>) or by domain (e.g. <span className="font-mono">example.com</span>). Anyone matching is blocked from signing up and locked out on next page load.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input placeholder="email or domain" value={blockValue} onChange={(e) => setBlockValue(e.target.value)} />
+                <Input placeholder="Reason (optional)" value={blockReason} onChange={(e) => setBlockReason(e.target.value)} />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" disabled={updating === "add-block"} onClick={() => handleAddBlock("email")} className="rounded-full gap-1"><Mail className="h-3.5 w-3.5" /> Block email</Button>
+                <Button size="sm" variant="outline" disabled={updating === "add-block"} onClick={() => handleAddBlock("domain")} className="rounded-full gap-1"><Building2 className="h-3.5 w-3.5" /> Block domain</Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {blocklist.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center bg-card rounded-lg">No blocked entries</p>
+              ) : blocklist.map((b) => (
+                <div key={b.id} className="flex items-center gap-4 rounded-xl glass-card p-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 text-destructive shrink-0">
+                    <Ban className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-mono font-semibold text-sm truncate">{b.value}</span>
+                      <Badge variant="outline" className="text-[10px] capitalize rounded-full">{b.kind}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{b.reason || "No reason given"} · {format(new Date(b.created_at), "MMM d, yyyy")}</p>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1" disabled={updating === b.id} onClick={() => handleRemoveBlock(b.id)}>
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </div>

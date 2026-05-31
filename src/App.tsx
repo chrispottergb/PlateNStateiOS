@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useIsBlocked } from "@/hooks/useIsBlocked";
+import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
@@ -88,6 +90,13 @@ const NativeDeepLinkBridge = () => {
   return null;
 };
 
+const BlocklistGate = ({ children }: { children: React.ReactNode }) => {
+  const { blocked, loading } = useIsBlocked();
+  if (loading) return <>{children}</>;
+  if (blocked) return <BlockedScreen />;
+  return <>{children}</>;
+};
+
 const RouteFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
     Loading…
@@ -104,36 +113,38 @@ const App = () => (
           <BrowserRouter>
             <TermsGate />
             <NativeDeepLinkBridge />
-            <Suspense fallback={<RouteFallback />}>
-              <Routes>
-                <Route path="/" element={<HonkZone />} />
-                <Route path="/welcome" element={<Index />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/a-hole-patrol" element={<HonkZone />} />
-                <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
-                <Route path="/business" element={<Business />} />
-                <Route path="/plate/:plateNumber" element={<PlateDetail />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/claim" element={<ClaimPlate />} />
-                <Route path="/fleet" element={<Fleet />} />
-                <Route path="/map" element={<WatchMap />} />
-                <Route path="/insurance" element={<InsurancePortal />} />
-                <Route path="/screening" element={<BatchScreening />} />
-                <Route path="/admin" element={<AdminPanel />} />
-                <Route path="/law-enforcement" element={<LawEnforcement />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/quick-capture" element={<QuickCapture />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/csae-policy" element={<CsaePolicy />} />
-                <Route path="/delete-account" element={<DeleteAccount />} />
-                <Route path="/data-deletion" element={<DeleteAccount />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            <BlocklistGate>
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  <Route path="/" element={<HonkZone />} />
+                  <Route path="/welcome" element={<Index />} />
+                  <Route path="/community" element={<Community />} />
+                  <Route path="/a-hole-patrol" element={<HonkZone />} />
+                  <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
+                  <Route path="/business" element={<Business />} />
+                  <Route path="/plate/:plateNumber" element={<PlateDetail />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/claim" element={<ClaimPlate />} />
+                  <Route path="/fleet" element={<Fleet />} />
+                  <Route path="/map" element={<WatchMap />} />
+                  <Route path="/insurance" element={<InsurancePortal />} />
+                  <Route path="/screening" element={<BatchScreening />} />
+                  <Route path="/admin" element={<AdminPanel />} />
+                  <Route path="/law-enforcement" element={<LawEnforcement />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/quick-capture" element={<QuickCapture />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/csae-policy" element={<CsaePolicy />} />
+                  <Route path="/delete-account" element={<DeleteAccount />} />
+                  <Route path="/data-deletion" element={<DeleteAccount />} />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BlocklistGate>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
