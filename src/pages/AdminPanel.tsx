@@ -74,8 +74,34 @@ const AdminPanel = () => {
   const fleetCounts = adminData?.fleetCounts ?? {};
   const disputes = adminData?.disputes ?? [];
   const appeals = adminData?.appeals ?? [];
+  const blocklist = adminData?.blocklist ?? [];
+
+  const [blockValue, setBlockValue] = useState("");
+  const [blockReason, setBlockReason] = useState("");
 
   const invalidateAdmin = () => queryClient.invalidateQueries({ queryKey: ["admin-data"] });
+
+  const handleAddBlock = async (kind: "email" | "domain") => {
+    const value = blockValue.trim().toLowerCase();
+    if (!value) { toast.error("Enter a value"); return; }
+    if (kind === "email" && !value.includes("@")) { toast.error("Email must contain @"); return; }
+    if (kind === "domain" && value.includes("@")) { toast.error("Domain must not contain @"); return; }
+    setUpdating("add-block");
+    const { error } = await supabase.from("blocked_emails").insert({
+      kind, value, reason: blockReason.trim() || null, created_by: user!.id,
+    });
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success(`Blocked ${kind}: ${value}`); setBlockValue(""); setBlockReason(""); invalidateAdmin(); }
+    setUpdating(null);
+  };
+
+  const handleRemoveBlock = async (id: string) => {
+    setUpdating(id);
+    const { error } = await supabase.from("blocked_emails").delete().eq("id", id);
+    if (error) toast.error("Failed: " + error.message);
+    else { toast.success("Removed from blocklist"); invalidateAdmin(); }
+    setUpdating(null);
+  };
 
   const handleResolveAppeal = async (appealId: string, reportId: string, decision: "upheld" | "dismissed") => {
     setUpdating(appealId);
