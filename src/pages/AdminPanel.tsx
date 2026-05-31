@@ -36,7 +36,7 @@ const AdminPanel = () => {
   const { data: adminData, isLoading: loading } = useQuery({
     queryKey: ["admin-data"],
     queryFn: async () => {
-      const [insRes, leRes, profRes, repRes, compRes, dispRes, appealsRes] = await Promise.all([
+      const [insRes, leRes, profRes, repRes, compRes, dispRes, appealsRes, blockRes] = await Promise.all([
         supabase.from("insurance_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("law_enforcement_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("id, user_id, display_name, total_reports, xp, credits, joined_at").order("total_reports", { ascending: false }).limit(50),
@@ -44,6 +44,7 @@ const AdminPanel = () => {
         supabase.from("companies").select("id, name, contact_email, tier, owner_id, created_at").order("created_at", { ascending: false }),
         supabase.from("report_disputes").select("id, report_id, plate_number, reason, note, status, paid, created_at").eq("paid", true).eq("status", "pending").order("created_at", { ascending: true }),
         supabase.from("appeals").select("id, report_id, plate_number, reason, status, created_at, user_id").eq("status", "pending").order("created_at", { ascending: true }),
+        supabase.from("blocked_emails").select("id, kind, value, reason, created_at").order("created_at", { ascending: false }),
       ]);
       const companies = (compRes.data ?? []) as CompanyRow[];
       const { data: vehiclesRaw } = await supabase.from("fleet_vehicles").select("company_id");
@@ -58,6 +59,7 @@ const AdminPanel = () => {
         fleetCounts,
         disputes: dispRes.data ?? [],
         appeals: appealsRes.data ?? [],
+        blocklist: (blockRes.data ?? []) as Array<{ id: string; kind: "email" | "domain"; value: string; reason: string | null; created_at: string }>,
       };
     },
     enabled: !!isAdmin,
