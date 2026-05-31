@@ -65,6 +65,33 @@ export type Database = {
           },
         ]
       }
+      blocked_emails: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          reason: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          reason?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       claimed_plates: {
         Row: {
           claimed_at: string
@@ -1142,6 +1169,7 @@ export type Database = {
       }
       is_approved_insurance: { Args: { p_user_id: string }; Returns: boolean }
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
+      is_email_blocked: { Args: { _email: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
