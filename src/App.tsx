@@ -90,6 +90,13 @@ const NativeDeepLinkBridge = () => {
   return null;
 };
 
+const BlocklistGate = ({ children }: { children: React.ReactNode }) => {
+  const { blocked, loading } = useIsBlocked();
+  if (loading) return <>{children}</>;
+  if (blocked) return <BlockedScreen />;
+  return <>{children}</>;
+};
+
 const RouteFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
     Loading…
