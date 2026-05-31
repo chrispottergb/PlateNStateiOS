@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag } from "lucide-react";
+import { ShieldCheck, CheckCircle2, XCircle, Mail, Building2, Shield, Users, AlertTriangle, Truck, Trash2, Crown, Flag, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
+import { Input } from "@/components/ui/input";
 import { INFRACTIONS } from "@/lib/data";
 
 interface InsuranceApp { id: string; user_id: string; company_name: string; contact_email: string; approved: boolean; created_at: string; }
