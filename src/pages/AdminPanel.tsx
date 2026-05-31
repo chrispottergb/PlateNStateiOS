@@ -217,6 +217,7 @@ const AdminPanel = () => {
               {appeals.length > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">{appeals.length}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="fleets" className="flex-1">Fleets</TabsTrigger>
+            <TabsTrigger value="blocklist" className="flex-1 gap-1"><Ban className="h-3.5 w-3.5" />Blocklist</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}
