@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -155,12 +154,11 @@ const Auth = () => {
                   return;
                 }
 
-                const result = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: REDIRECT_ORIGIN,
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: { redirectTo: `${REDIRECT_ORIGIN}/` },
                 });
-                if (result.error) throw result.error;
-                if (result.redirected) return;
-                navigate("/");
+                if (error) throw error;
               } catch (error: any) {
                 toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
               } finally {
