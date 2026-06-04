@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { getPosition } from "@/lib/native";
 import { Loader2, MapPin, Pencil, Car, Wrench, User, Zap, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import PlateScanner from "@/components/PlateScanner";
+import { LocationMiniMap } from "@/components/LocationMiniMap";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
