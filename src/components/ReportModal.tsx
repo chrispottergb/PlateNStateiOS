@@ -409,7 +409,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   maxLength={10}
                 />
                 <Select value={plateState} onValueChange={setPlateState}>
-                  <SelectTrigger className="rounded-lg h-12"><SelectValue /></SelectTrigger>
+                  <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg h-12"><SelectValue /></SelectTrigger>
                   <SelectContent className="max-h-72">
                     {US_STATES.map(s => (
                       <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
@@ -451,7 +451,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       setLocation("");
                     }
                   }}>
-                    <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-72">
                       {US_STATES.map(s => (
                         <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
@@ -459,7 +459,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     </SelectContent>
                   </Select>
                   <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city (optional)" /></SelectTrigger>
+                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue placeholder="Select city (optional)" /></SelectTrigger>
                     <SelectContent>
                       {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
                         <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
@@ -581,7 +581,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       maxLength={10}
                     />
                     <Select value={plateState} onValueChange={setPlateState}>
-                      <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                      <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {US_STATES.map(s => (
                           <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
@@ -606,7 +606,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <div>
                     <Label className="text-xs">Vehicle Type</Label>
                     <Select value={vehicleType} onValueChange={setVehicleType}>
-                      <SelectTrigger className="mt-1 rounded-lg text-xs h-9">
+                      <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="mt-1 rounded-lg text-xs h-9">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -619,7 +619,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   <div>
                     <Label className="text-xs">Color</Label>
                     <Select value={vehicleColor} onValueChange={setVehicleColor}>
-                      <SelectTrigger className="mt-1 rounded-lg text-xs h-9">
+                      <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="mt-1 rounded-lg text-xs h-9">
                         <SelectValue placeholder="Select color" />
                       </SelectTrigger>
                       <SelectContent>
@@ -716,7 +716,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                           setLocation("");
                         }
                       }}>
-                        <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
+                        <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue /></SelectTrigger>
                         <SelectContent className="max-h-72">
                           {US_STATES.map(s => (
                             <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
@@ -724,7 +724,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                         </SelectContent>
                       </Select>
                       <Select value={location} onValueChange={setLocation}>
-                        <SelectTrigger className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                        <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
                         <SelectContent>
                           {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
                             <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
@@ -793,7 +793,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                 <div>
                   <Label className="text-xs">Driver</Label>
                   <Select value={driverDescription} onValueChange={setDriverDescription}>
-                    <SelectTrigger className="mt-1 rounded-lg h-10 text-sm">
+                    <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="mt-1 rounded-lg h-10 text-sm">
                       <SelectValue placeholder="Choose driver description" />
                     </SelectTrigger>
                     <SelectContent>
