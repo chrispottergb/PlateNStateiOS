@@ -12,7 +12,7 @@ workflows:
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-        APP_STORE_APP_ID: 0000000000   # replace with your App Store Connect numeric app ID after creating the listing
+        APP_STORE_APP_ID: 6776563225
       node: 20.x
       xcode: latest
       cocoapods: default
