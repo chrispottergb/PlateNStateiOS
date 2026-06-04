@@ -37,13 +37,26 @@ workflows:
             -scheme "$XCODE_SCHEME"
       - name: Initialize keychain
         script: keychain initialize
-      - name: Fetch signing files (auto-create if missing)
+      - name: Create distribution certificate (with downloadable private key)
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-      - name: Add certs to keychain
+          set -e
+          app-store-connect certificates create \
+            --type DISTRIBUTION \
+            --save \
+            --certificate-key-path /tmp/dist_cert.p12 \
+            || app-store-connect certificates list \
+                 --type DISTRIBUTION \
+                 --save \
+                 --certificate-key-path /tmp/dist_cert.p12
+      - name: Add cert to keychain
         script: keychain add-certificates
+      - name: Create App Store provisioning profile
+        script: |
+          app-store-connect profiles create \
+            --bundle-id-identifier "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-type DISTRIBUTION \
+            --save
       - name: Use profiles
         script: xcode-project use-profiles
       - name: Increment build number
