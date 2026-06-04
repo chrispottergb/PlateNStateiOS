@@ -459,6 +459,7 @@ export type Database = {
           terms_version: string | null
           total_reports: number
           user_id: string
+          username: string | null
           xp: number
         }
         Insert: {
@@ -474,6 +475,7 @@ export type Database = {
           terms_version?: string | null
           total_reports?: number
           user_id: string
+          username?: string | null
           xp?: number
         }
         Update: {
@@ -489,6 +491,7 @@ export type Database = {
           terms_version?: string | null
           total_reports?: number
           user_id?: string
+          username?: string | null
           xp?: number
         }
         Relationships: []
@@ -1129,6 +1132,7 @@ export type Database = {
       }
     }
     Functions: {
+      _is_username_reserved: { Args: { _u: string }; Returns: boolean }
       anonymize_old_reports: { Args: never; Returns: undefined }
       batch_plate_screening: { Args: { p_plates: string[] }; Returns: Json }
       check_rate_limit: {
@@ -1170,6 +1174,7 @@ export type Database = {
       is_approved_insurance: { Args: { p_user_id: string }; Returns: boolean }
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean }
       is_email_blocked: { Args: { _email: string }; Returns: boolean }
+      is_username_available: { Args: { _username: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1276,6 +1281,7 @@ export type Database = {
         Args: { p_note?: string; p_reason: string; p_report_id: string }
         Returns: Json
       }
+      suggest_usernames: { Args: { _base: string }; Returns: string[] }
       upvote_report: { Args: { p_report_id: string }; Returns: undefined }
     }
     Enums: {
