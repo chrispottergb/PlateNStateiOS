@@ -37,11 +37,16 @@ workflows:
             -scheme "$XCODE_SCHEME"
       - name: Initialize keychain
         script: keychain initialize
-      - name: Create fresh distribution certificate (with downloadable private key)
+      - name: Generate private key
+        script: |
+          set -e
+          openssl genrsa -out /tmp/cert_key.pem 2048
+      - name: Create fresh distribution certificate using that key
         script: |
           set -e
           app-store-connect certificates create \
             --type DISTRIBUTION \
+            --certificate-key @file:/tmp/cert_key.pem \
             --save
       - name: Add cert to keychain
         script: keychain add-certificates
