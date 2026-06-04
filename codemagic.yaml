@@ -7,13 +7,12 @@ workflows:
       app_store_connect: PlateNState_ASC_Key
     environment:
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.plateandstate.platenstate"
         APP_STORE_APP_ID: 6776563225
       node: 22
       xcode: latest
-      cocoapods: default
     scripts:
       - name: Install npm dependencies
         script: npm ci
@@ -24,26 +23,18 @@ workflows:
           set -e
           rm -rf ios
           npx cap add ios
-          echo "=== After cap add: ios/ tree (depth 2) ==="
-          find ios -maxdepth 2 -type d
       - name: Sync Capacitor to iOS
         script: |
           set -e
           npx cap sync ios
-          echo "=== After cap sync: searching for Podfile ==="
-          find ios -name Podfile -type f
-      - name: Install CocoaPods
+          echo "=== iOS project tree ==="
+          find ios -maxdepth 4 -type d
+      - name: Resolve Swift Package dependencies
         script: |
           set -e
-          PODFILE_DIR="$(dirname "$(find ios -name Podfile -type f | head -1)")"
-          if [ -z "$PODFILE_DIR" ] || [ ! -f "$PODFILE_DIR/Podfile" ]; then
-            echo "ERROR: No Podfile found anywhere under ios/"
-            find ios -type f | head -50
-            exit 1
-          fi
-          echo "Running pod install in: $PODFILE_DIR"
-          cd "$PODFILE_DIR"
-          pod install
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME"
       - name: Initialize keychain
         script: keychain initialize
       - name: Fetch signing files (auto-create if missing)
@@ -63,7 +54,7 @@ workflows:
       - name: Build .ipa
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
