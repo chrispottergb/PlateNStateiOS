@@ -87,6 +87,7 @@ const queryClient = new QueryClient({
 
 const NativeDeepLinkBridge = () => {
   useNativeDeepLinks();
+  useAndroidBackButton();
   return null;
 };
 
