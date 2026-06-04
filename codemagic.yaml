@@ -6,12 +6,10 @@ workflows:
     integrations:
       app_store_connect: PlateNState_ASC_Key
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.plateandstate.platenstate
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.plateandstate.platenstate"
         APP_STORE_APP_ID: 6776563225
       node: 20.x
       xcode: latest
@@ -32,9 +30,11 @@ workflows:
         script: |
           cd ios/App
           pod install
+      - name: Initialize keychain
+        script: keychain initialize
       - name: Fetch signing files (auto-create if missing)
         script: |
-          app-store-connect fetch-signing-files com.plateandstate.platenstate \
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
       - name: Add certs to keychain
