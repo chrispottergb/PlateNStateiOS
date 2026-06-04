@@ -49,6 +49,18 @@ workflows:
             -scheme "$XCODE_SCHEME"
       - name: Initialize keychain
         script: keychain initialize
+      - name: Revoke existing distribution certs (free up the slot)
+        script: |
+          # Delete any existing DISTRIBUTION certs via API so we can create a fresh
+          # one whose private key we control. Safe on ephemeral CI: prior certs'
+          # keys are gone anyway, and already-uploaded builds stay signed/valid.
+          app-store-connect certificates list --type DISTRIBUTION --json > /tmp/certs.json 2>/dev/null || echo "[]" > /tmp/certs.json
+          echo "Existing DISTRIBUTION certs:"
+          cat /tmp/certs.json
+          for id in $(jq -r '.[].id // empty' /tmp/certs.json); do
+            echo "Revoking distribution cert $id"
+            app-store-connect certificates delete "$id" || true
+          done
       - name: Generate private key
         script: |
           set -e
