@@ -671,56 +671,38 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
             {step === 4 && (
               <div className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Location</Label>
-                  {autoDetectedLocation && !manualOverride ? (
-                    <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
-                      <MapPin className="h-4 w-4 text-primary shrink-0" />
-                      <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setManualOverride(true)}
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground rounded-full"
-                        type="button"
-                      >
-                        <Pencil className="h-3 w-3 mr-1" /> Edit
-                      </Button>
-                    </div>
-                  ) : geocoding ? (
+                  <Label className="text-sm font-medium">Incident Location</Label>
+                  {geocoding || geoStatus === "loading" ? (
                     <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2.5 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Detecting your location…
                     </div>
+                  ) : autoDetectedLocation && latitude !== null && longitude !== null ? (
+                    <>
+                      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+                        <MapPin className="h-4 w-4 text-primary shrink-0" />
+                        <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
+                        <span className="text-[10px] uppercase tracking-wide text-primary/70 font-semibold">Locked</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1 italic">
+                        Locked to your GPS to prevent fraudulent reports.
+                      </p>
+                    </>
                   ) : (
-                    <div className="mt-1.5 grid grid-cols-[90px_1fr] gap-2">
-                      <Select value={incidentState} onValueChange={(v) => {
-                        setIncidentState(v);
-                        if (autoDetectedLocation && v === detectedStateCode) {
-                          setLocation(autoDetectedLocation);
-                        } else {
-                          setLocation("");
-                        }
-                      }}>
-                        <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue /></SelectTrigger>
-                        <SelectContent className="max-h-72">
-                          {US_STATES.map(s => (
-                            <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={location} onValueChange={setLocation}>
-                        <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                        <SelectContent>
-                          {autoDetectedLocation && incidentState === detectedStateCode && !getStateByCode(incidentState).cities.some(c => `${c}, ${incidentState}` === autoDetectedLocation) && (
-                            <SelectItem value={autoDetectedLocation}>📍 {autoDetectedLocation}</SelectItem>
-                          )}
-                          {getStateByCode(incidentState).cities.map(city => (
-                            <SelectItem key={city} value={`${city}, ${incidentState}`}>
-                              {autoDetectedLocation === `${city}, ${incidentState}` ? "📍 " : ""}{city}, {incidentState}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="mt-1.5 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2.5">
+                      <p className="text-sm font-medium text-destructive">Location required</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Enable location access — reports must be filed from where the incident happened.
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={detectLocation}
+                        className="mt-2 h-8 rounded-full text-xs"
+                      >
+                        <MapPin className="h-3 w-3 mr-1" /> Retry location
+                      </Button>
                     </div>
                   )}
                   {plateState === "KS" && (
