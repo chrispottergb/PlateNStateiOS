@@ -21,14 +21,28 @@ workflows:
         script: NODE_ENV=production npm run build
       - name: Add iOS platform
         script: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
+          set -e
+          rm -rf ios
+          npx cap add ios
+          echo "=== After cap add: ios/ tree (depth 2) ==="
+          find ios -maxdepth 2 -type d
       - name: Sync Capacitor to iOS
-        script: npx cap sync ios
+        script: |
+          set -e
+          npx cap sync ios
+          echo "=== After cap sync: searching for Podfile ==="
+          find ios -name Podfile -type f
       - name: Install CocoaPods
         script: |
-          cd ios/App
+          set -e
+          PODFILE_DIR="$(dirname "$(find ios -name Podfile -type f | head -1)")"
+          if [ -z "$PODFILE_DIR" ] || [ ! -f "$PODFILE_DIR/Podfile" ]; then
+            echo "ERROR: No Podfile found anywhere under ios/"
+            find ios -type f | head -50
+            exit 1
+          fi
+          echo "Running pod install in: $PODFILE_DIR"
+          cd "$PODFILE_DIR"
           pod install
       - name: Initialize keychain
         script: keychain initialize
