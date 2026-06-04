@@ -190,12 +190,11 @@ const Auth = () => {
                   return;
                 }
 
-                const result = await lovable.auth.signInWithOAuth("apple", {
-                  redirect_uri: REDIRECT_ORIGIN,
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: "apple",
+                  options: { redirectTo: `${REDIRECT_ORIGIN}/` },
                 });
-                if (result.error) throw result.error;
-                if (result.redirected) return;
-                navigate("/");
+                if (error) throw error;
               } catch (error: any) {
                 const raw = (error?.message || error?.error_description || String(error || "")).toLowerCase();
                 let title = "Apple sign-in failed";

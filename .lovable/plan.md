@@ -1,29 +1,49 @@
-# Fix: state dropdown needs two clicks inside Report modal
+# Lock incident location to user's GPS
 
-## Symptom
-On the Report tab, clicking the State dropdown (next to the plate input) flickers and does nothing on the first click — the user has to click a second time to actually open it.
+To prevent fraudulent and malicious reports, the incident city/state must come from the user's real GPS location. Users can no longer manually pick a different city/state for where the incident happened.
 
-## Root cause
-This is the well-known Radix Select-inside-Dialog interaction bug. The `DialogContent` uses `overflow-y-auto` (line 371 of `src/components/ReportModal.tsx`) and the `<Select>` trigger sits inside it. When the user clicks the trigger:
+Note: the **Plate state** dropdown (where the plate is registered) stays user-selectable — that's the state on the license plate, not where the incident occurred.
 
-1. Radix Dialog's focus trap / scroll-lock toggles `pointer-events: none` on the body.
-2. The Select's pointer-down handler fires before the Dialog releases focus, so the open state flips on and immediately back off.
-3. The second click hits a stable state and opens normally.
+## Changes
 
-The same Select pattern appears for both Quick mode and Detailed mode (plate state + incident state pickers).
+### `src/components/ReportModal.tsx`
 
-## Fix
-Two small, well-established fixes — apply both:
+**Quick mode location block (lines ~425–489)**
+- Remove the manual override pencil button.
+- Remove the incident-state `<Select>` and city `<Select>`.
+- Replace the "manual" fallback with one of three locked, read-only states:
+  - `geocoding`: "Detecting your location…" spinner.
+  - `done` + reverse-geocoded: locked badge showing `📍 {city, ST}` with a small "Locked to your GPS for verification" helper line.
+  - `denied` or geocode failed: red warning card "Location required to submit. Enable location and retry." with a **Retry** button calling `detectLocation()`. Submit stays disabled.
 
-1. Force `SelectContent` to use popper positioning and prevent the trigger's mousedown from being swallowed by the dialog. Add `position="popper"` and `onCloseAutoFocus={(e) => e.preventDefault()}` to every `SelectContent` inside `ReportModal.tsx`.
-2. On each `SelectTrigger`, add `onPointerDown={(e) => e.stopPropagation()}` so the dialog's scrollable container doesn't intercept the first pointer event.
+**Detailed mode location block (lines ~709–740)**
+- Identical treatment: remove both selects + pencil override; show locked GPS-derived value or the same retry card.
 
-If after this it still requires a double-click in some browsers, fall back to wrapping the trigger in a `<div onPointerDownCapture={(e) => e.stopPropagation()}>`.
+**State**
+- Remove `manualOverride` state and the `setManualOverride` calls in `reset()`.
+- Remove the `onValueChange` city/state setters that wrote to `location` / `incidentState` from user clicks. `incidentState` and `location` are written only by `reverseGeocode()`.
+
+**Submit guard**
+- Add to `canSubmitQuick` (and the equivalent detailed-mode gate): require `latitude && longitude && incidentState && location` and `geoStatus === "done"`. If any are missing, disable submit and show inline reason.
+- Keep the existing `p_latitude` / `p_longitude` / `p_incident_state` payload — already wired.
+
+**KS county field**: keep (it's about the plate's issuing county, not the incident location).
+
+### Server-side enforcement (`spend_credit_on_report` RPC)
+
+Add a hard server check so a malicious client can't bypass the UI:
+- Require `p_latitude IS NOT NULL AND p_longitude IS NOT NULL`.
+- Require `p_incident_state IS NOT NULL`.
+- Reject with `RAISE EXCEPTION 'LOCATION_REQUIRED: GPS location is required to submit a report.'` otherwise.
+- Client already maps known error prefixes to toasts — add a `LOCATION_REQUIRED` branch with a friendly message.
+
+This is a migration that re-creates `public.spend_credit_on_report(...)` with the same signature plus the new guards at the top.
 
 ## Files
-- Edit: `src/components/ReportModal.tsx` (state selects in Quick mode and Detailed mode)
+- Edit: `src/components/ReportModal.tsx`
+- New migration: add GPS-required guards to `spend_credit_on_report`
 
 ## Verification
-- Open Report modal → click State dropdown once → it should open on the first click.
-- Repeat in Detailed mode for both plate state and incident state.
-- Re-test after switching between Quick/Detailed to make sure no regressions.
+- Open Report modal with location allowed → see locked `📍 City, ST`, submit works.
+- Open with location blocked → see retry card, submit disabled.
+- Manually call the RPC without lat/lng (e.g. via console) → backend rejects with `LOCATION_REQUIRED`.
