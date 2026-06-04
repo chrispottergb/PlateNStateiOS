@@ -29,6 +29,18 @@ workflows:
           npx cap sync ios
           echo "=== iOS project tree ==="
           find ios -maxdepth 4 -type d
+      - name: Inject privacy usage strings into Info.plist
+        script: |
+          set -e
+          PLIST="ios/App/App/Info.plist"
+          echo "Injecting privacy strings into $PLIST"
+          plutil -replace NSCameraUsageDescription -string "Plate N' State uses the camera to scan license plates." "$PLIST"
+          plutil -replace NSPhotoLibraryUsageDescription -string "Plate N' State reads photos from your library to scan license plates." "$PLIST"
+          plutil -replace NSPhotoLibraryAddUsageDescription -string "Plate N' State saves plate photos to your library." "$PLIST"
+          plutil -replace NSLocationWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
+          plutil -replace NSLocationAlwaysAndWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
+          echo "=== Verifying Info.plist privacy keys ==="
+          plutil -p "$PLIST" | grep -i "UsageDescription"
       - name: Resolve Swift Package dependencies
         script: |
           set -e
