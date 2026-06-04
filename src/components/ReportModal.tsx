@@ -291,13 +291,14 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   // Allow up to 10 chars
   const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 10);
 
-  const canSubmitQuick = plateNumber.trim().length >= 4;
+  const hasVerifiedLocation = latitude !== null && longitude !== null && !!autoDetectedLocation && !!incidentState;
+  const canSubmitQuick = plateNumber.trim().length >= 4 && hasVerifiedLocation;
 
   const canProceed = () => {
     if (step === 1) return plateNumber.trim().length >= 4;
     if (step === 2) return true;
     if (step === 3) return true; // infraction optional
-    if (step === 4) return location.trim().length > 0;
+    if (step === 4) return hasVerifiedLocation;
     if (step === 5) return true;
     return true;
   };
