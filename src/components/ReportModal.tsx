@@ -689,6 +689,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                         <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
                         <span className="text-[10px] uppercase tracking-wide text-primary/70 font-semibold">Locked</span>
                       </div>
+                      <LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} height={160} />
                       <p className="text-[10px] text-muted-foreground mt-1 italic">
                         Locked to your GPS to prevent fraudulent reports.
                       </p>
