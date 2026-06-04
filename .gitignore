@@ -35,3 +35,6 @@ ios/
 *.njsproj
 *.sln
 *.sw?
+
+# Android (not part of this iOS repo)
+android/
