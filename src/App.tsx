@@ -10,6 +10,7 @@ import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
+import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -87,6 +88,7 @@ const queryClient = new QueryClient({
 
 const NativeDeepLinkBridge = () => {
   useNativeDeepLinks();
+  useAndroidBackButton();
   return null;
 };
 

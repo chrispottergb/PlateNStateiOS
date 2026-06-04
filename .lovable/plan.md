@@ -1,30 +1,34 @@
-# Add mini map preview for locked GPS incident location
+# Fix Android Back Button
 
-Show a small, non-interactive Leaflet map with a pin under the "Locked" location card in both Quick mode and Detailed mode (step 4) of `ReportModal`. The map only appears when `latitude && longitude && autoDetectedLocation` are set.
+## Problem
+On Android, Capacitor's default `backButton` behavior exits the app instead of navigating back through your in-app routes. The project has no `App.addListener('backButton', …)` handler, so pressing the device back button either closes the app or does nothing useful inside modals/sheets.
 
-## New component: `src/components/LocationMiniMap.tsx`
+## Solution
+Add a global Android back-button handler that:
+1. Closes any open modal/sheet/drawer first (via a small subscription registry).
+2. Otherwise, navigates back through React Router history.
+3. If history is empty and the user is on the home route, minimizes the app (`App.minimizeApp()`), matching standard Android UX (does not force-close).
 
-- Manual Leaflet v1.9.4 via `useRef` + `useEffect` (per project convention — no `react-leaflet`).
-- Props: `{ latitude: number; longitude: number; label?: string; height?: number }` (default height 140px).
-- On mount: import `leaflet` + `leaflet/dist/leaflet.css`, create a map centered on `[lat, lng]` at zoom 15 with all interaction disabled (`dragging`, `scrollWheelZoom`, `doubleClickZoom`, `touchZoom`, `boxZoom`, `keyboard`, `zoomControl: false`, `attributionControl: true`).
-- Use CartoDB dark tiles (`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png`) to match the dark glass aesthetic.
-- Add a single `L.marker([lat, lng])` with a small custom `L.divIcon` styled with `bg-primary` ring + pulse dot (Tailwind classes via `className` on the divIcon).
-- When lat/lng change, `map.setView([lat, lng], 15)` and reposition the marker.
-- Cleanup: `map.remove()` on unmount.
-- Wrapper: `rounded-lg overflow-hidden border border-primary/30` with `aria-label="Map preview of incident location"`.
+## Changes
 
-## `src/components/ReportModal.tsx` edits
+### 1. New hook: `src/hooks/useAndroidBackButton.tsx`
+- Uses `@capacitor/app` `App.addListener('backButton', …)`.
+- Guarded by `Capacitor.getPlatform() === 'android'` so it's a no-op on web/iOS.
+- Calls `navigate(-1)` when `window.history.length > 1` and current path isn't `/`.
+- Calls `App.minimizeApp()` at root instead of `App.exitApp()` (less destructive).
+- Exposes a tiny pub/sub (`registerBackHandler(fn)`) so open overlays can intercept first; handler returns `true` if it consumed the event.
 
-In both the Quick-mode location block and the Detailed-mode step-4 location block, inside the `autoDetectedLocation && latitude !== null && longitude !== null` branch, render `<LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} />` directly under the locked location pill and above the "Locked to your GPS…" helper text.
+### 2. Register hook in `src/App.tsx`
+- Call `useAndroidBackButton()` once inside the Router so `useNavigate` is available.
 
-No changes to state, geocoding, or submit guards — purely additive presentation.
-
-## Verification
-- Open Report modal → Quick mode → map renders with pin at detected spot.
-- Switch to Detailed → step through to Location → same map renders.
-- Deny location → map hidden, retry card still shown.
-- Modal close/reopen → no Leaflet "Map container is already initialized" errors (cleanup verified).
+### 3. Optional follow-up (only if needed)
+- `ReportModal` and other Dialog/Sheet components can call `registerBackHandler` on open to close themselves on back press. Not required for the base fix — Radix Dialog already closes on Escape, but Android back doesn't dispatch Escape, so this makes modals dismiss naturally.
 
 ## Files
-- New: `src/components/LocationMiniMap.tsx`
-- Edit: `src/components/ReportModal.tsx`
+- create: `src/hooks/useAndroidBackButton.tsx`
+- edit: `src/App.tsx` (one hook call inside Router)
+- edit (optional): `src/components/ReportModal.tsx` to register a close handler while open
+
+## Verification
+- Web preview: hook is a no-op, no regressions.
+- Android build (`npx cap sync && npx cap run android`): back button navigates one route back; at `/` it minimizes the app; open modals close first.
