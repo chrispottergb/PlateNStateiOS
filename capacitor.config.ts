@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const isDev = process.env.NODE_ENV === 'development';
 
 const config: CapacitorConfig = {
-  appId: 'com.platenstate.app',
+  appId: 'com.plateandstate.platenstate',
   appName: 'Plate N\' State',
   webDir: 'dist',
   // server block only active in local dev (hot-reload from Lovable sandbox).
