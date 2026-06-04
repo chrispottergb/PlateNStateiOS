@@ -265,6 +265,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
           toast.error("Already reported", { description: "You've already reported this plate in the last 24 hours. Try again tomorrow." });
         } else if (error.message.includes("RATE_LIMITED")) {
           toast.error("Too many requests, slow down", { description: "Please wait a moment before submitting again." });
+        } else if (error.message.includes("LOCATION_REQUIRED")) {
+          toast.error("Location required", { description: "Reports must be filed from where the incident happened. Enable location and try again." });
         } else if (error.message.includes("INVALID_STATE")) {
           toast.error("Invalid state", { description: "Pick a valid US state for the report." });
         } else {
