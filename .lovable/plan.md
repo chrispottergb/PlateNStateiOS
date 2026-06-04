@@ -1,49 +1,30 @@
-# Lock incident location to user's GPS
+# Add mini map preview for locked GPS incident location
 
-To prevent fraudulent and malicious reports, the incident city/state must come from the user's real GPS location. Users can no longer manually pick a different city/state for where the incident happened.
+Show a small, non-interactive Leaflet map with a pin under the "Locked" location card in both Quick mode and Detailed mode (step 4) of `ReportModal`. The map only appears when `latitude && longitude && autoDetectedLocation` are set.
 
-Note: the **Plate state** dropdown (where the plate is registered) stays user-selectable — that's the state on the license plate, not where the incident occurred.
+## New component: `src/components/LocationMiniMap.tsx`
 
-## Changes
+- Manual Leaflet v1.9.4 via `useRef` + `useEffect` (per project convention — no `react-leaflet`).
+- Props: `{ latitude: number; longitude: number; label?: string; height?: number }` (default height 140px).
+- On mount: import `leaflet` + `leaflet/dist/leaflet.css`, create a map centered on `[lat, lng]` at zoom 15 with all interaction disabled (`dragging`, `scrollWheelZoom`, `doubleClickZoom`, `touchZoom`, `boxZoom`, `keyboard`, `zoomControl: false`, `attributionControl: true`).
+- Use CartoDB dark tiles (`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png`) to match the dark glass aesthetic.
+- Add a single `L.marker([lat, lng])` with a small custom `L.divIcon` styled with `bg-primary` ring + pulse dot (Tailwind classes via `className` on the divIcon).
+- When lat/lng change, `map.setView([lat, lng], 15)` and reposition the marker.
+- Cleanup: `map.remove()` on unmount.
+- Wrapper: `rounded-lg overflow-hidden border border-primary/30` with `aria-label="Map preview of incident location"`.
 
-### `src/components/ReportModal.tsx`
+## `src/components/ReportModal.tsx` edits
 
-**Quick mode location block (lines ~425–489)**
-- Remove the manual override pencil button.
-- Remove the incident-state `<Select>` and city `<Select>`.
-- Replace the "manual" fallback with one of three locked, read-only states:
-  - `geocoding`: "Detecting your location…" spinner.
-  - `done` + reverse-geocoded: locked badge showing `📍 {city, ST}` with a small "Locked to your GPS for verification" helper line.
-  - `denied` or geocode failed: red warning card "Location required to submit. Enable location and retry." with a **Retry** button calling `detectLocation()`. Submit stays disabled.
+In both the Quick-mode location block and the Detailed-mode step-4 location block, inside the `autoDetectedLocation && latitude !== null && longitude !== null` branch, render `<LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} />` directly under the locked location pill and above the "Locked to your GPS…" helper text.
 
-**Detailed mode location block (lines ~709–740)**
-- Identical treatment: remove both selects + pencil override; show locked GPS-derived value or the same retry card.
-
-**State**
-- Remove `manualOverride` state and the `setManualOverride` calls in `reset()`.
-- Remove the `onValueChange` city/state setters that wrote to `location` / `incidentState` from user clicks. `incidentState` and `location` are written only by `reverseGeocode()`.
-
-**Submit guard**
-- Add to `canSubmitQuick` (and the equivalent detailed-mode gate): require `latitude && longitude && incidentState && location` and `geoStatus === "done"`. If any are missing, disable submit and show inline reason.
-- Keep the existing `p_latitude` / `p_longitude` / `p_incident_state` payload — already wired.
-
-**KS county field**: keep (it's about the plate's issuing county, not the incident location).
-
-### Server-side enforcement (`spend_credit_on_report` RPC)
-
-Add a hard server check so a malicious client can't bypass the UI:
-- Require `p_latitude IS NOT NULL AND p_longitude IS NOT NULL`.
-- Require `p_incident_state IS NOT NULL`.
-- Reject with `RAISE EXCEPTION 'LOCATION_REQUIRED: GPS location is required to submit a report.'` otherwise.
-- Client already maps known error prefixes to toasts — add a `LOCATION_REQUIRED` branch with a friendly message.
-
-This is a migration that re-creates `public.spend_credit_on_report(...)` with the same signature plus the new guards at the top.
-
-## Files
-- Edit: `src/components/ReportModal.tsx`
-- New migration: add GPS-required guards to `spend_credit_on_report`
+No changes to state, geocoding, or submit guards — purely additive presentation.
 
 ## Verification
-- Open Report modal with location allowed → see locked `📍 City, ST`, submit works.
-- Open with location blocked → see retry card, submit disabled.
-- Manually call the RPC without lat/lng (e.g. via console) → backend rejects with `LOCATION_REQUIRED`.
+- Open Report modal → Quick mode → map renders with pin at detected spot.
+- Switch to Detailed → step through to Location → same map renders.
+- Deny location → map hidden, retry card still shown.
+- Modal close/reopen → no Leaflet "Map container is already initialized" errors (cleanup verified).
+
+## Files
+- New: `src/components/LocationMiniMap.tsx`
+- Edit: `src/components/ReportModal.tsx`
