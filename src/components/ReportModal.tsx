@@ -402,7 +402,12 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
             {/* Plate input + state */}
             <div>
               <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate & State</Label>
-              <PlateScanner onResult={(plate) => setPlateNumber(plate.slice(0, 10))} />
+              <PlateScanner onResult={(plate, scannedState) => {
+                    setPlateNumber(plate.slice(0, 10));
+                    if (scannedState && US_STATES.some(s => s.code === scannedState)) {
+                      setPlateState(scannedState);
+                    }
+                  }} />
               <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
                 <Input
                   id="quick-plate"
