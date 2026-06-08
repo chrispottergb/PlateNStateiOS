@@ -142,7 +142,7 @@ const ClaimPlate = () => {
     return null;
   };
 
-  const handleScanResult = (plate: string) => {
+  const handleScanResult = (plate: string, _scannedState: string | null) => {
     setPlateNumber(plate);
     setShowScanner(false);
   };
