@@ -41,12 +41,27 @@ workflows:
           plutil -replace NSLocationAlwaysAndWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           echo "=== Verifying Info.plist privacy keys ==="
           plutil -p "$PLIST" | grep -i "UsageDescription"
-      - name: Resolve Swift Package dependencies
+      - name: Resolve Swift Package dependencies (with retry)
         script: |
           set -e
-          xcodebuild -resolvePackageDependencies \
-            -project "$XCODE_PROJECT" \
-            -scheme "$XCODE_SCHEME"
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i of $MAX_RETRIES..."
+            if xcodebuild -resolvePackageDependencies \
+                 -project "$XCODE_PROJECT" \
+                 -scheme "$XCODE_SCHEME"; then
+              echo "SPM resolve succeeded on attempt $i"
+              break
+            fi
+            if [ "$i" -lt "$MAX_RETRIES" ]; then
+              echo "SPM resolve failed (likely transient CDN error). Cleaning and retrying in 30s..."
+              rm -rf ~/Library/Developer/Xcode/DerivedData/App-*/SourcePackages
+              sleep 30
+            else
+              echo "SPM resolve failed after $MAX_RETRIES attempts"
+              exit 1
+            fi
+          done
       - name: Initialize keychain
         script: keychain initialize
       - name: Revoke existing distribution certs (free up the slot)
