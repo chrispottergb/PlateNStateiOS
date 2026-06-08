@@ -100,8 +100,12 @@ workflows:
       - name: Increment build number
         script: |
           cd ios/App
-          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 0)
-          agvtool new-version -all $(($LATEST + 1))
+          LATEST_STORE=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 0)
+          LATEST_TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 0)
+          LATEST=$(( LATEST_STORE > LATEST_TF ? LATEST_STORE : LATEST_TF ))
+          NEXT=$(($LATEST + 1))
+          echo "Latest build: store=$LATEST_STORE testflight=$LATEST_TF → next=$NEXT"
+          agvtool new-version -all $NEXT
       - name: Build .ipa
         script: |
           xcode-project build-ipa \
