@@ -23,6 +23,8 @@ if (SENTRY_DSN) {
       "Invalid Refresh Token",
       "Refresh Token Not Found",
       "Auth session missing",
+      "Lock was stolen by another request",
+      "Lock broken by another request",
     ],
     beforeSend(event, hint) {
       const err = hint?.originalException as any;
@@ -35,6 +37,10 @@ if (SENTRY_DSN) {
         (name === "AuthApiError" && /Refresh Token/i.test(msg)) ||
         /Invalid Refresh Token|Refresh Token Not Found|Auth session missing/i.test(msg)
       ) {
+        return null;
+      }
+      // Suppress Web Locks API AbortErrors from Supabase auth storage
+      if (name === "AbortError" && /lock/i.test(msg)) {
         return null;
       }
       return event;

@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   portalMode: PortalMode | null;
+  termsAcceptedAt: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   portalMode: null,
+  termsAcceptedAt: null,
   signOut: async () => {},
 });
 
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [portalMode, setPortalMode] = useState<PortalMode | null>(null);
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -60,21 +63,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch portal_mode whenever the user changes
+  // Fetch portal_mode and terms_accepted_at together whenever the user changes
   useEffect(() => {
     if (!user) {
       setPortalMode(null);
+      setTermsAcceptedAt(null);
       return;
     }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("portal_mode")
+        .select("portal_mode, terms_accepted_at")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!cancelled) {
         setPortalMode((data?.portal_mode as PortalMode) ?? "consumer");
+        setTermsAcceptedAt(data?.terms_accepted_at ?? null);
       }
     })();
     return () => { cancelled = true; };
@@ -85,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, portalMode, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, portalMode, termsAcceptedAt, signOut }}>
       {children}
     </AuthContext.Provider>
   );

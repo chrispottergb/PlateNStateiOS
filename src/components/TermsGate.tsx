@@ -20,7 +20,7 @@ const TERMS_VERSION = "2026-05-14";
  * future sign-ins (the dialog won't reappear).
  */
 const TermsGate = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, termsAcceptedAt } = useAuth();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -32,18 +32,8 @@ const TermsGate = () => {
       return;
     }
     if (loading || !user) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("terms_accepted_at")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (cancelled) return;
-      if (!data?.terms_accepted_at) setOpen(true);
-    })();
-    return () => { cancelled = true; };
-  }, [user, loading, pathname]);
+    if (!termsAcceptedAt) setOpen(true);
+  }, [user, loading, termsAcceptedAt, pathname]);
 
   const accept = async () => {
     if (!user) return;
