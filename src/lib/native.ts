@@ -10,12 +10,16 @@ export const isNative = Capacitor.isNativePlatform();
 export async function pickImageFromLibrary(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-  await Camera.requestPermissions({ permissions: ['photos'] });
+  const perms = await Camera.requestPermissions({ permissions: ['photos'] });
+  if (perms.photos === 'denied') {
+    throw new Error('Photo library access denied. Please enable it in Settings > Privacy > Photos.');
+  }
   const photo = await Camera.getPhoto({
     quality: 85,
     allowEditing: false,
     resultType: CameraResultType.Base64,
     source: CameraSource.Photos,
+    presentationStyle: 'popover',
   });
   if (!photo.base64String) return null;
   return `data:image/jpeg;base64,${photo.base64String}`;
@@ -27,12 +31,16 @@ export async function pickImageFromLibrary(): Promise<string | null> {
 export async function takePhotoNative(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-  await Camera.requestPermissions({ permissions: ['camera'] });
+  const perms = await Camera.requestPermissions({ permissions: ['camera'] });
+  if (perms.camera === 'denied') {
+    throw new Error('Camera access denied. Please enable it in Settings > Privacy > Camera.');
+  }
   const photo = await Camera.getPhoto({
     quality: 85,
     allowEditing: false,
     resultType: CameraResultType.Base64,
     source: CameraSource.Camera,
+    presentationStyle: 'fullScreen',
   });
   if (!photo.base64String) return null;
   return `data:image/jpeg;base64,${photo.base64String}`;

@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LicensePlate from "./LicensePlate";
 import { motion } from "framer-motion";
@@ -15,6 +16,37 @@ interface FreshCatchesProps {
 }
 
 const FreshCatches = ({ reports }: FreshCatchesProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || reports.length <= 3) return;
+    let raf: number;
+    let paused = false;
+    const step = () => {
+      if (!paused && el.scrollLeft < el.scrollWidth - el.clientWidth) {
+        el.scrollLeft += 0.5;
+      } else if (!paused) {
+        el.scrollLeft = 0;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    const pause = () => { paused = true; };
+    const resume = () => { paused = false; };
+    el.addEventListener("touchstart", pause, { passive: true });
+    el.addEventListener("touchend", resume, { passive: true });
+    el.addEventListener("mouseenter", pause);
+    el.addEventListener("mouseleave", resume);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("touchstart", pause);
+      el.removeEventListener("touchend", resume);
+      el.removeEventListener("mouseenter", pause);
+      el.removeEventListener("mouseleave", resume);
+    };
+  }, [reports.length]);
+
   if (!reports.length) return null;
 
   return (
@@ -22,7 +54,7 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
       <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
         🔥 Fresh Catches
       </h3>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
         {reports.slice(0, 10).map((r, i) => (
           <Link key={r.id} to={`/plate/${encodeURIComponent(r.plate_number)}`}>
             <motion.div

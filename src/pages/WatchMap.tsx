@@ -107,6 +107,8 @@ const WatchMap = () => {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapRef.current);
     markersRef.current = L.layerGroup().addTo(mapRef.current);
+    // WKWebView may report wrong container size on first paint; force recalc
+    setTimeout(() => mapRef.current?.invalidateSize(), 300);
     return () => { mapRef.current?.remove(); mapRef.current = null; };
   }, []);
 
@@ -210,9 +212,9 @@ const WatchMap = () => {
         </div>
       </div>
 
-      {/* Map */}
-      <div className="flex-1 relative" style={{ minHeight: "500px" }}>
-        <div ref={mapContainerRef} className="absolute inset-0 z-0" style={{ height: "100%", width: "100%" }} />
+      {/* Map — use calc to fill viewport; flex-1 alone doesn't establish height in WKWebView */}
+      <div className="relative" style={{ height: "calc(100vh - 160px)", minHeight: "400px" }}>
+        <div ref={mapContainerRef} className="absolute inset-0 z-0" />
 
         {/* Report count overlay */}
         <div className="absolute top-3 left-3 z-[1000]">
