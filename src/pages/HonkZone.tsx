@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList, ShieldCheck } from "lucide-react";
+
+const HeroMiniMap = lazy(() => import("@/components/HeroMiniMap"));
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import SocialReportCard from "@/components/SocialReportCard";
@@ -228,27 +230,31 @@ const HonkZone = () => {
         <div className="absolute top-10 left-1/3 w-40 h-40 bg-primary/8 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-0 right-1/4 w-56 h-56 bg-accent/6 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
-        <div className="container relative py-10 sm:py-14 text-center space-y-5 z-10">
+        <div className="container relative py-6 sm:py-10 space-y-5 z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="space-y-4"
+            className="space-y-3 text-center"
           >
             <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5">
               <span className="text-lg">🚨</span>
               <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The A-Hole Patrol</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold gradient-text-fire">The A-Hole Patrol</h1>
+            <h1 className="text-2xl sm:text-4xl font-extrabold gradient-text-fire">The A-Hole Patrol</h1>
+            <div className="h-6 flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.p key={taglineIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} className="text-sm text-muted-foreground italic">
+                  {FUNNY_TAGLINES[taglineIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
           </motion.div>
 
-          <div className="h-6 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.p key={taglineIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} className="text-sm text-muted-foreground italic">
-                {FUNNY_TAGLINES[taglineIndex]}
-              </motion.p>
-            </AnimatePresence>
-          </div>
+          {/* Live incident map */}
+          <Suspense fallback={<div className="h-[280px] rounded-2xl bg-muted/30 animate-pulse" />}>
+            <HeroMiniMap />
+          </Suspense>
 
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <ReportModal

@@ -25,6 +25,8 @@ if (SENTRY_DSN) {
       "Auth session missing",
       "Lock was stolen by another request",
       "Lock broken by another request",
+      "Importing a module script failed",
+      "Failed to fetch dynamically imported module",
     ],
     beforeSend(event, hint) {
       const err = hint?.originalException as any;
