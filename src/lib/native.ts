@@ -15,7 +15,9 @@ export async function pickImageFromLibrary(): Promise<string | null> {
     throw new Error('Photo library access denied. Please enable it in Settings > Privacy > Photos.');
   }
   const photo = await Camera.getPhoto({
-    quality: 85,
+    quality: 70,
+    width: 1280,
+    height: 960,
     allowEditing: false,
     resultType: CameraResultType.Base64,
     source: CameraSource.Photos,
@@ -36,7 +38,9 @@ export async function takePhotoNative(): Promise<string | null> {
     throw new Error('Camera access denied. Please enable it in Settings > Privacy > Camera.');
   }
   const photo = await Camera.getPhoto({
-    quality: 85,
+    quality: 70,
+    width: 1280,
+    height: 960,
     allowEditing: false,
     resultType: CameraResultType.Base64,
     source: CameraSource.Camera,

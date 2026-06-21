@@ -49,7 +49,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    const body = await req.json();
+    let body: any;
+    try {
+      const rawText = await req.text();
+      if (!rawText || rawText.length === 0) {
+        return new Response(JSON.stringify({ error: "Empty request body" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      body = JSON.parse(rawText);
+    } catch (parseErr: any) {
+      console.error("JSON parse error, body length:", (await req.text?.())?.length ?? "unknown");
+      return new Response(JSON.stringify({ error: "Invalid request body — image may be too large. Try a smaller photo." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const { image, captcha_token } = body;
     // Authenticated users (native + logged-in web) bypass captcha.
     // Unauthenticated public requests still require a valid hCaptcha token.
