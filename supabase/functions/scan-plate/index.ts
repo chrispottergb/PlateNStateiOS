@@ -30,8 +30,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     // Per-IP rate limit: 60/min via Postgres token bucket
     const ip = getClientIp(req);
@@ -51,8 +51,6 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { image, captcha_token } = body;
-    // Authenticated users (native + logged-in web) bypass captcha.
-    // Unauthenticated public requests still require a valid hCaptcha token.
     const authed = await isAuthenticated(req);
     if (!authed && !(await verifyCaptcha(captcha_token))) {
       return new Response(JSON.stringify({ error: "Captcha failed" }), {
@@ -66,64 +64,50 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Call Lovable AI with vision to extract plate number and state
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Strip data URL prefix to get raw base64 if present
+    let base64Data = image;
+    let mediaType = "image/jpeg";
+    const dataUrlMatch = image.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (dataUrlMatch) {
+      mediaType = dataUrlMatch[1];
+      base64Data = dataUrlMatch[2];
+    }
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "claude-sonnet-4-6-20250514",
+        max_tokens: 256,
         messages: [
-          {
-            role: "system",
-            content: `You are a license plate reader. Extract the plate number and US state from the image. Return ONLY a JSON object with "plate_number" (uppercase, no spaces or special chars) and "state" (2-letter abbreviation). If you cannot read the plate, return {"plate_number": null, "state": null}. Do not include any other text.`,
-          },
           {
             role: "user",
             content: [
               {
-                type: "image_url",
-                image_url: { url: image },
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: mediaType,
+                  data: base64Data,
+                },
               },
               {
                 type: "text",
-                text: "Read the license plate number and state from this image.",
+                text: `Read the license plate number and US state from this image. Return ONLY a JSON object with these exact keys:
+- "plate_number": uppercase string, no spaces or special chars (null if unreadable)
+- "state": 2-letter US state abbreviation (null if unreadable)
+- "confidence": "high", "medium", or "low"
+
+Example: {"plate_number": "ABC1234", "state": "WI", "confidence": "high"}
+Return ONLY the JSON object, nothing else.`,
               },
             ],
           },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_plate",
-              description: "Extract license plate number and state from an image",
-              parameters: {
-                type: "object",
-                properties: {
-                  plate_number: {
-                    type: "string",
-                    description: "The license plate number in uppercase with no spaces or special characters. Null if unreadable.",
-                  },
-                  state: {
-                    type: "string",
-                    description: "The 2-letter US state abbreviation from the plate. Null if unreadable.",
-                  },
-                  confidence: {
-                    type: "string",
-                    enum: ["high", "medium", "low"],
-                    description: "How confident you are in the reading",
-                  },
-                },
-                required: ["plate_number", "state", "confidence"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_plate" } },
       }),
     });
 
@@ -134,39 +118,30 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      throw new Error("AI gateway error");
+      console.error("Anthropic API error:", response.status, errText);
+      throw new Error("AI vision error");
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    const content = data.content?.[0]?.text || "";
 
-    if (toolCall?.function?.arguments) {
-      const result = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify(result), {
+    // Extract JSON from response (Claude may wrap it in markdown code blocks)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0]);
+      return new Response(JSON.stringify({
+        plate_number: result.plate_number || null,
+        state: result.state || null,
+        confidence: result.confidence || "low",
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fallback: try to parse from content
-    const content = data.choices?.[0]?.message?.content || "";
-    try {
-      const parsed = JSON.parse(content);
-      return new Response(JSON.stringify(parsed), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } catch {
-      return new Response(JSON.stringify({ plate_number: null, state: null, confidence: "low" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    return new Response(JSON.stringify({ plate_number: null, state: null, confidence: "low" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err: any) {
     console.error("scan-plate error:", err);
     await captureException(err);
