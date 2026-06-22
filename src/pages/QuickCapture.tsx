@@ -94,10 +94,13 @@ const QuickCapture = () => {
       if (captcha.enabled && !captchaToken) {
         throw new Error("Captcha verification failed. Please try again.");
       }
-      const { data, error } = await supabase.functions.invoke("scan-plate", {
-        body: { image: base64, captcha_token: captchaToken },
+      const resp = await fetch("https://platenstate-scan-api.vercel.app/api/scan-plate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64 }),
       });
-      if (error) throw error;
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || "Scan failed");
 
       if (data?.plate_number) {
         const plate = String(data.plate_number).toUpperCase().replace(/\s+/g, "").slice(0, 10);
