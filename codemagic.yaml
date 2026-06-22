@@ -39,8 +39,9 @@ workflows:
           plutil -replace NSPhotoLibraryAddUsageDescription -string "Plate N' State saves plate photos to your library." "$PLIST"
           plutil -replace NSLocationWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           plutil -replace NSLocationAlwaysAndWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
-          echo "=== Verifying Info.plist privacy keys ==="
-          plutil -p "$PLIST" | grep -i "UsageDescription"
+          plutil -replace ITSAppUsesNonExemptEncryption -bool false "$PLIST"
+          echo "=== Verifying Info.plist keys ==="
+          plutil -p "$PLIST" | grep -iE "UsageDescription|Encryption"
       - name: Resolve Swift Package dependencies (with retry)
         script: |
           set -e
@@ -119,4 +120,4 @@ workflows:
         auth: integration
         submit_to_testflight: true
         beta_groups:
-          - Internal Testers
+          - App Store Connect Users
