@@ -131,7 +131,7 @@ const ReportComposer = () => {
 const HonkZone = () => {
   const [searchPlate, setSearchPlate] = useState("");
   const [taglineIndex, setTaglineIndex] = useState(0);
-  const [sortMode, setSortMode] = useState<SortMode>("hot");
+  const [sortMode, setSortMode] = useState<SortMode>("new");
   const [flairFilter, setFlairFilter] = useState("all");
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState("all");
   const [vehicleColorFilter, setVehicleColorFilter] = useState("all");
