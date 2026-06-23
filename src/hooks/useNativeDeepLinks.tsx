@@ -21,30 +21,44 @@ export const useNativeDeepLinks = () => {
       try {
         const { App } = await import("@capacitor/app");
 
+        const closeBrowser = async () => {
+          try { const { Browser } = await import("@capacitor/browser"); await Browser.close(); } catch {}
+        };
+
         const handle = async (rawUrl: string) => {
           if (!rawUrl) return;
           try {
-            const u = new URL(rawUrl);
-            const path = u.pathname || "/";
-            const target = `${path}${u.search || ""}${u.hash || ""}`;
+            // Custom scheme URLs (com.plateandstate.platenstate://callback#...)
+            // can't be parsed by new URL() — extract hash/query manually
+            const hashIdx = rawUrl.indexOf("#");
+            const qIdx = rawUrl.indexOf("?");
+            const hash = hashIdx >= 0 ? rawUrl.slice(hashIdx + 1) : "";
+            const query = qIdx >= 0 ? rawUrl.slice(qIdx + 1, hashIdx >= 0 ? hashIdx : undefined) : "";
 
-            const hashParams = new URLSearchParams(u.hash.replace(/^#/, ""));
+            const hashParams = new URLSearchParams(hash);
+            const queryParams = new URLSearchParams(query);
+
             const accessToken = hashParams.get("access_token");
             const refreshToken = hashParams.get("refresh_token");
             if (accessToken && refreshToken) {
               await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-              await import("@capacitor/browser").then(({ Browser }) => Browser.close()).catch(() => {});
-              navigate(path === "/auth" || path.startsWith("/~oauth") ? "/" : target, { replace: true });
-              return;
-            }
-
-            const code = u.searchParams.get("code");
-            if (code && (path === "/auth" || path.startsWith("/~oauth"))) {
-              await supabase.auth.exchangeCodeForSession(code).catch(() => {});
-              await import("@capacitor/browser").then(({ Browser }) => Browser.close()).catch(() => {});
+              await closeBrowser();
               navigate("/", { replace: true });
               return;
             }
+
+            const code = queryParams.get("code") || hashParams.get("code");
+            if (code) {
+              await supabase.auth.exchangeCodeForSession(code).catch(() => {});
+              await closeBrowser();
+              navigate("/", { replace: true });
+              return;
+            }
+
+            // Fall back to standard URL parsing for http(s) deep links
+            const u = new URL(rawUrl);
+            const path = u.pathname || "/";
+            const target = `${path}${u.search || ""}${u.hash || ""}`;
 
             if (target && target !== window.location.pathname + window.location.search + window.location.hash) {
               navigate(target, { replace: true });
