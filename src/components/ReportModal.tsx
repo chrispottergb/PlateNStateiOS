@@ -407,6 +407,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     }
+                    if (latitude === null) detectLocation();
                   }} />
               <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
                 <Input
@@ -565,6 +566,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     }
+                    if (latitude === null) detectLocation();
                   }} />
                   <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
                     <Input

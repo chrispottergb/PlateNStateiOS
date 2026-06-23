@@ -55,12 +55,22 @@ export async function getPosition(): Promise<{ latitude: number; longitude: numb
   if (isNative) {
     try {
       const { Geolocation } = await import('@capacitor/geolocation');
-      await Geolocation.requestPermissions();
-      const pos = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-      });
-      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      const perms = await Geolocation.requestPermissions();
+      if (perms.location === 'denied') return null;
+      // Try high accuracy first, fall back to low accuracy on timeout
+      try {
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+        });
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      } catch {
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 10000,
+        });
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      }
     } catch {
       return null;
     }
