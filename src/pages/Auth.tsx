@@ -15,7 +15,7 @@ import authBg from "@/assets/auth-bg.jpg";
 // rejects as a redirect URL and which won't reopen the app from an email link.
 // Fall back to the published web URL so confirmation links still work.
 const REDIRECT_ORIGIN = isNative
-  ? "com.plateandstate.platenstate://callback"
+  ? "https://platenstate.lovable.app"
   : window.location.origin;
 
 const Auth = () => {
@@ -145,12 +145,19 @@ const Auth = () => {
                 if (isNative) {
                   const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: "google",
-                    options: { redirectTo: REDIRECT_ORIGIN, skipBrowserRedirect: true },
+                    options: { redirectTo: `${REDIRECT_ORIGIN}/auth`, skipBrowserRedirect: true },
                   });
                   if (error) throw error;
                   if (data?.url) {
                     const { Browser } = await import("@capacitor/browser");
-                    await Browser.open({ url: data.url });
+                    const browserFinished = new Promise<void>((resolve) => {
+                      Browser.addListener("browserFinished", () => resolve());
+                    });
+                    await Browser.open({ url: data.url, presentationStyle: "popover" });
+                    await browserFinished;
+                    // After browser closes, check if session was set via URL listener
+                    const { data: session } = await supabase.auth.getSession();
+                    if (session?.session) navigate("/");
                   }
                   return;
                 }
