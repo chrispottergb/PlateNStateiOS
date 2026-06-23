@@ -3,7 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, CreditCard, ExternalLink } from "lucide-react";
+import { isNative } from "@/lib/native";
+
+const API_BASE = "https://platenstate-scan-api.vercel.app";
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -17,45 +20,42 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, disputeId, returnUrl }: CheckoutDialogProps) {
   const [processing, setProcessing] = useState(false);
-  const [done, setDone] = useState(false);
   const { toast } = useToast();
 
   const handlePay = async () => {
     setProcessing(true);
     try {
-      // Simulate processing latency
-      await new Promise(r => setTimeout(r, 900));
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Please sign in to complete checkout.");
-      const homeState = (typeof window !== "undefined" && localStorage.getItem("home_state")) || "WI";
-      const body: Record<string, unknown> = { priceId, state: homeState };
-      if (plateNumber) body.plateNumber = plateNumber;
-      if (disputeId) body.disputeId = disputeId;
-      const { data, error } = await supabase.functions.invoke("mock-checkout", {
-        body,
-        headers: { Authorization: `Bearer ${session.access_token}` },
+      const userId = session?.user?.id;
+      const email = session?.user?.email;
+
+      const finalReturnUrl = returnUrl || `${window.location.origin}/claim`;
+
+      const resp = await fetch(`${API_BASE}/api/create-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priceId,
+          plateNumber: plateNumber || undefined,
+          disputeId: disputeId || undefined,
+          userId: userId || undefined,
+          email: email || undefined,
+          returnUrl: finalReturnUrl,
+        }),
       });
-      if (error) {
-        // Try to extract the JSON error body from a non-2xx response
-        let detail = error.message;
-        try {
-          const ctx: any = (error as any).context;
-          if (ctx?.json) detail = (await ctx.json())?.error ?? detail;
-          else if (ctx?.text) detail = (await ctx.text()) || detail;
-        } catch { /* ignore */ }
-        throw new Error(detail || "Checkout failed");
-      }
-      if (data?.error) throw new Error(data.error);
-      setDone(true);
-      toast({ title: "Payment successful (test)", description: "Your account has been updated." });
-      setTimeout(() => {
-        onClose();
-        setDone(false);
-        const url = returnUrl ?? `${window.location.origin}/claim?checkout=success&session_id=mock_${Date.now()}`;
-        if (url.startsWith(window.location.origin)) {
-          window.location.href = url;
+
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || "Checkout failed");
+
+      if (data.url) {
+        if (isNative) {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.open({ url: data.url });
+        } else {
+          window.location.href = data.url;
         }
-      }, 800);
+        onClose();
+      }
     } catch (e: any) {
       toast({ title: "Checkout failed", description: e.message, variant: "destructive" });
     } finally {
@@ -72,38 +72,21 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
             {title}
           </DialogTitle>
           <DialogDescription>
-            This is a sandbox checkout — no real card is charged.
+            You'll be redirected to Stripe's secure checkout to complete payment.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Card</span>
-            <span className="font-mono">•••• •••• •••• 4242</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Expires</span>
-            <span className="font-mono">12/29</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">CVC</span>
-            <span className="font-mono">•••</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1 border-t border-border/50">
-            <Lock className="h-3 w-3" />
-            Test mode — secured by mock processor
-          </div>
+        <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
+          <p>Payments are processed securely by Stripe. Your card details never touch our servers.</p>
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={processing}>Cancel</Button>
-          <Button onClick={handlePay} disabled={processing || done} className="min-w-[120px]">
-            {done ? (
-              <><CheckCircle2 className="h-4 w-4 mr-1" /> Paid</>
-            ) : processing ? (
-              <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Processing…</>
+          <Button onClick={handlePay} disabled={processing} className="min-w-[140px] gap-2">
+            {processing ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
             ) : (
-              "Pay Now (Test)"
+              <><ExternalLink className="h-4 w-4" /> Proceed to Checkout</>
             )}
           </Button>
         </DialogFooter>
