@@ -29,6 +29,41 @@ workflows:
           npx cap sync ios
           echo "=== iOS project tree ==="
           find ios -maxdepth 4 -type d
+      - name: Generate and inject app icon
+        script: |
+          set -e
+          ICON_SRC="src/assets/logo-icon.png"
+          ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+          echo "Generating iOS app icons from $ICON_SRC"
+          for SIZE in 20 29 40 58 60 76 80 87 120 152 167 180 1024; do
+            sips -z $SIZE $SIZE "$ICON_SRC" --out "$ICONSET/icon-${SIZE}.png" >/dev/null
+          done
+          cat > "$ICONSET/Contents.json" << 'ICONJSON'
+          {
+            "images": [
+              {"size":"20x20","idiom":"iphone","filename":"icon-40.png","scale":"2x"},
+              {"size":"20x20","idiom":"iphone","filename":"icon-60.png","scale":"3x"},
+              {"size":"29x29","idiom":"iphone","filename":"icon-58.png","scale":"2x"},
+              {"size":"29x29","idiom":"iphone","filename":"icon-87.png","scale":"3x"},
+              {"size":"40x40","idiom":"iphone","filename":"icon-80.png","scale":"2x"},
+              {"size":"40x40","idiom":"iphone","filename":"icon-120.png","scale":"3x"},
+              {"size":"60x60","idiom":"iphone","filename":"icon-120.png","scale":"2x"},
+              {"size":"60x60","idiom":"iphone","filename":"icon-180.png","scale":"3x"},
+              {"size":"20x20","idiom":"ipad","filename":"icon-20.png","scale":"1x"},
+              {"size":"20x20","idiom":"ipad","filename":"icon-40.png","scale":"2x"},
+              {"size":"29x29","idiom":"ipad","filename":"icon-29.png","scale":"1x"},
+              {"size":"29x29","idiom":"ipad","filename":"icon-58.png","scale":"2x"},
+              {"size":"40x40","idiom":"ipad","filename":"icon-40.png","scale":"1x"},
+              {"size":"40x40","idiom":"ipad","filename":"icon-80.png","scale":"2x"},
+              {"size":"76x76","idiom":"ipad","filename":"icon-76.png","scale":"1x"},
+              {"size":"76x76","idiom":"ipad","filename":"icon-152.png","scale":"2x"},
+              {"size":"83.5x83.5","idiom":"ipad","filename":"icon-167.png","scale":"2x"},
+              {"size":"1024x1024","idiom":"ios-marketing","filename":"icon-1024.png","scale":"1x"}
+            ],
+            "info":{"version":1,"author":"xcode"}
+          }
+          ICONJSON
+          echo "App icon injected with $(ls $ICONSET/*.png | wc -l) sizes"
       - name: Inject privacy usage strings into Info.plist
         script: |
           set -e

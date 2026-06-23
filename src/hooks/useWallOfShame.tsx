@@ -16,12 +16,22 @@ export function useWallOfShame(state?: string | null, limit = 20) {
   const { data, isLoading } = useQuery({
     queryKey: ["wall-of-shame", state ?? null, limit],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_wall_of_shame", {
-        p_state: state ?? null,
-        p_limit: limit,
-      } as any);
+      let query = supabase
+        .from("reports")
+        .select("plate_number, infraction, location, created_at, state")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (state) query = query.eq("state", state);
+      const { data, error } = await query;
       if (error) throw error;
-      return (data as WallOfShameRow[]) ?? [];
+      return (data ?? []).map((r: any) => ({
+        state: r.state || "",
+        plate_number: r.plate_number,
+        report_count: 1,
+        total_score: 0,
+        last_reported_at: r.created_at,
+        top_infraction: r.infraction,
+      })) as WallOfShameRow[];
     },
     staleTime: 5 * 60_000,
   });
