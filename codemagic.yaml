@@ -28,9 +28,9 @@ workflows:
         script: |
           set -e
           GRADLE="android/app/build.gradle"
-          CURRENT=$(grep -oP 'versionCode \K\d+' "$GRADLE")
+          CURRENT=$(grep 'versionCode' "$GRADLE" | head -1 | tr -dc '0-9')
           NEXT=$((CURRENT + 1))
-          sed -i "s/versionCode $CURRENT/versionCode $NEXT/" "$GRADLE"
+          sed -i '' "s/versionCode $CURRENT/versionCode $NEXT/" "$GRADLE"
           echo "Version code: $CURRENT → $NEXT"
       - name: Build signed AAB
         script: |
