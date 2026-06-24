@@ -30,7 +30,7 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
       attributionControl: true,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap © CARTO",
       maxZoom: 19,
     }).addTo(map);

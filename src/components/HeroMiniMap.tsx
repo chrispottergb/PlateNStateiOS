@@ -36,7 +36,7 @@ const HeroMiniMap = () => {
       touchZoom: true,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
       maxZoom: 18,
     }).addTo(map);
 
