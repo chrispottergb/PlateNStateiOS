@@ -78,8 +78,10 @@ workflows:
           plutil -replace NSLocationWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           plutil -replace NSLocationAlwaysAndWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           plutil -replace ITSAppUsesNonExemptEncryption -bool false "$PLIST"
+          # Register custom URL scheme for OAuth deep links
+          plutil -insert CFBundleURLTypes -json '[{"CFBundleURLSchemes":["com.plateandstate.platenstate"],"CFBundleURLName":"com.plateandstate.platenstate"}]' "$PLIST" 2>/dev/null || echo "CFBundleURLTypes may already exist"
           echo "=== Verifying Info.plist keys ==="
-          plutil -p "$PLIST" | grep -iE "UsageDescription|Encryption"
+          plutil -p "$PLIST" | grep -iE "UsageDescription|Encryption|URLSchemes"
       - name: Resolve Swift Package dependencies (with retry)
         script: |
           set -e
