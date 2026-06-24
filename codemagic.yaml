@@ -77,22 +77,11 @@ workflows:
       - name: Generate and inject app icon
         script: |
           set -e
-          ICON_SRC="src/assets/logo-icon.png"
+          ICON_SRC="src/assets/app-icon.png"
           ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
-          FLAT="/tmp/icon-flat.png"
-          echo "Flattening alpha channel onto #0F172A background"
-          pip3 install Pillow -q 2>/dev/null || pip install Pillow -q 2>/dev/null
-          python3 << 'PYEOF'
-          from PIL import Image
-          bg = Image.new("RGB", (1024, 1024), (15, 23, 42))
-          icon = Image.open("src/assets/logo-icon.png").convert("RGBA").resize((1024, 1024))
-          bg.paste(icon, (0, 0), icon)
-          bg.save("/tmp/icon-flat.png")
-          print("Flattened icon saved (no alpha)")
-          PYEOF
-          echo "Generating iOS app icons from flattened source"
+          echo "Generating iOS app icons from $ICON_SRC"
           for SIZE in 20 29 40 58 60 76 80 87 120 152 167 180 1024; do
-            sips -z $SIZE $SIZE "$FLAT" --out "$ICONSET/icon-${SIZE}.png" >/dev/null
+            sips -z $SIZE $SIZE "$ICON_SRC" --out "$ICONSET/icon-${SIZE}.png" >/dev/null
           done
           cat > "$ICONSET/Contents.json" << 'ICONJSON'
           {
