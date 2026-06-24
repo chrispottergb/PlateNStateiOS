@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import * as Sentry from "@sentry/react";
+import { hydrateFromNativeStorage } from "./lib/capacitorStorage";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -50,4 +51,6 @@ if (SENTRY_DSN) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+hydrateFromNativeStorage().then(() => {
+  createRoot(document.getElementById("root")!).render(<App />);
+});

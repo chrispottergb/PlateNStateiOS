@@ -1,37 +1,48 @@
 import { isNative } from "./native";
 
-let Preferences: typeof import("@capacitor/preferences").Preferences | null =
-  null;
+// Hybrid storage: localStorage for synchronous Supabase reads,
+// Capacitor Preferences for durable native persistence across app kills.
+// On startup, we hydrate localStorage from Preferences so sessions survive restarts.
 
-async function getPrefs() {
-  if (!Preferences) {
-    const mod = await import("@capacitor/preferences");
-    Preferences = mod.Preferences;
+const SUPABASE_KEY = "sb-qcnhusvxygyczbnmbyvd-auth-token";
+
+async function persistToNative(key: string, value: string | null) {
+  if (!isNative) return;
+  try {
+    const { Preferences } = await import("@capacitor/preferences");
+    if (value === null) {
+      await Preferences.remove({ key });
+    } else {
+      await Preferences.set({ key, value });
+    }
+  } catch {
+    // Native storage unavailable — localStorage is still the fallback
   }
-  return Preferences;
+}
+
+export async function hydrateFromNativeStorage() {
+  if (!isNative) return;
+  try {
+    const { Preferences } = await import("@capacitor/preferences");
+    const { value } = await Preferences.get({ key: SUPABASE_KEY });
+    if (value && !localStorage.getItem(SUPABASE_KEY)) {
+      localStorage.setItem(SUPABASE_KEY, value);
+    }
+  } catch {
+    // First launch or Preferences unavailable — nothing to hydrate
+  }
 }
 
 export const capacitorStorage = {
-  async getItem(key: string): Promise<string | null> {
-    if (!isNative) return localStorage.getItem(key);
-    const prefs = await getPrefs();
-    const { value } = await prefs.get({ key });
-    return value;
+  getItem(key: string): string | null {
+    return localStorage.getItem(key);
   },
-  async setItem(key: string, value: string): Promise<void> {
-    if (!isNative) {
-      localStorage.setItem(key, value);
-      return;
-    }
-    const prefs = await getPrefs();
-    await prefs.set({ key, value });
+  setItem(key: string, value: string): void {
+    localStorage.setItem(key, value);
+    persistToNative(key, value);
   },
-  async removeItem(key: string): Promise<void> {
-    if (!isNative) {
-      localStorage.removeItem(key);
-      return;
-    }
-    const prefs = await getPrefs();
-    await prefs.remove({ key });
+  removeItem(key: string): void {
+    localStorage.removeItem(key);
+    persistToNative(key, null);
   },
 };
