@@ -11,11 +11,15 @@ import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
 
-// On native (Capacitor) window.location.origin is http://localhost, which Supabase
-// rejects as a redirect URL and which won't reopen the app from an email link.
-// Fall back to the published web URL so confirmation links still work.
-const REDIRECT_ORIGIN = isNative
-  ? "https://platenstate.lovable.app"
+// OAuth redirects use the app's custom URL scheme so the OS brings the user
+// back into the app after Google/Apple sign-in completes.
+// Email confirmation links (clicked in a mail client) must use an https URL
+// because custom schemes don't work from email links.
+const OAUTH_REDIRECT = isNative
+  ? "com.plateandstate.platenstate://callback"
+  : `${window.location.origin}/auth`;
+const EMAIL_REDIRECT = isNative
+  ? "https://platenstate.com"
   : window.location.origin;
 
 const Auth = () => {
@@ -58,7 +62,7 @@ const Auth = () => {
               terms_version: "2026-05-11",
               portal_mode: portalMode,
             },
-            emailRedirectTo: REDIRECT_ORIGIN,
+            emailRedirectTo: EMAIL_REDIRECT,
             captchaToken: captchaToken ?? undefined,
           },
         });
@@ -145,7 +149,7 @@ const Auth = () => {
                 if (isNative) {
                   const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: "google",
-                    options: { redirectTo: `${REDIRECT_ORIGIN}/auth`, skipBrowserRedirect: true },
+                    options: { redirectTo: OAUTH_REDIRECT, skipBrowserRedirect: true },
                   });
                   if (error) throw error;
                   if (data?.url) {
@@ -164,7 +168,7 @@ const Auth = () => {
 
                 const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: "google",
-                  options: { redirectTo: `${REDIRECT_ORIGIN}/` },
+                  options: { redirectTo: OAUTH_REDIRECT },
                 });
                 if (error) throw error;
               } catch (error: any) {
@@ -190,7 +194,7 @@ const Auth = () => {
                   const state = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
                   const params = new URLSearchParams({
                     provider: "apple",
-                    redirect_uri: `${REDIRECT_ORIGIN}/auth`,
+                    redirect_uri: OAUTH_REDIRECT,
                     state,
                   });
                   const { Browser } = await import("@capacitor/browser");
@@ -200,7 +204,7 @@ const Auth = () => {
 
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: "apple",
-                  options: { redirectTo: `${REDIRECT_ORIGIN}/` },
+                  options: { redirectTo: OAUTH_REDIRECT },
                 });
                 if (error) throw error;
               } catch (error: any) {

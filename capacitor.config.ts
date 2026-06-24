@@ -6,11 +6,9 @@ const config: CapacitorConfig = {
   appId: 'com.plateandstate.platenstate',
   appName: 'Plate N\' State',
   webDir: 'dist',
-  // server block only active in local dev (hot-reload from Lovable sandbox).
-  // Remove or leave empty for release builds — app will load from bundled dist/.
   ...(isDev && {
     server: {
-      url: 'https://8d04b41e-8233-4288-b74d-acb66aee32f6.lovableproject.com?forceHideBadge=true',
+      url: 'http://localhost:8080',
       cleartext: true,
     },
   }),

@@ -14,7 +14,7 @@ if (SENTRY_DSN) {
     ],
     tracesSampleRate: 0.1,
     // Only propagate trace headers to our own Supabase project — not third-party CDNs
-    tracePropagationTargets: [/^https:\/\/diaydeyqbcseufpbwpki\.supabase\.co/],
+    tracePropagationTargets: [/^https:\/\/qcnhusvxygyczbnmbyvd\.supabase\.co/],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
     ignoreErrors: [

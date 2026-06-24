@@ -11,6 +11,9 @@ workflows:
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.plateandstate.platenstate"
         APP_STORE_APP_ID: 6776563225
+        VITE_SUPABASE_PROJECT_ID: "qcnhusvxygyczbnmbyvd"
+        VITE_SUPABASE_URL: "https://qcnhusvxygyczbnmbyvd.supabase.co"
+        VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbmh1c3Z4eWd5Y3pibm1ieXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg0NTAsImV4cCI6MjA5Nzc1NDQ1MH0.sQJL5eJkI706OwjtUcmr3R1yaT_VaOyEkV7b-Ljrqyk"
       node: 22
       xcode: latest
     scripts:
