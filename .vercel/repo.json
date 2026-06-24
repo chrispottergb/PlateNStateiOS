@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_o48hlhqtzL5IUKWZnfmGh16fJUE2",
+      "name": "platenstate-scan-api",
+      "directory": ".",
+      "orgId": "team_ZdX7Zsizarn9oVZopaJFEP1I"
+    }
+  ]
+}
