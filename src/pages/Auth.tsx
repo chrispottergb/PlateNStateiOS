@@ -11,12 +11,13 @@ import { isNative } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
 
-// OAuth redirects use the app's custom URL scheme so the OS brings the user
-// back into the app after Google/Apple sign-in completes.
-// Email confirmation links (clicked in a mail client) must use an https URL
-// because custom schemes don't work from email links.
+// On native, OAuth must redirect to an HTTPS URL that the app has registered
+// as a Universal Link / App Link — the in-app browser can't handle custom
+// URL schemes directly. After Supabase processes the callback, it redirects
+// to our site URL which the deep link handler intercepts.
+// Email confirmation links also use HTTPS since they open in a mail client.
 const OAUTH_REDIRECT = isNative
-  ? "com.plateandstate.platenstate://callback"
+  ? "https://platenstate.com/auth"
   : `${window.location.origin}/auth`;
 const EMAIL_REDIRECT = isNative
   ? "https://platenstate.com"
@@ -154,12 +155,22 @@ const Auth = () => {
                   if (error) throw error;
                   if (data?.url) {
                     const { Browser } = await import("@capacitor/browser");
-                    const browserFinished = new Promise<void>((resolve) => {
+                    // Listen for the browser closing OR the deep link handler setting the session
+                    const done = new Promise<void>((resolve) => {
                       Browser.addListener("browserFinished", () => resolve());
+                      // Also listen for auth state change (deep link handler may set session)
+                      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+                        if (event === "SIGNED_IN") {
+                          subscription.unsubscribe();
+                          Browser.close().catch(() => {});
+                          resolve();
+                        }
+                      });
+                      // Safety timeout — close browser after 120s
+                      setTimeout(() => { subscription.unsubscribe(); resolve(); }, 120000);
                     });
                     await Browser.open({ url: data.url, presentationStyle: "popover" });
-                    await browserFinished;
-                    // After browser closes, check if session was set via URL listener
+                    await done;
                     const { data: session } = await supabase.auth.getSession();
                     if (session?.session) navigate("/");
                   }
