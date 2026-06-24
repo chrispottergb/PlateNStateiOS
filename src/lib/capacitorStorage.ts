@@ -4,10 +4,11 @@ import { isNative } from "./native";
 // Capacitor Preferences for durable native persistence across app kills.
 // On startup, we hydrate localStorage from Preferences so sessions survive restarts.
 
-const SUPABASE_KEY = "sb-qcnhusvxygyczbnmbyvd-auth-token";
+const PERSIST_PREFIX = "sb-";
+const INDEX_KEY = "__persisted_keys";
 
 async function persistToNative(key: string, value: string | null) {
-  if (!isNative) return;
+  if (!isNative || !key.startsWith(PERSIST_PREFIX)) return;
   try {
     const { Preferences } = await import("@capacitor/preferences");
     if (value === null) {
@@ -15,8 +16,18 @@ async function persistToNative(key: string, value: string | null) {
     } else {
       await Preferences.set({ key, value });
     }
+    // Track which keys we've persisted so hydrate can restore them all
+    const { value: idx } = await Preferences.get({ key: INDEX_KEY });
+    const keys: string[] = idx ? JSON.parse(idx) : [];
+    if (value === null) {
+      const filtered = keys.filter(k => k !== key);
+      await Preferences.set({ key: INDEX_KEY, value: JSON.stringify(filtered) });
+    } else if (!keys.includes(key)) {
+      keys.push(key);
+      await Preferences.set({ key: INDEX_KEY, value: JSON.stringify(keys) });
+    }
   } catch {
-    // Native storage unavailable — localStorage is still the fallback
+    // Native storage unavailable
   }
 }
 
@@ -24,12 +35,16 @@ export async function hydrateFromNativeStorage() {
   if (!isNative) return;
   try {
     const { Preferences } = await import("@capacitor/preferences");
-    const { value } = await Preferences.get({ key: SUPABASE_KEY });
-    if (value && !localStorage.getItem(SUPABASE_KEY)) {
-      localStorage.setItem(SUPABASE_KEY, value);
+    const { value: idx } = await Preferences.get({ key: INDEX_KEY });
+    const keys: string[] = idx ? JSON.parse(idx) : [];
+    for (const key of keys) {
+      if (!localStorage.getItem(key)) {
+        const { value } = await Preferences.get({ key });
+        if (value) localStorage.setItem(key, value);
+      }
     }
   } catch {
-    // First launch or Preferences unavailable — nothing to hydrate
+    // First launch or Preferences unavailable
   }
 }
 
