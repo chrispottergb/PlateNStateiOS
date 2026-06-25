@@ -77,19 +77,15 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
           return (
             <Link key={r.id} to={`/plate/${encodeURIComponent(r.plate_number)}`}>
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex-shrink-0 flex flex-col items-center gap-1.5 group"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                className="flex-shrink-0 flex flex-col items-center gap-2 group rounded-xl border border-border/40 bg-card/60 p-3 hover:border-border/60 transition-colors"
               >
-                <div className="rounded-full p-[2px] bg-gradient-to-br from-primary via-destructive to-accent">
-                  <div className="rounded-full bg-background p-2">
-                    <LicensePlate plateNumber={r.plate_number} state={r.state} size="sm" />
-                  </div>
-                </div>
+                <LicensePlate plateNumber={r.plate_number} state={r.state} size="sm" />
                 <Badge
                   variant={inf?.kind === "good" ? "default" : "destructive"}
-                  className="text-[9px] px-1.5 py-0 max-w-[80px] truncate"
+                  className="text-xs px-2 py-0.5 max-w-[90px] truncate"
                 >
                   {inf?.label || r.infraction}
                 </Badge>

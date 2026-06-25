@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
-import { MapPin, ThumbsUp, MessageCircle, Share2, Car, Flag, AlertCircle } from "lucide-react";
+import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,27 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-const FUNNY_BADGES: Record<string, string> = {
-  reckless: "🏎️ Speed Demon",
-  tailgating: "🐌 Personal Space Invader",
-  running_red: "🚦 Red Means Go, Apparently",
-  no_signal: "💡 Turn Signal Allergic",
-  road_rage: "😤 Road Rager",
-  illegal_parking: "🎨 Parking Picasso",
-  phone_use: "📱 Textaholic",
-  dui: "🍺 Happy Hour Hero",
-  hit_and_run: "🏃 Ghost Driver",
-  other: "🤷 Mystery Menace",
-};
-
-const REACTIONS = [
-  { emoji: "😂", label: "LOL" },
-  { emoji: "🤦", label: "Facepalm" },
-  { emoji: "🚨", label: "Yikes" },
-  { emoji: "💀", label: "Dead" },
-  { emoji: "🤡", label: "Clown" },
-  { emoji: "😤", label: "Rage" },
-];
 
 interface SocialReportCardProps {
   report: {
@@ -42,14 +21,14 @@ interface SocialReportCardProps {
     location: string;
     created_at: string;
     upvote_count: number;
-    state?: string | null;
     vehicle_type?: string | null;
     vehicle_color?: string | null;
     vehicle_make?: string | null;
     vehicle_model?: string | null;
     vehicle_features?: string[] | null;
     comment?: string | null;
-    is_flagged?: boolean | null;
+    is_flagged?: boolean;
+    state?: string | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
@@ -61,19 +40,16 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
   const [showComments, setShowComments] = useState(false);
   const [flagOpen, setFlagOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
-  const [flagging, setFlagging] = useState(false);
   const [flagged, setFlagged] = useState(false);
-  const inf = INFRACTIONS.find((i) => i.type === report.infraction);
-  const funnyBadge = FUNNY_BADGES[report.infraction] || FUNNY_BADGES.other;
+  const [flagging, setFlagging] = useState(false);
 
-  const submitFlag = async () => {
+  const inf = INFRACTIONS.find(i => i.type === report.infraction);
+  const vehicleDesc = [report.vehicle_color, report.vehicle_type].filter(Boolean).join(" ");
+
+  const handleFlag = async () => {
     setFlagging(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Sign in to flag reports");
-      setFlagging(false);
-      return;
-    }
+    if (!user) { toast.error("Sign in to flag"); setFlagging(false); return; }
     const { error } = await supabase.from("report_flags").insert({
       report_id: report.id,
       user_id: user.id,
@@ -89,115 +65,87 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
     toast.success("Report flagged for review");
   };
 
-  const vehicleDesc = [report.vehicle_color, report.vehicle_type, report.vehicle_make, report.vehicle_model]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="glass-card overflow-hidden hover:shadow-[0_0_30px_-8px_hsl(var(--glow-primary)/0.15)] transition-all duration-300 group"
+      transition={{ delay: index * 0.03, duration: 0.3 }}
+      className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden hover:border-border/60 transition-colors"
     >
-      {/* Header row */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-sm ring-1 ring-foreground/5">
-          🚗
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-foreground">Anonymous Reporter</p>
-          <p className="text-[10px] text-muted-foreground">
+      {/* Main content */}
+      <div className="p-4 space-y-3">
+        {/* Plate + timestamp row */}
+        <div className="flex items-center justify-between">
+          <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="hover:scale-105 transition-transform">
+            <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
+          </Link>
+          <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
-          </p>
+          </span>
         </div>
-        <Badge variant="secondary" className="text-[10px] rounded-full shrink-0 bg-primary/10 text-primary border-primary/20 border">
-          {funnyBadge}
-        </Badge>
-        {report.is_flagged && (
-          <Badge variant="outline" className="text-[10px] rounded-full shrink-0 border-amber-500/40 text-amber-500 gap-1">
-            <AlertCircle className="h-2.5 w-2.5" /> Under Review
+
+        {/* Infraction */}
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={inf?.kind === "good" ? "default" : "destructive"}
+            className="text-xs rounded-lg"
+          >
+            {inf?.label || report.infraction}
           </Badge>
-        )}
-      </div>
+          {report.is_flagged && (
+            <Badge variant="outline" className="text-xs rounded-lg border-amber-500/40 text-amber-500 gap-1">
+              <AlertCircle className="h-3 w-3" /> Review
+            </Badge>
+          )}
+        </div>
 
-      {/* Plate & infraction */}
-      <div className="px-4 py-3 space-y-2">
-        <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="block w-fit mx-auto group-hover:scale-105 transition-transform">
-          <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
-        </Link>
-
-        {/* Vehicle description */}
-        {vehicleDesc && (
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-            <Car className="h-3 w-3" />
-            <span>{vehicleDesc}</span>
-          </div>
-        )}
-
-        {/* Vehicle features badges */}
-        {report.vehicle_features && report.vehicle_features.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1">
-            {report.vehicle_features.map(feat => (
-              <Badge key={feat} variant="outline" className="text-[9px] px-1.5 py-0 rounded-full border-accent/30 text-accent-foreground/70">
-                {feat}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        <p className="text-sm text-center font-semibold text-foreground">
-          {inf?.label || report.infraction}
-        </p>
-        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />
-          <span>{report.location}</span>
+        {/* Location + vehicle */}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3 shrink-0" />
+            {report.location}
+          </span>
+          {vehicleDesc && (
+            <span className="flex items-center gap-1">
+              <Car className="h-3 w-3 shrink-0" />
+              {vehicleDesc}
+            </span>
+          )}
         </div>
 
         {/* Comment */}
         {report.comment && (
-          <p className="text-xs text-muted-foreground italic text-center px-2 pt-1 border-t border-border/20">
+          <p className="text-sm text-muted-foreground italic">
             "{report.comment}"
           </p>
         )}
       </div>
 
-      {/* Reactions */}
-      <div className="flex items-center gap-0.5 px-3 py-2.5 border-t border-border/20">
-        {REACTIONS.map((r) => (
-          <button
-            key={r.emoji}
-            className="flex items-center gap-0.5 rounded-full px-1.5 py-1 text-xs hover:bg-muted/60 hover:scale-110 transition-all"
-            title={r.label}
-          >
-            <span>{r.emoji}</span>
-          </button>
-        ))}
-        <div className="ml-auto flex items-center gap-0.5">
-          <Button
-            variant={hasUpvoted ? "default" : "ghost"}
-            size="sm"
-            className={`h-7 px-2 gap-1 rounded-full text-xs ${hasUpvoted ? "glow" : "text-muted-foreground hover:text-primary"}`}
-            disabled={votingId === report.id || hasUpvoted}
-            onClick={() => onUpvote(report.id)}
-          >
-            <ThumbsUp className="h-3 w-3" />
-            <span className="font-mono text-[11px]">{report.upvote_count}</span>
-          </Button>
-          <button
-            onClick={() => setShowComments(v => !v)}
-            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${showComments ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-          </button>
-          <button className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
-            <Share2 className="h-3.5 w-3.5" />
-          </button>
+      {/* Action bar */}
+      <div className="flex items-center gap-1 px-3 py-2 border-t border-border/20">
+        <Button
+          variant={hasUpvoted ? "default" : "ghost"}
+          size="sm"
+          className={`h-8 px-3 gap-1.5 rounded-full text-xs ${hasUpvoted ? "" : "text-muted-foreground hover:text-primary"}`}
+          disabled={votingId === report.id || hasUpvoted}
+          onClick={() => onUpvote(report.id)}
+        >
+          <ThumbsUp className="h-3.5 w-3.5" />
+          <span className="font-mono">{report.upvote_count}</span>
+        </Button>
+        <button
+          onClick={() => setShowComments(v => !v)}
+          className={`h-8 px-3 rounded-full text-xs flex items-center gap-1.5 transition-colors ${showComments ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          Comment
+        </button>
+        <div className="ml-auto">
           <button
             disabled={flagged}
             onClick={() => setFlagOpen(true)}
             title="Flag as false report"
-            className={`p-1.5 rounded-full hover:bg-muted/50 transition-all ${flagged ? "text-amber-500" : "text-muted-foreground hover:text-amber-500"}`}
+            className={`h-8 px-2 rounded-full transition-colors ${flagged ? "text-amber-500" : "text-muted-foreground hover:text-amber-500 hover:bg-muted/50"}`}
           >
             <Flag className="h-3.5 w-3.5" />
           </button>
@@ -223,19 +171,17 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           <DialogHeader>
             <DialogTitle>Flag as false report</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground">
-            Reports with 3+ flags are auto-hidden from scoring pending review.
-          </p>
           <Textarea
-            placeholder="Reason (optional)"
             value={flagReason}
-            onChange={(e) => setFlagReason(e.target.value)}
+            onChange={e => setFlagReason(e.target.value)}
+            placeholder="Why is this report false? (optional)"
+            maxLength={500}
             rows={3}
           />
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setFlagOpen(false)}>Cancel</Button>
-            <Button onClick={submitFlag} disabled={flagging} className="gap-1">
-              <Flag className="h-3.5 w-3.5" /> {flagging ? "Submitting..." : "Submit flag"}
+            <Button variant="outline" onClick={() => setFlagOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleFlag} disabled={flagging}>
+              {flagging ? "Submitting..." : "Flag Report"}
             </Button>
           </DialogFooter>
         </DialogContent>

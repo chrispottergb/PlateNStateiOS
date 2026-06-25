@@ -219,32 +219,21 @@ const HonkZone = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background noise-overlay">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero with mesh background */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-mesh-bg" />
-        <div className="absolute inset-0 dot-grid opacity-30" />
-        {/* Floating orbs */}
-        <div className="absolute top-10 left-1/3 w-40 h-40 bg-primary/8 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-0 right-1/4 w-56 h-56 bg-accent/6 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-
-        <div className="container relative py-6 sm:py-10 space-y-5 z-10">
+      <section className="relative overflow-hidden border-b border-border/30">
+        <div className="container py-6 sm:py-8 space-y-4">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-3 text-center"
+            transition={{ duration: 0.4 }}
+            className="space-y-1 text-center"
           >
-            <div className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5">
-              <span className="text-lg">🚨</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">The A-Hole Patrol</span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold gradient-text-fire">The A-Hole Patrol</h1>
-            <div className="h-6 flex items-center justify-center">
+            <h1 className="text-2xl sm:text-3xl font-extrabold">The A-Hole Patrol</h1>
+            <div className="h-5 flex items-center justify-center">
               <AnimatePresence mode="wait">
-                <motion.p key={taglineIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} className="text-sm text-muted-foreground italic">
+                <motion.p key={taglineIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="text-xs text-muted-foreground italic">
                   {FUNNY_TAGLINES[taglineIndex]}
                 </motion.p>
               </AnimatePresence>
@@ -345,10 +334,10 @@ const HonkZone = () => {
                 <button
                   key={f.key}
                   onClick={() => setFlairFilter(f.key)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     flairFilter === f.key
                       ? "bg-primary/15 text-primary border border-primary/30"
-                      : "glass text-muted-foreground hover:text-foreground"
+                      : "bg-muted/30 text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {f.label}
@@ -356,12 +345,12 @@ const HonkZone = () => {
               ))}
             </div>
 
-            {/* Vehicle filters */}
-            <div className="flex gap-2 flex-wrap">
+            {/* Vehicle filters — hidden behind disclosure */}
+            <div className="flex gap-2 flex-wrap" style={{ display: "none" }}>
               <select
                 value={vehicleTypeFilter}
                 onChange={e => setVehicleTypeFilter(e.target.value)}
-                className="rounded-full px-3 py-1.5 text-xs font-medium glass border-none bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
+                className="rounded-full px-3 py-1.5 text-xs font-medium bg-muted/30 text-foreground cursor-pointer focus:ring-1 focus:ring-primary/30 outline-none"
               >
                 <option value="all">🚗 All Vehicles</option>
                 {VEHICLE_TYPES.map(t => (
