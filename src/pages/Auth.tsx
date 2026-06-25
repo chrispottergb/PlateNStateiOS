@@ -25,6 +25,7 @@ const EMAIL_REDIRECT = isNative
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [portalChosen, setPortalChosen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -124,16 +125,61 @@ const Auth = () => {
 
         {/* Auth Card */}
         <div className="glass-card p-6 glow-lg">
+          {/* Portal Chooser — shown before sign-up form */}
+          {isSignUp && !portalChosen ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-center">Choose Your Path</h2>
+              <p className="text-xs text-muted-foreground text-center mb-2">Select how you'll use Plate N' State</p>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setPortalMode("consumer"); setPortalChosen(true); }}
+                  className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-left transition-all hover:border-primary hover:bg-primary/10 hover:shadow-lg"
+                >
+                  <Skull className="h-8 w-8 text-primary mb-3" />
+                  <div className="text-base font-bold mb-2">Personal — A-Hole Patrol</div>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> Report bad drivers by plate</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> AI-powered plate scanner</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> Earn XP & climb the leaderboard</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> Claim & protect your plate</li>
+                  </ul>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPortalMode("enterprise"); setPortalChosen(true); }}
+                  className="rounded-2xl border border-accent/30 bg-accent/5 p-5 text-left transition-all hover:border-accent hover:bg-accent/10 hover:shadow-lg"
+                >
+                  <Briefcase className="h-8 w-8 text-accent mb-3" />
+                  <div className="text-base font-bold mb-2">Enterprise</div>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" /> Fleet monitoring & risk scores</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" /> Batch plate screening</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" /> Insurance & law enforcement portals</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" /> API access & CSV uploads</li>
+                  </ul>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setIsSignUp(false); setPortalChosen(false); }}
+                className="w-full text-xs text-muted-foreground hover:text-foreground text-center mt-2"
+              >
+                Already have an account? Sign In
+              </button>
+            </div>
+          ) : (
+          <>
           {/* Tabs */}
           <div className="flex rounded-full bg-muted/50 p-1 mb-6">
             <button
-              onClick={() => setIsSignUp(false)}
+              onClick={() => { setIsSignUp(false); setPortalChosen(false); }}
               className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${!isSignUp ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               Sign In
             </button>
             <button
-              onClick={() => setIsSignUp(true)}
+              onClick={() => { setIsSignUp(true); setPortalChosen(false); }}
               className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${isSignUp ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               Sign Up
@@ -257,37 +303,6 @@ const Auth = () => {
             <CaptchaWidget captcha={captcha} />
             {isSignUp && (
               <>
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">I'm signing up as</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPortalMode("consumer")}
-                      className={`rounded-xl border p-3 text-left transition-all ${
-                        portalMode === "consumer"
-                          ? "border-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
-                          : "border-border/60 bg-muted/20 hover:border-border"
-                      }`}
-                    >
-                      <Skull className={`h-4 w-4 mb-1.5 ${portalMode === "consumer" ? "text-primary" : "text-muted-foreground"}`} />
-                      <div className="text-xs font-bold">A-Hole Patrol</div>
-                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Report drivers, earn XP</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPortalMode("enterprise")}
-                      className={`rounded-xl border p-3 text-left transition-all ${
-                        portalMode === "enterprise"
-                          ? "border-accent bg-accent/10 shadow-[inset_0_0_12px_-4px_hsl(var(--glow-primary)/0.4)]"
-                          : "border-border/60 bg-muted/20 hover:border-border"
-                      }`}
-                    >
-                      <Briefcase className={`h-4 w-4 mb-1.5 ${portalMode === "enterprise" ? "text-accent" : "text-muted-foreground"}`} />
-                      <div className="text-xs font-bold">Business & Enterprise</div>
-                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">Fleet, insurance, agencies</div>
-                    </button>
-                  </div>
-                </div>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -404,10 +419,12 @@ const Auth = () => {
 
           <div className="mt-5 text-center text-xs text-muted-foreground">
             {isSignUp ? "Already in the neighborhood?" : "New to the neighborhood?"}{" "}
-            <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary font-medium hover:underline">
+            <button onClick={() => { setIsSignUp(!isSignUp); setPortalChosen(false); }} className="text-primary font-medium hover:underline">
               {isSignUp ? "Sign in" : "Join the Snitches"}
             </button>
           </div>
+          </>
+          )}
         </div>
 
       </motion.div>

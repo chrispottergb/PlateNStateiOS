@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
 import AccountFab from "@/components/AccountFab";
 import NotificationBell from "@/components/NotificationBell";
+import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
@@ -103,6 +104,31 @@ const NotificationDock = () => {
   );
 };
 
+const ONBOARDING_KEY = "onboarding_completed";
+
+const OnboardingGate = () => {
+  const { user, portalMode } = useAuth();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const done = localStorage.getItem(ONBOARDING_KEY);
+    if (!done) setShow(true);
+  }, [user]);
+
+  if (!show) return null;
+
+  return (
+    <OnboardingWalkthrough
+      mode={portalMode === "enterprise" ? "enterprise" : "consumer"}
+      onComplete={() => {
+        localStorage.setItem(ONBOARDING_KEY, "true");
+        setShow(false);
+      }}
+    />
+  );
+};
+
 const BlocklistGate = ({ children }: { children: React.ReactNode }) => {
   const { blocked, loading } = useIsBlocked();
   if (loading) return <>{children}</>;
@@ -159,6 +185,7 @@ const App = () => (
               </Suspense>
               <AccountFab />
               <NotificationDock />
+              <OnboardingGate />
             </BlocklistGate>
           </BrowserRouter>
         </TooltipProvider>
