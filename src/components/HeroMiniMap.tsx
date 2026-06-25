@@ -108,7 +108,7 @@ const HeroMiniMap = () => {
   }, []);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl">
+    <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl" style={{ isolation: "isolate", zIndex: 0 }}>
       <div
         ref={containerRef}
         className="w-full"
