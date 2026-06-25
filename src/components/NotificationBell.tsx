@@ -13,16 +13,20 @@ const NotificationBell = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative text-muted-foreground rounded-full h-8 w-8 p-0">
-          <Bell className="h-3.5 w-3.5" />
+        <Button
+          size="icon"
+          aria-label="Notifications"
+          className="relative h-12 w-12 rounded-full shadow-lg glow hover:scale-105 transition-transform"
+        >
+          <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+            <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 glass-strong rounded-xl" align="end">
+      <PopoverContent className="w-80 p-0 glass-strong rounded-xl" side="top" align="start">
         <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/50">
           <p className="text-sm font-semibold">Notifications</p>
           {unreadCount > 0 && (
@@ -56,6 +60,10 @@ const NotificationBell = () => {
                           <span className={`font-medium ${n.infraction === "dispute_upheld" ? "text-emerald-600" : "text-destructive"}`}>
                             {n.infraction === "dispute_upheld" ? "upheld — the post has been removed" : "denied"}
                           </span>
+                        </p>
+                      ) : n.infraction === "unspecified" ? (
+                        <p className="text-sm">
+                          <span className="font-mono font-bold">{n.plate_number}</span> was reported
                         </p>
                       ) : (
                         <p className="text-sm">

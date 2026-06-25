@@ -9,7 +9,10 @@ import { useIsBlocked } from "@/hooks/useIsBlocked";
 import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
+import AccountFab from "@/components/AccountFab";
+import NotificationBell from "@/components/NotificationBell";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
+import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -90,6 +93,16 @@ const NativeDeepLinkBridge = () => {
   return null;
 };
 
+const NotificationDock = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return (
+    <div className="fixed bottom-4 left-4 z-[60]">
+      <NotificationBell />
+    </div>
+  );
+};
+
 const BlocklistGate = ({ children }: { children: React.ReactNode }) => {
   const { blocked, loading } = useIsBlocked();
   if (loading) return <>{children}</>;
@@ -144,6 +157,8 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <AccountFab />
+              <NotificationDock />
             </BlocklistGate>
           </BrowserRouter>
         </TooltipProvider>
