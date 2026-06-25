@@ -402,12 +402,19 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
             {/* Plate input + state */}
             <div>
               <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate & State</Label>
-              <PlateScanner onResult={(plate, scannedState) => {
+              <PlateScanner onResult={(plate, scannedState, gps) => {
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     }
-                    if (latitude === null) detectLocation();
+                    if (gps && latitude === null) {
+                      setLatitude(gps.latitude);
+                      setLongitude(gps.longitude);
+                      setGeoStatus("done");
+                      reverseGeocode(gps.latitude, gps.longitude);
+                    } else if (latitude === null) {
+                      detectLocation();
+                    }
                   }} />
               <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
                 <Input
@@ -561,12 +568,19 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="plate" className="text-sm font-medium">License Plate & State</Label>
-                  <PlateScanner onResult={(plate, scannedState) => {
+                  <PlateScanner onResult={(plate, scannedState, gps) => {
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     }
-                    if (latitude === null) detectLocation();
+                    if (gps && latitude === null) {
+                      setLatitude(gps.latitude);
+                      setLongitude(gps.longitude);
+                      setGeoStatus("done");
+                      reverseGeocode(gps.latitude, gps.longitude);
+                    } else if (latitude === null) {
+                      detectLocation();
+                    }
                   }} />
                   <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
                     <Input

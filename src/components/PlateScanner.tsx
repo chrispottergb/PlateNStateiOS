@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface PlateScannerProps {
-  onResult: (plateNumber: string, state: string | null) => void;
+  onResult: (plateNumber: string, state: string | null, gps?: { latitude: number; longitude: number } | null) => void;
 }
 
 type PendingAction = "native-camera" | "web-camera" | "upload";
@@ -68,7 +68,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
         // Plates can be up to 10 chars; apply OCR character correction
         const cleaned = correctOcrPlate(String(data.plate_number)).slice(0, 10);
         const resolvedState: string | null = data.state || null;
-        onResult(cleaned, resolvedState);
+        onResult(cleaned, resolvedState, data.gps || null);
         addScan(cleaned, resolvedState, { confidence: data.confidence, raw: data.plate_number });
         toast.success(`Plate detected: ${data.plate_number}`, {
           description: data.state ? `State: ${data.state} (${data.confidence} confidence)` : `Confidence: ${data.confidence}`,
