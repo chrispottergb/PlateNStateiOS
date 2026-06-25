@@ -100,7 +100,7 @@ const ReportComposer = () => {
         />
       </div>
       <div className="flex items-center justify-between gap-2 mt-2 pl-12 sm:pl-[52px]">
-        <span className={`text-[11px] ${text.length > 450 ? "text-destructive" : "text-muted-foreground"}`}>
+        <span className={`text-xs ${text.length > 450 ? "text-destructive" : "text-muted-foreground"}`}>
           {text.length}/500
         </span>
         <ReportModal

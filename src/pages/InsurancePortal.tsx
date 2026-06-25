@@ -174,17 +174,17 @@ const InsurancePortal = () => {
               <div className="rounded-xl glass-card p-4 text-center">
                 <Search className="h-5 w-5 mx-auto text-primary mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupCount}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Lookups</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Lookups</p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <AlertTriangle className="h-5 w-5 mx-auto text-amber-500 mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupResult ? (lookupResult.risk_score > 50 ? 1 : 0) : 0}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Risk Flags</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Risk Flags</p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <TrendingUp className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupResult ? lookupResult.risk_score : "—"}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg Score</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Avg Score</p>
               </div>
             </div>
 

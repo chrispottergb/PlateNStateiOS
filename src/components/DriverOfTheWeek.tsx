@@ -44,12 +44,12 @@ const DriverOfTheWeek = ({ plateNumber, reportCount, topInfraction, state }: Dri
         <div className="flex items-center justify-center gap-6 text-sm">
           <div className="text-center">
             <p className="text-2xl font-extrabold text-foreground">{reportCount}</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Reports</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Reports</p>
           </div>
           <div className="h-8 w-px bg-border/30" />
           <div className="text-center">
             <p className="text-sm font-semibold text-foreground">{topInfraction}</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Top Violation</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Top Violation</p>
           </div>
         </div>
 

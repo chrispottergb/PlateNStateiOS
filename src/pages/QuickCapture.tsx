@@ -232,8 +232,8 @@ const QuickCapture = () => {
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/80 to-transparent">
         <div className="flex flex-col items-center gap-3">
           <p className="text-white/70 text-xs text-center max-w-xs">
-            Tap screen, press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">Volume</kbd>{" "}
-            on a Bluetooth remote, or hit <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-[10px]">Space</kbd>{" "}
+            Tap screen, press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-xs">Volume</kbd>{" "}
+            on a Bluetooth remote, or hit <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white text-xs">Space</kbd>{" "}
             to capture
           </p>
           <Button

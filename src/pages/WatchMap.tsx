@@ -235,13 +235,13 @@ const WatchMap = () => {
 
         {/* Legend */}
         <div className="absolute bottom-3 left-3 z-[1000] flex gap-2">
-          <Badge variant="secondary" className="shadow-md text-[10px] px-2 py-1 gap-1.5 rounded-full">
+          <Badge variant="secondary" className="shadow-md text-xs px-2 py-1 gap-1.5 rounded-full">
             <span className="h-2 w-2 rounded-full bg-destructive" /> Reckless
           </Badge>
-          <Badge variant="secondary" className="shadow-md text-[10px] px-2 py-1 gap-1.5 rounded-full">
+          <Badge variant="secondary" className="shadow-md text-xs px-2 py-1 gap-1.5 rounded-full">
             <span className="h-2 w-2 rounded-full bg-amber-500" /> Speeding
           </Badge>
-          <Badge variant="secondary" className="shadow-md text-[10px] px-2 py-1 gap-1.5 rounded-full">
+          <Badge variant="secondary" className="shadow-md text-xs px-2 py-1 gap-1.5 rounded-full">
             <span className="h-2 w-2 rounded-full bg-primary" /> Other
           </Badge>
         </div>

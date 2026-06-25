@@ -48,7 +48,7 @@ const Business = () => {
 
         <div className="container relative py-14 sm:py-24 text-center max-w-3xl mx-auto space-y-6 z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Badge variant="secondary" className="rounded-full px-4 py-1.5 mb-4 text-[10px] uppercase tracking-[0.2em] font-bold gap-1.5">
+            <Badge variant="secondary" className="rounded-full px-4 py-1.5 mb-4 text-xs uppercase tracking-[0.2em] font-bold gap-1.5">
               <Briefcase className="h-3 w-3" /> Enterprise Solutions
             </Badge>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
@@ -78,7 +78,7 @@ const Business = () => {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mx-auto group-hover:bg-primary/20 transition-colors">
                   <item.icon className="h-7 w-7" />
                 </div>
-                <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-wider">{item.category}</Badge>
+                <Badge variant="outline" className="rounded-full text-xs uppercase tracking-wider">{item.category}</Badge>
                 <h3 className="text-lg font-bold">{item.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 <p className="text-sm font-bold">Starting at <span className="gradient-text-accent">{item.price}</span>/mo</p>

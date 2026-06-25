@@ -181,22 +181,22 @@ const AdminPanel = () => {
           <div className="rounded-xl glass-card p-4 text-center">
             <Users className="h-5 w-5 mx-auto text-primary mb-1" />
             <p className="text-2xl font-bold font-mono">{profiles.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Users</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Users</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <Mail className="h-5 w-5 mx-auto text-amber-500 mb-1" />
             <p className="text-2xl font-bold font-mono">{insPending.length + lePending.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Pending</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <AlertTriangle className="h-5 w-5 mx-auto text-destructive mb-1" />
             <p className="text-2xl font-bold font-mono">{recentReports.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Reports</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <Truck className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
             <p className="text-2xl font-bold font-mono">{companies.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Fleets</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Fleets</p>
           </div>
         </div>
 
@@ -234,7 +234,7 @@ const AdminPanel = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-semibold text-sm">{app.company_name}</span>
-                        {app.approved && <Badge variant="secondary" className="text-[10px] rounded-full">Approved</Badge>}
+                        {app.approved && <Badge variant="secondary" className="text-xs rounded-full">Approved</Badge>}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Mail className="h-3 w-3" />{app.contact_email} · {format(new Date(app.created_at), "MMM d, yyyy")}
@@ -267,8 +267,8 @@ const AdminPanel = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-semibold text-sm">{app.department_name}</span>
-                        <Badge variant="outline" className="text-[10px] capitalize rounded-full">{app.tier}</Badge>
-                        {app.approved && <Badge variant="secondary" className="text-[10px] rounded-full">Approved</Badge>}
+                        <Badge variant="outline" className="text-xs capitalize rounded-full">{app.tier}</Badge>
+                        {app.approved && <Badge variant="secondary" className="text-xs rounded-full">Approved</Badge>}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Mail className="h-3 w-3" />{app.contact_email} · {format(new Date(app.created_at), "MMM d, yyyy")}
@@ -302,7 +302,7 @@ const AdminPanel = () => {
                   <p className="text-xs text-muted-foreground">{p.total_reports} reports · {p.xp} XP · Joined {format(new Date(p.joined_at), "MMM yyyy")}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant="outline" className="text-[10px] rounded-full gap-1">
+                  <Badge variant="outline" className="text-xs rounded-full gap-1">
                     <Crown className="h-3 w-3" /> {p.credits} coins
                   </Badge>
                 </div>
@@ -319,8 +319,8 @@ const AdminPanel = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="font-mono font-bold text-sm">{r.plate_number}</span>
-                      <Badge variant="secondary" className="text-[10px] rounded-full">{inf?.label || r.infraction}</Badge>
-                      {r.upvote_count >= 3 && <Badge className="text-[10px] rounded-full">Verified</Badge>}
+                      <Badge variant="secondary" className="text-xs rounded-full">{inf?.label || r.infraction}</Badge>
+                      {r.upvote_count >= 3 && <Badge className="text-xs rounded-full">Verified</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground">{r.location} · {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
                   </div>
@@ -342,11 +342,11 @@ const AdminPanel = () => {
                 <div className="flex items-center gap-2">
                   <Flag className="h-4 w-4 text-amber-500" />
                   <span className="font-mono font-bold text-sm">{d.plate_number}</span>
-                  <Badge variant="secondary" className="text-[10px] rounded-full capitalize">{d.reason.replace(/_/g, " ")}</Badge>
-                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}</span>
+                  <Badge variant="secondary" className="text-xs rounded-full capitalize">{d.reason.replace(/_/g, " ")}</Badge>
+                  <span className="text-xs text-muted-foreground ml-auto">{formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}</span>
                 </div>
                 {d.note && <p className="text-xs text-muted-foreground italic">"{d.note}"</p>}
-                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{d.report_id}</span></p>
+                <p className="text-xs text-muted-foreground">Report ID: <span className="font-mono">{d.report_id}</span></p>
                 <div className="flex gap-2">
                   <Button size="sm" disabled={updating === d.id} onClick={() => handleResolveDispute(d.id, "upheld")} className="gap-1 rounded-full">
                     <CheckCircle2 className="h-4 w-4" /> Uphold (remove post)
@@ -367,11 +367,11 @@ const AdminPanel = () => {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
                   <span className="font-mono font-bold text-sm">{a.plate_number}</span>
-                  <Badge variant="outline" className="text-[10px] rounded-full">Appeal</Badge>
-                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
+                  <Badge variant="outline" className="text-xs rounded-full">Appeal</Badge>
+                  <span className="text-xs text-muted-foreground ml-auto">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
                 </div>
                 <p className="text-xs text-muted-foreground italic">"{a.reason}"</p>
-                <p className="text-[10px] text-muted-foreground">Report ID: <span className="font-mono">{a.report_id}</span></p>
+                <p className="text-xs text-muted-foreground">Report ID: <span className="font-mono">{a.report_id}</span></p>
                 <div className="flex gap-2">
                   <Button size="sm" disabled={updating === a.id} onClick={() => handleResolveAppeal(a.id, a.report_id, "upheld")} className="gap-1 rounded-full">
                     <CheckCircle2 className="h-4 w-4" /> Uphold (remove report)
@@ -395,7 +395,7 @@ const AdminPanel = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-semibold text-sm">{c.name}</span>
-                    <Badge variant="outline" className="text-[10px] capitalize rounded-full">{c.tier}</Badge>
+                    <Badge variant="outline" className="text-xs capitalize rounded-full">{c.tier}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{c.contact_email} · {fleetCounts[c.id] || 0} vehicles · {format(new Date(c.created_at), "MMM yyyy")}</p>
                 </div>
@@ -430,7 +430,7 @@ const AdminPanel = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="font-mono font-semibold text-sm truncate">{b.value}</span>
-                      <Badge variant="outline" className="text-[10px] capitalize rounded-full">{b.kind}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize rounded-full">{b.kind}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{b.reason || "No reason given"} · {format(new Date(b.created_at), "MMM d, yyyy")}</p>
                   </div>

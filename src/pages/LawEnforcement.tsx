@@ -170,19 +170,19 @@ const LawEnforcement = () => {
               <div className="rounded-xl glass-card p-4 text-center">
                 <Search className="h-5 w-5 mx-auto text-primary mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupCount}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
                   {tierLimit === 99999 ? "Lookups" : `of ${tierLimit}`}
                 </p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <AlertTriangle className="h-5 w-5 mx-auto text-amber-500 mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupResult?.verified || 0}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Flagged</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Flagged</p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <BarChart3 className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                 <p className="text-2xl font-bold font-mono">{lookupResult?.total || 0}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports Found</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Reports Found</p>
               </div>
             </div>
 
@@ -224,13 +224,13 @@ const LawEnforcement = () => {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       <Badge variant="secondary" className="text-xs rounded-full">{inf?.label || r.infraction.replace(/_/g, " ")}</Badge>
-                                      {r.upvote_count >= 3 && <Badge className="text-[10px] rounded-full">Verified</Badge>}
+                                      {r.upvote_count >= 3 && <Badge className="text-xs rounded-full">Verified</Badge>}
                                     </div>
                                     <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</span>
                                   </div>
                                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{r.location}</span>
-                                    {r.latitude && <span className="font-mono text-[10px]">({r.latitude.toFixed(4)}, {r.longitude.toFixed(4)})</span>}
+                                    {r.latitude && <span className="font-mono text-xs">({r.latitude.toFixed(4)}, {r.longitude.toFixed(4)})</span>}
                                   </div>
                                 </div>
                               );

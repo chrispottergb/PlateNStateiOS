@@ -76,7 +76,7 @@ const AccountFab = () => {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
             Enterprise
             {isEnterprise && (
-              <span className="ml-auto text-[10px] font-bold text-primary uppercase tracking-wider">
+              <span className="ml-auto text-xs font-bold text-primary uppercase tracking-wider">
                 Active
               </span>
             )}

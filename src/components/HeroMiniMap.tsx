@@ -114,7 +114,7 @@ const HeroMiniMap = () => {
         className="w-full"
         style={{ height: "280px" }}
       />
-      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
         Live
       </div>

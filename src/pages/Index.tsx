@@ -79,7 +79,7 @@ const Index = () => {
               className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5"
             >
               <Shield className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Plate N' State</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Plate N' State</span>
             </motion.div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
@@ -140,7 +140,7 @@ const Index = () => {
                 {liveStats.map((stat, i) => (
                   <div key={stat.label} className="text-center">
                     <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
                   </div>
                 ))}
               </motion.div>

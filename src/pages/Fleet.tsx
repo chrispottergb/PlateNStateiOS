@@ -226,17 +226,17 @@ const Fleet = () => {
               <div className="rounded-xl glass-card p-4 text-center">
                 <Truck className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                 <p className="text-2xl font-bold font-mono">{vehicles.length}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Vehicles</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Vehicles</p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <Shield className="h-5 w-5 mx-auto text-primary mb-1" />
                 <p className={`text-2xl font-bold font-mono ${fleetScore >= 80 ? "text-emerald-500" : fleetScore >= 50 ? "text-amber-500" : "text-destructive"}`}>{fleetScore}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Fleet Score</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Fleet Score</p>
               </div>
               <div className="rounded-xl glass-card p-4 text-center">
                 <AlertTriangle className="h-5 w-5 mx-auto text-destructive mb-1" />
                 <p className="text-2xl font-bold font-mono">{alertVehicles.length}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Active Alerts</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Active Alerts</p>
               </div>
             </div>
 
@@ -244,7 +244,7 @@ const Fleet = () => {
             <div className="rounded-xl glass-card p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold">7-Day Incident Trend</h3>
-                <Badge variant="secondary" className="rounded-full text-[10px] gap-1">
+                <Badge variant="secondary" className="rounded-full text-xs gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Update
                 </Badge>
               </div>
@@ -295,7 +295,7 @@ const Fleet = () => {
                         <p className="text-sm font-semibold">{v.vehicle_label || v.plate_number}</p>
                         <p className="text-xs text-muted-foreground">{v.report_count} report{v.report_count !== 1 ? "s" : ""}</p>
                       </div>
-                      <Badge variant="outline" className={`rounded-full text-[10px] ${risk.color}`}>{risk.label}</Badge>
+                      <Badge variant="outline" className={`rounded-full text-xs ${risk.color}`}>{risk.label}</Badge>
                       <Button variant="ghost" size="sm" onClick={() => handleRemoveVehicle(v.id)} className="text-muted-foreground text-xs">Remove</Button>
                     </div>
                   );

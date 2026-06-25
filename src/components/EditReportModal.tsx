@@ -173,7 +173,7 @@ const EditReportModal = ({ report, open, onOpenChange, onSaved }: EditReportModa
             Edit Report
             <Badge
               variant="outline"
-              className={`ml-auto text-[10px] rounded-full flex items-center gap-1 ${
+              className={`ml-auto text-xs rounded-full flex items-center gap-1 ${
                 windowExpired
                   ? "border-destructive/40 text-destructive"
                   : minutesLeft < 60
@@ -342,10 +342,10 @@ const EditReportModal = ({ report, open, onOpenChange, onSaved }: EditReportModa
                 className="rounded-lg min-h-[72px] resize-none text-sm"
                 maxLength={500}
               />
-              <p className="text-[10px] text-muted-foreground text-right">{comment.length}/500</p>
+              <p className="text-xs text-muted-foreground text-right">{comment.length}/500</p>
             </div>
 
-            <p className="text-[10px] text-muted-foreground italic">
+            <p className="text-xs text-muted-foreground italic">
               Location, date, and incident state cannot be changed after submission.
             </p>
 

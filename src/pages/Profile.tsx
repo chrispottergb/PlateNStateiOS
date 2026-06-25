@@ -186,21 +186,21 @@ const Profile = () => {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-3 gap-3 mb-6">
           <div className="rounded-xl glass-card p-4 text-center">
             <p className="text-2xl font-bold font-mono gradient-text-accent">{profile.total_reports}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Reports</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <div className="flex items-center justify-center gap-1">
               <Flame className={`h-5 w-5 ${profile.streak_days > 0 ? "text-orange-500" : "text-muted-foreground"}`} />
               <p className="text-2xl font-bold font-mono">{profile.streak_days}</p>
             </div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Day Streak</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Day Streak</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <div className="flex items-center justify-center gap-1">
               <Coins className="h-5 w-5 text-amber-500" />
               <p className="text-2xl font-bold font-mono">{credits ?? profile.credits}</p>
             </div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Coins</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Coins</p>
           </div>
         </motion.div>
 
@@ -214,7 +214,7 @@ const Profile = () => {
             <span className="text-xs text-muted-foreground font-mono">{profile.xp} / {nextLevelXp} XP</span>
           </div>
           <Progress value={xpProgress} className="h-2.5 [&>div]:bg-primary" />
-          <p className="text-[10px] text-muted-foreground mt-1.5">
+          <p className="text-xs text-muted-foreground mt-1.5">
             {xpNeeded} XP until "{LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length - 1)]}"
           </p>
         </motion.div>
@@ -237,7 +237,7 @@ const Profile = () => {
                   title={def.description}
                 >
                   <span className="text-2xl block mb-1">{def.icon}</span>
-                  <p className="text-[10px] font-semibold truncate">{def.label}</p>
+                  <p className="text-xs font-semibold truncate">{def.label}</p>
                 </div>
               );
             })}
@@ -261,9 +261,9 @@ const Profile = () => {
                       <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <Badge variant="secondary" className="rounded-full text-[10px]">{inf?.label || report.infraction}</Badge>
+                          <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
                           {report.edited_at && (
-                            <span className="text-[9px] text-muted-foreground italic">edited</span>
+                            <span className="text-xs text-muted-foreground italic">edited</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -271,8 +271,8 @@ const Profile = () => {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <Badge variant="outline" className="text-[10px] text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
+                        <Badge variant="outline" className="text-xs text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
+                        <p className="text-xs text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
                       </div>
                     </div>
                   </Link>
@@ -327,12 +327,12 @@ const Profile = () => {
                   <div key={d.id} className="rounded-xl glass-card p-3 flex items-center gap-3">
                     <LicensePlate plateNumber={d.plate_number} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="rounded-full text-[10px] mb-0.5 capitalize">{d.reason.replace(/_/g, " ")}</Badge>
-                      <p className="text-[10px] text-muted-foreground">
+                      <Badge variant="secondary" className="rounded-full text-xs mb-0.5 capitalize">{d.reason.replace(/_/g, " ")}</Badge>
+                      <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`text-[10px] rounded-full ${statusColor}`}>{statusLabel}</Badge>
+                    <Badge variant="outline" className={`text-xs rounded-full ${statusColor}`}>{statusLabel}</Badge>
                   </div>
                 );
               })}

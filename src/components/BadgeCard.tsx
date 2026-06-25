@@ -32,7 +32,7 @@ const BadgeDisplay = ({ earnedBadges }: BadgeDisplayProps) => {
               {BADGE_ICONS[badge.icon]}
             </div>
             <span className="text-xs font-semibold">{badge.label}</span>
-            <span className="text-[10px] leading-tight">{badge.description}</span>
+            <span className="text-xs leading-tight">{badge.description}</span>
           </div>
         );
       })}

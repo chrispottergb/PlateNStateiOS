@@ -120,7 +120,7 @@ const DeleteAccount = () => {
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
                   Request Account Deletion
                 </Button>
-                <p className="text-[11px] text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   Prefer email? Write to{" "}
                   <a className="underline" href="mailto:privacy@platenstate.app?subject=Account%20Deletion%20Request">
                     privacy@platenstate.app

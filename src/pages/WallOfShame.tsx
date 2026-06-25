@@ -84,7 +84,7 @@ const WallOfShame = () => {
           >
             <div className="absolute top-0 right-0 w-48 h-48 bg-destructive/5 rounded-full blur-3xl" />
             <div className="relative z-10">
-              <Badge variant="destructive" className="mb-4 rounded-full px-3 py-1 text-[10px] uppercase tracking-widest font-bold gap-1.5">
+              <Badge variant="destructive" className="mb-4 rounded-full px-3 py-1 text-xs uppercase tracking-widest font-bold gap-1.5">
                 <Crown className="h-3 w-3" /> Worst of the Week
               </Badge>
               <div className="flex flex-col sm:flex-row items-center gap-6">

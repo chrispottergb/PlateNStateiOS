@@ -161,7 +161,7 @@ const PlateDetail = () => {
           <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${severity.color}`}>
             <Shield className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Safety Score: {plate.totalScore}</span>
-            <span className="text-[10px] font-medium opacity-80">/ {severity.label}</span>
+            <span className="text-xs font-medium opacity-80">/ {severity.label}</span>
           </div>
         </motion.div>
 
@@ -175,17 +175,17 @@ const PlateDetail = () => {
           <div className="rounded-xl glass-card p-4 text-center">
             <BarChart3 className="h-5 w-5 mx-auto text-primary mb-1" />
             <p className="text-2xl font-bold font-mono">{plate.reportCount}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reports</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Reports</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <AlertTriangle className="h-5 w-5 mx-auto text-amber-500 mb-1" />
             <p className={`text-2xl font-bold font-mono ${getScoreColor(plate.totalScore)}`}>{plate.totalScore}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Score</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Score</p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <CheckCircle2 className="h-5 w-5 mx-auto text-emerald-500 mb-1" />
             <p className="text-2xl font-bold font-mono">{verifiedCount}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Verified</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Verified</p>
           </div>
         </motion.div>
 
@@ -207,7 +207,7 @@ const PlateDetail = () => {
                   className="rounded-full px-3 py-1.5 text-xs gap-1.5"
                 >
                   <span>{inf.label}</span>
-                  <span className="bg-primary/20 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-bold">{plate.infractions[inf.type]}</span>
+                  <span className="bg-primary/20 text-primary rounded-full px-1.5 py-0.5 text-xs font-bold">{plate.infractions[inf.type]}</span>
                 </Badge>
               ))}
           </div>
@@ -247,14 +247,14 @@ const PlateDetail = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
-                        <span className="text-[10px] text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
+                        <span className="text-xs text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
                         {report.upvote_count >= 3 && (
-                          <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-0.5">
+                          <Badge variant="outline" className="text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" /> Verified
                           </Badge>
                         )}
                         {(report as any).is_flagged && (
-                          <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/40 gap-0.5">
+                          <Badge variant="outline" className="text-xs text-amber-500 border-amber-500/40 gap-0.5">
                             <Flag className="h-2.5 w-2.5" /> Under Review
                           </Badge>
                         )}

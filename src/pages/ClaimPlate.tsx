@@ -296,7 +296,7 @@ const ClaimPlate = () => {
                         }`}
                       >
                         {tier.badge && (
-                          <span className="absolute -top-2 right-2 text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
+                          <span className="absolute -top-2 right-2 text-xs font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
                             {tier.badge}
                           </span>
                         )}
@@ -345,17 +345,17 @@ const ClaimPlate = () => {
                           {plate.plate_number}
                         </span>
                         {!plate.paid && (
-                          <span className="text-[10px] uppercase tracking-wider text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                          <span className="text-xs uppercase tracking-wider text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                             Unpaid (legacy)
                           </span>
                         )}
                         {tier === "privacy" && (
-                          <span className="text-[10px] uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                          <span className="text-xs uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
                             Privacy Shield
                           </span>
                         )}
                         {tier === "total_block" && (
-                          <span className="text-[10px] uppercase tracking-wider text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
+                          <span className="text-xs uppercase tracking-wider text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
                             Total Block
                           </span>
                         )}

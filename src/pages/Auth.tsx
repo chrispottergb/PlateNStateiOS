@@ -296,7 +296,7 @@ const Auth = () => {
 
           <div className="relative mb-4">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/50" /></div>
-            <div className="relative flex justify-center text-[10px] uppercase tracking-wider"><span className="bg-card px-2 text-muted-foreground">or with email</span></div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider"><span className="bg-card px-2 text-muted-foreground">or with email</span></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -378,7 +378,7 @@ const Auth = () => {
 
             {isSignUp && (
               <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-xs leading-relaxed text-muted-foreground">
                   <span className="font-medium text-foreground">Quick summary:</span> reports you submit are public,
                   must be based on what you saw firsthand, and you waive liability for how the community uses them.
                   Don't harass anyone. We'll anonymize your reporter ID after 30 days.
@@ -402,7 +402,7 @@ const Auth = () => {
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium"
+                    className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Thanks — consent recorded for version 2026-05-11.

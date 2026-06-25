@@ -119,13 +119,13 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
       >
         <div className="py-2 group/comment">
           <div className="flex items-start gap-2">
-            <div className="h-5 w-5 rounded-full bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center text-[9px] shrink-0 mt-0.5 ring-1 ring-foreground/5">
+            <div className="h-5 w-5 rounded-full bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center text-xs shrink-0 mt-0.5 ring-1 ring-foreground/5">
               👤
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-foreground">{comment.display_name}</span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs font-semibold text-foreground">{comment.display_name}</span>
+                <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                 </span>
               </div>
@@ -134,7 +134,7 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
                 {user && depth < 3 && (
                   <button
                     onClick={() => { setReplyTo(replyTo === comment.id ? null : comment.id); setReplyText(""); }}
-                    className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-0.5 transition-colors"
                   >
                     <Reply className="h-2.5 w-2.5" /> Reply
                   </button>
@@ -142,7 +142,7 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
                 {isOwn && (
                   <button
                     onClick={() => handleDelete(comment.id)}
-                    className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 transition-all"
+                    className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 transition-all"
                   >
                     <Trash2 className="h-2.5 w-2.5" /> Delete
                   </button>
@@ -150,7 +150,7 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
                 {replies.length > 0 && (
                   <button
                     onClick={() => toggleCollapse(comment.id)}
-                    className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
                   >
                     {isCollapsed ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronUp className="h-2.5 w-2.5" />}
                     {replies.length} {replies.length === 1 ? "reply" : "replies"}
@@ -223,9 +223,9 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
 
       {/* Comments list */}
       {loading ? (
-        <p className="text-[10px] text-muted-foreground text-center py-2">Loading comments...</p>
+        <p className="text-xs text-muted-foreground text-center py-2">Loading comments...</p>
       ) : comments.length === 0 ? (
-        <p className="text-[10px] text-muted-foreground text-center py-1">No comments yet — be the first!</p>
+        <p className="text-xs text-muted-foreground text-center py-1">No comments yet — be the first!</p>
       ) : (
         <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-0.5">
           {topLevel.map(c => renderComment(c, 0))}
