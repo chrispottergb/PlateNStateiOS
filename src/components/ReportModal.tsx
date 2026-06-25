@@ -258,10 +258,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         p_state: plateState,
         p_incident_state: incidentState,
         p_ip: ip,
-        p_psv: false,
+        p_is_psv: false,
         p_psv_agency_type: null,
         p_psv_unit_number: null,
-        p_on_duty: false,
+        p_psv_on_duty: false,
       } as any);
       if (error) {
         if (error.message.includes("Insufficient credits")) {
