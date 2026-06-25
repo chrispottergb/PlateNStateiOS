@@ -161,7 +161,7 @@ const WallOfShame = () => {
           <ReportModal
             trigger={
               <Button size="lg" className="rounded-full glow gap-2">
-                <AlertTriangle className="h-5 w-5" /> Report an A-Hole
+                <AlertTriangle className="h-5 w-5" /> Report a Driver
               </Button>
             }
           />

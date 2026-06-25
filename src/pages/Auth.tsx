@@ -137,7 +137,7 @@ const Auth = () => {
                   className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-left transition-all hover:border-primary hover:bg-primary/10 hover:shadow-lg"
                 >
                   <Skull className="h-8 w-8 text-primary mb-3" />
-                  <div className="text-base font-bold mb-2">Personal — A-Hole Patrol</div>
+                  <div className="text-base font-bold mb-2">Personal — The Patrol</div>
                   <ul className="space-y-1.5 text-xs text-muted-foreground">
                     <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> Report bad drivers by plate</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" /> AI-powered plate scanner</li>
