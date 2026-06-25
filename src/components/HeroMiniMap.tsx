@@ -31,9 +31,13 @@ const HeroMiniMap = () => {
       zoom: 4,
       zoomControl: false,
       attributionControl: false,
-      dragging: true,
+      dragging: false,
       scrollWheelZoom: false,
-      touchZoom: true,
+      touchZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false,
     });
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
@@ -108,11 +112,11 @@ const HeroMiniMap = () => {
   }, []);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl" style={{ isolation: "isolate", zIndex: 0 }}>
+    <div className="relative rounded-2xl overflow-hidden border border-border/30" style={{ isolation: "isolate", zIndex: 0 }}>
       <div
         ref={containerRef}
-        className="w-full"
-        style={{ height: "280px" }}
+        className="w-full pointer-events-none"
+        style={{ height: "240px" }}
       />
       <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
