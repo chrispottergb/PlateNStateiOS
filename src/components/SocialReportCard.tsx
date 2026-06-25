@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
+import MiniMapThumb from "./MiniMapThumb";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,8 @@ interface SocialReportCardProps {
     comment?: string | null;
     is_flagged?: boolean;
     state?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   };
   hasUpvoted: boolean;
   votingId: string | null;
@@ -74,12 +77,15 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
     >
       {/* Main content */}
       <div className="p-4 space-y-3">
-        {/* Plate + timestamp row */}
-        <div className="flex items-center justify-between">
+        {/* Plate + map + timestamp row */}
+        <div className="flex items-center gap-3">
           <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="hover:scale-105 transition-transform">
             <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
           </Link>
-          <span className="text-xs text-muted-foreground">
+          {report.latitude && report.longitude && (
+            <MiniMapThumb latitude={report.latitude} longitude={report.longitude} />
+          )}
+          <span className="text-xs text-muted-foreground ml-auto shrink-0">
             {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
           </span>
         </div>

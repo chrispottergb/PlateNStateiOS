@@ -156,7 +156,7 @@ const HonkZone = () => {
   const { data: reports = [], isLoading: loading } = useQuery<Report[]>({
     queryKey: ["honkzone-reports", sortMode],
     queryFn: async () => {
-      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged, state");
+      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged, state, latitude, longitude");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });
