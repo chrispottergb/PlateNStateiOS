@@ -4,7 +4,7 @@ interface MiniMapThumbProps {
   latitude?: number | null;
   longitude?: number | null;
   location?: string;
-  size?: number;
+  size?: number | "fill";
 }
 
 const geoCache = new Map<string, { lat: number; lng: number } | null>();
@@ -19,6 +19,7 @@ function latLngToTile(lat: number, lng: number, zoom: number) {
 }
 
 const MiniMapThumb = ({ latitude, longitude, location, size = 56 }: MiniMapThumbProps) => {
+  const isFill = size === "fill";
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     latitude && longitude ? { lat: latitude, lng: longitude } : null
   );
@@ -67,7 +68,7 @@ const MiniMapThumb = ({ latitude, longitude, location, size = 56 }: MiniMapThumb
   return (
     <div
       className="relative rounded-lg overflow-hidden border border-border/30 shrink-0"
-      style={{ width: size, height: size }}
+      style={isFill ? { width: "100%", height: "100%", minHeight: 60 } : { width: size as number, height: size as number }}
     >
       <img
         src={tileUrl}

@@ -108,9 +108,11 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           </div>
 
           {/* Right side — map + location */}
-          <div className="flex flex-col items-center gap-1 shrink-0">
-            <MiniMapThumb latitude={report.latitude} longitude={report.longitude} location={report.location} size={72} />
-            <span className="text-xs text-muted-foreground text-center max-w-[80px] truncate">
+          <div className="flex flex-col items-center gap-1 shrink-0 self-stretch">
+            <div className="flex-1 w-[88px]">
+              <MiniMapThumb latitude={report.latitude} longitude={report.longitude} location={report.location} size="fill" />
+            </div>
+            <span className="text-xs text-muted-foreground text-center max-w-[88px] truncate">
               {report.location}
             </span>
           </div>

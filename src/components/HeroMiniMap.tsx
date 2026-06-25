@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,18 +111,59 @@ const HeroMiniMap = () => {
     };
   }, []);
 
+  const [searchError, setSearchError] = useState(false);
+
+  const handleSearch = async (query: string, inputEl: HTMLInputElement) => {
+    if (!query.trim() || !mapRef.current) return;
+    setSearchError(false);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      if (data?.[0]) {
+        mapRef.current.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 12);
+        inputEl.blur();
+      } else {
+        setSearchError(true);
+        setTimeout(() => setSearchError(false), 2000);
+      }
+    } catch {
+      setSearchError(true);
+      setTimeout(() => setSearchError(false), 2000);
+    }
+  };
+
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-border/30" style={{ isolation: "isolate", zIndex: 0 }}>
-      <div
-        ref={containerRef}
-        className="w-full pointer-events-none"
-        style={{ height: "240px" }}
-      />
-      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        Live
+    <a href="/map" className="block">
+      <div className="relative rounded-2xl overflow-hidden border border-border/30 cursor-pointer hover:border-primary/30 transition-colors" style={{ isolation: "isolate", zIndex: 0 }}>
+        <div
+          ref={containerRef}
+          className="w-full pointer-events-none"
+          style={{ height: "240px" }}
+        />
+        <div className="absolute top-3 left-3 right-20 z-[1000]">
+          <input
+            type="text"
+            placeholder={searchError ? "Location not found" : "Search city, state..."}
+            className={`w-full rounded-full bg-background/90 backdrop-blur-sm border px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none pointer-events-auto ${searchError ? "border-destructive/50 placeholder:text-destructive" : "border-border/40 focus:border-primary/50"}`}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") handleSearch((e.target as HTMLInputElement).value, e.target as HTMLInputElement);
+            }}
+          />
+        </div>
+        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Live
+        </div>
+        <div className="absolute bottom-3 right-3 z-[1000] rounded-full bg-primary/90 text-primary-foreground px-3 py-1 text-xs font-medium pointer-events-auto">
+          Open Map →
+        </div>
       </div>
-    </div>
+    </a>
   );
 };
 
