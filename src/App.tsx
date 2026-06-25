@@ -113,12 +113,7 @@ const OnboardingGate = () => {
   useEffect(() => {
     if (!user || !termsAcceptedAt) return;
     const done = localStorage.getItem(ONBOARDING_KEY);
-    if (done) return;
-    // Only show for users who just signed up (account created in last 5 minutes)
-    const created = new Date(user.created_at).getTime();
-    const isNewUser = Date.now() - created < 5 * 60 * 1000;
-    if (isNewUser) setShow(true);
-    else localStorage.setItem(ONBOARDING_KEY, "true");
+    if (!done) setShow(true);
   }, [user, termsAcceptedAt]);
 
   if (!show) return null;

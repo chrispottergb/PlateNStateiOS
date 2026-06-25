@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Shield, Trophy, Briefcase, FileSearch, Users, BarChart3, ArrowRight, X } from "lucide-react";
+import { Camera, MapPin, Shield, Trophy, Briefcase, FileSearch, Users, BarChart3, ArrowRight, X, Search } from "lucide-react";
 
 interface OnboardingCard {
   icon: React.ReactNode;
@@ -34,6 +34,12 @@ const PERSONAL_CARDS: OnboardingCard[] = [
     title: "Claim Your Plate",
     description: "Own your plate number to get notified when someone reports it. Dispute false reports easily.",
     color: "text-accent",
+  },
+  {
+    icon: <Search className="h-10 w-10" />,
+    title: "Look Up Any Plate",
+    description: "Search any license plate to see its report history, risk score, and where incidents occurred.",
+    color: "text-amber-500",
   },
   {
     icon: <MapPin className="h-10 w-10" />,

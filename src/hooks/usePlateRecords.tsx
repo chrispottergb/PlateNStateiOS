@@ -133,7 +133,7 @@ export function usePlateDetail(plateNumber: string) {
     queryFn: async () => {
       const { data } = await supabase
         .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state")
+        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state, latitude, longitude")
         .eq("plate_number", plateNumber)
         .order("created_at", { ascending: false });
       return data ?? [];

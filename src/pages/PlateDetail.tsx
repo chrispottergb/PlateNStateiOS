@@ -7,6 +7,7 @@ import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowLeft, MapPin, Clock, ThumbsUp, MessageSquare, Shield, BarChart3, CheckCircle2, SortDesc, Flag, Share2 } from "lucide-react";
+import { LocationMiniMap } from "@/components/LocationMiniMap";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -267,6 +268,9 @@ const PlateDetail = () => {
                           <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
                         </span>
                       </div>
+                      {(report as any).latitude && (report as any).longitude && (
+                        <LocationMiniMap latitude={(report as any).latitude} longitude={(report as any).longitude} height={120} />
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
