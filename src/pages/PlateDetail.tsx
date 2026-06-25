@@ -269,7 +269,7 @@ const PlateDetail = () => {
                         </span>
                       </div>
                       {(report as any).latitude && (report as any).longitude && (
-                        <LocationMiniMap latitude={(report as any).latitude} longitude={(report as any).longitude} height={120} />
+                        <LocationMiniMap latitude={(report as any).latitude} longitude={(report as any).longitude} height={180} />
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

@@ -19,7 +19,7 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
 
     const map = L.map(containerRef.current, {
       center: [latitude, longitude],
-      zoom: 15,
+      zoom: 12,
       dragging: false,
       scrollWheelZoom: false,
       doubleClickZoom: false,
@@ -62,7 +62,7 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
 
   useEffect(() => {
     if (mapRef.current && markerRef.current) {
-      mapRef.current.setView([latitude, longitude], 15);
+      mapRef.current.setView([latitude, longitude], 12);
       markerRef.current.setLatLng([latitude, longitude]);
     }
   }, [latitude, longitude]);
