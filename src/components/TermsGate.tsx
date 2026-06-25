@@ -18,20 +18,22 @@ const TERMS_ACCEPTED_KEY = "terms_accepted";
 const TermsGate = () => {
   const { user, loading, termsAcceptedAt } = useAuth();
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
+  const [accepted, setAccepted] = useState(() => !!localStorage.getItem(TERMS_ACCEPTED_KEY));
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (pathname === "/reset-password") { setOpen(false); return; }
-    if (loading || !user) return;
-    // Already accepted in this session or a previous one
-    if (termsAcceptedAt || localStorage.getItem(TERMS_ACCEPTED_KEY)) {
-      setOpen(false);
-      return;
+    if (termsAcceptedAt && !accepted) {
+      localStorage.setItem(TERMS_ACCEPTED_KEY, "true");
+      setAccepted(true);
     }
-    setOpen(true);
-  }, [user, loading, termsAcceptedAt, pathname]);
+  }, [termsAcceptedAt, accepted]);
+
+  if (accepted) return null;
+  if (loading || !user) return null;
+  if (pathname === "/reset-password") return null;
+
+  const open = !accepted;
 
   const accept = async () => {
     if (!user) return;
@@ -43,7 +45,7 @@ const TermsGate = () => {
     setSaving(false);
     if (!error) {
       localStorage.setItem(TERMS_ACCEPTED_KEY, "true");
-      setOpen(false);
+      setAccepted(true);
     }
   };
 
