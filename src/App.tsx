@@ -107,14 +107,14 @@ const NotificationDock = () => {
 const ONBOARDING_KEY = "onboarding_completed";
 
 const OnboardingGate = () => {
-  const { user, portalMode } = useAuth();
+  const { user, portalMode, termsAcceptedAt } = useAuth();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !termsAcceptedAt) return;
     const done = localStorage.getItem(ONBOARDING_KEY);
     if (!done) setShow(true);
-  }, [user]);
+  }, [user, termsAcceptedAt]);
 
   if (!show) return null;
 
