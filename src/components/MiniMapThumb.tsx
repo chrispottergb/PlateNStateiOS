@@ -1,17 +1,68 @@
+import { useState, useEffect } from "react";
+
 interface MiniMapThumbProps {
-  latitude: number;
-  longitude: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  location?: string;
   size?: number;
 }
 
-const MiniMapThumb = ({ latitude, longitude, size = 56 }: MiniMapThumbProps) => {
-  const zoom = 13;
-  const tileX = Math.floor(((longitude + 180) / 360) * Math.pow(2, zoom));
-  const tileY = Math.floor(
-    ((1 - Math.log(Math.tan((latitude * Math.PI) / 180) + 1 / Math.cos((latitude * Math.PI) / 180)) / Math.PI) / 2) *
+const geoCache = new Map<string, { lat: number; lng: number } | null>();
+
+function latLngToTile(lat: number, lng: number, zoom: number) {
+  const x = Math.floor(((lng + 180) / 360) * Math.pow(2, zoom));
+  const y = Math.floor(
+    ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) *
       Math.pow(2, zoom)
   );
-  const tileUrl = `https://a.basemaps.cartocdn.com/light_all/${zoom}/${tileX}/${tileY}.png`;
+  return { x, y };
+}
+
+const MiniMapThumb = ({ latitude, longitude, location, size = 56 }: MiniMapThumbProps) => {
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    latitude && longitude ? { lat: latitude, lng: longitude } : null
+  );
+
+  useEffect(() => {
+    if (latitude && longitude) {
+      setCoords({ lat: latitude, lng: longitude });
+      return;
+    }
+    if (!location) return;
+
+    const cached = geoCache.get(location);
+    if (cached !== undefined) {
+      setCoords(cached);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(location)}`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        const data = await res.json();
+        if (!cancelled && data?.[0]) {
+          const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+          geoCache.set(location, result);
+          setCoords(result);
+        } else {
+          geoCache.set(location, null);
+        }
+      } catch {
+        geoCache.set(location, null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [latitude, longitude, location]);
+
+  if (!coords) return null;
+
+  const zoom = 13;
+  const tile = latLngToTile(coords.lat, coords.lng, zoom);
+  const tileUrl = `https://a.basemaps.cartocdn.com/light_all/${zoom}/${tile.x}/${tile.y}.png`;
 
   return (
     <div

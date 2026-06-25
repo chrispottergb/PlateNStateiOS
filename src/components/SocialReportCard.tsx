@@ -82,9 +82,7 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="hover:scale-105 transition-transform">
             <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
           </Link>
-          {report.latitude && report.longitude && (
-            <MiniMapThumb latitude={report.latitude} longitude={report.longitude} />
-          )}
+          <MiniMapThumb latitude={report.latitude} longitude={report.longitude} location={report.location} />
           <span className="text-xs text-muted-foreground ml-auto shrink-0">
             {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
           </span>
