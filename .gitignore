@@ -38,3 +38,5 @@ ios/
 
 # Android (not part of this iOS repo)
 android/
+node_modules
+.vercel

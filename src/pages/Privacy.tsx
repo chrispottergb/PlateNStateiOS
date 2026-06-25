@@ -55,7 +55,7 @@ const Privacy = () => {
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">6. Third-party services</h2>
             <p>
-              We use Lovable Cloud (Supabase) for storage and authentication, hCaptcha for bot
+              We use Supabase for storage and authentication, hCaptcha for bot
               prevention, Sentry for error monitoring, and OpenStreetMap/Nominatim for geocoding.
             </p>
           </div>
