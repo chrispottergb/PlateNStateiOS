@@ -70,60 +70,50 @@ const ReportComposer = () => {
   const [open, setOpen] = useState(false);
   const [promptIndex] = useState(() => Math.floor(Math.random() * COMPOSER_PROMPTS.length));
 
-  const handleOpen = () => {
-    if (text.trim().length === 0) return;
-    setOpen(true);
-  };
-
   return (
-    <div className="glass-card rounded-2xl border border-foreground/5 p-3 sm:p-4 hover:border-primary/20 transition-colors">
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
-          {user?.user_metadata?.avatar_url ? (
-            <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
-          ) : (
-            <span aria-hidden>🚨</span>
-          )}
+    <div className="space-y-3">
+      <div className="glass-card rounded-2xl border border-foreground/5 p-3 sm:p-4 hover:border-primary/20 transition-colors">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+            ) : (
+              <span aria-hidden>🚨</span>
+            )}
+          </div>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value.slice(0, 500))}
+            placeholder={COMPOSER_PROMPTS[promptIndex]}
+            rows={1}
+            maxLength={500}
+            className="flex-1 min-w-0 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none resize-none border-0 focus:ring-0 py-2"
+            onInput={(e) => {
+              const el = e.currentTarget;
+              el.style.height = "auto";
+              el.style.height = Math.min(el.scrollHeight, 160) + "px";
+            }}
+          />
         </div>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value.slice(0, 500))}
-          placeholder={COMPOSER_PROMPTS[promptIndex]}
-          rows={1}
-          maxLength={500}
-          className="flex-1 min-w-0 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none resize-none border-0 focus:ring-0 py-2"
-          onInput={(e) => {
-            const el = e.currentTarget;
-            el.style.height = "auto";
-            el.style.height = Math.min(el.scrollHeight, 160) + "px";
-          }}
-        />
       </div>
-      <div className="flex items-center justify-between gap-2 mt-2 pl-12 sm:pl-[52px]">
-        <span className={`text-xs ${text.length > 450 ? "text-destructive" : "text-muted-foreground"}`}>
-          {text.length}/500
-        </span>
-        <ReportModal
-          initialComment={text}
-          open={open}
-          onOpenChange={(v) => {
-            setOpen(v);
-            if (!v) setText("");
-          }}
-          trigger={
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleOpen}
-              disabled={text.trim().length === 0}
-              className="rounded-full gap-1.5 font-semibold px-4 shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.5)]"
-            >
-              <AlertTriangle className="h-3.5 w-3.5" />
-              Report
-            </Button>
-          }
-        />
-      </div>
+      <ReportModal
+        initialComment={text}
+        open={open}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) setText("");
+        }}
+        trigger={
+          <Button
+            size="lg"
+            onClick={() => setOpen(true)}
+            className="gap-2 font-bold text-base w-full rounded-full glow h-12"
+          >
+            <AlertTriangle className="h-5 w-5" />
+            Report a Plate
+          </Button>
+        }
+      />
     </div>
   );
 };
@@ -245,34 +235,13 @@ const HonkZone = () => {
             <HeroMiniMap />
           </Suspense>
 
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <ReportModal
-              trigger={
-                <Button size="lg" className="gap-2 font-semibold text-base w-full sm:w-auto rounded-full glow">
-                  <AlertTriangle className="h-5 w-5" />
-                  Report a Plate
-                </Button>
-              }
-            />
-            <form onSubmit={handleSearch} className="flex gap-2 flex-1">
-              <Input
-                value={searchPlate}
-                onChange={e => setSearchPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-                placeholder="Search plate..."
-                className="glass font-mono rounded-full border-foreground/5"
-                maxLength={8}
-              />
-              <Button type="submit" size="icon" variant="secondary" className="rounded-full shrink-0">
-                <Search className="h-4 w-4" />
-              </Button>
-              <Link to="/claim">
-                <Button type="button" variant="outline" size="sm" className="rounded-full shrink-0 gap-1.5 h-10">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span className="hidden sm:inline">Claim Plate</span>
-                </Button>
-              </Link>
-            </form>
-          </div>
+          {/* Claim Your Plate gold banner */}
+          <Link to="/claim" className="block">
+            <div className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-400 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+              <ShieldCheck className="h-5 w-5 text-amber-950" />
+              <span className="text-amber-950 font-extrabold text-base tracking-wide">Claim Your Plate</span>
+            </div>
+          </Link>
         </div>
       </section>
 
@@ -294,28 +263,10 @@ const HonkZone = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main feed */}
           <div className="flex-1 space-y-4">
-            {/* Controls bar */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex rounded-full glass overflow-hidden">
-                {([
-                  { key: "hot" as SortMode, icon: <Flame className="h-3.5 w-3.5" />, label: "Hot" },
-                  { key: "new" as SortMode, icon: <span className="text-xs">🆕</span>, label: "New" },
-                  { key: "top" as SortMode, icon: <TrendingUp className="h-3.5 w-3.5" />, label: "Top" },
-                ]).map(s => (
-                  <button
-                    key={s.key}
-                    onClick={() => setSortMode(s.key)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium transition-all ${
-                      sortMode === s.key ? "bg-primary text-primary-foreground shadow-[0_0_12px_-3px_hsl(var(--glow-primary)/0.4)]" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {s.icon} {s.label}
-                  </button>
-                ))}
-              </div>
-
-              <Link to="/a-hole-patrol/wall" className="ml-auto">
-                <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs">
+            {/* Wall of Shame — centered, bold, white */}
+            <div className="flex justify-center">
+              <Link to="/a-hole-patrol/wall">
+                <Button size="lg" variant="outline" className="rounded-full px-10 h-11 font-extrabold text-sm text-white border-destructive/50 bg-destructive/20 hover:bg-destructive/30">
                   Wall of Shame
                 </Button>
               </Link>

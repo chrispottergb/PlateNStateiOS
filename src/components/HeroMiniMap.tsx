@@ -114,8 +114,15 @@ const HeroMiniMap = () => {
   const [searchError, setSearchError] = useState(false);
 
   const handleSearch = async (query: string, inputEl: HTMLInputElement) => {
-    if (!query.trim() || !mapRef.current) return;
+    if (!query.trim()) return;
     setSearchError(false);
+    const cleaned = query.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    // If it looks like a plate number (3-10 alphanumeric, no spaces/commas), navigate to plate detail
+    if (cleaned.length >= 3 && cleaned.length <= 10 && !query.includes(",")) {
+      window.location.href = `/plate/${encodeURIComponent(cleaned)}`;
+      return;
+    }
+    if (!mapRef.current) return;
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
@@ -146,7 +153,7 @@ const HeroMiniMap = () => {
         <div className="absolute top-3 left-3 right-20 z-[1000]">
           <input
             type="text"
-            placeholder={searchError ? "Location not found" : "Search city, state..."}
+            placeholder={searchError ? "Not found" : "Search plate or city, state..."}
             className={`w-full rounded-full bg-background/90 backdrop-blur-sm border px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none pointer-events-auto ${searchError ? "border-destructive/50 placeholder:text-destructive" : "border-border/40 focus:border-primary/50"}`}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
