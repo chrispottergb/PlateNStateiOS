@@ -314,16 +314,9 @@ const HonkZone = () => {
                 ))}
               </div>
 
-              <button
-                onClick={() => setViewMode(v => v === "feed" ? "grid" : "feed")}
-                className="ml-auto p-2 rounded-full glass text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {viewMode === "feed" ? <LayoutGrid className="h-4 w-4" /> : <LayoutList className="h-4 w-4" />}
-              </button>
-
-              <Link to="/a-hole-patrol/wall">
-                <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive">
-                  <Skull className="h-3.5 w-3.5" /> Wall of Shame
+              <Link to="/a-hole-patrol/wall" className="ml-auto">
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs">
+                  Wall of Shame
                 </Button>
               </Link>
             </div>

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
-import { Navigation } from "lucide-react";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,9 +76,20 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
     >
       {/* Main content */}
       <div className="p-3 space-y-2">
-        <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="inline-block hover:scale-105 transition-transform">
-          <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
-        </Link>
+        <div className="relative inline-block">
+          <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="inline-block hover:scale-105 transition-transform">
+            <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
+          </Link>
+          {(report.latitude && report.longitude) && (
+            <Link
+              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
+              className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+              title="View on map"
+            >
+              <MapPin className="h-3 w-3" />
+            </Link>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge
@@ -95,24 +105,9 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
           )}
         </div>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="flex items-center gap-1 truncate">
-            <MapPin className="h-3 w-3 shrink-0" />
-            {report.location}
-          </span>
-          {(report.latitude && report.longitude) && (
-            <Link
-              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
-              className="shrink-0 p-1 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
-              title="View on map"
-            >
-              <Navigation className="h-3.5 w-3.5" />
-            </Link>
-          )}
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+        <div className="text-xs text-muted-foreground truncate">
+          <MapPin className="h-3 w-3 shrink-0 inline mr-1" />
+          {report.location} · {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
         </div>
 
         {report.comment && (
