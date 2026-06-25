@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS } from "@/lib/data";
 import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
-import MiniMapThumb from "./MiniMapThumb";
+import { Navigation } from "lucide-react";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,51 +76,47 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
       className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden hover:border-border/60 transition-colors"
     >
       {/* Main content */}
-      <div className="p-4">
-        <div className="flex gap-3">
-          {/* Left side — plate, infraction, vehicle */}
-          <div className="flex-1 min-w-0 space-y-2">
-            <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="inline-block hover:scale-105 transition-transform">
-              <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={inf?.kind === "good" ? "default" : "destructive"}
-                className="text-xs rounded-lg"
-              >
-                {inf?.label || report.infraction}
-              </Badge>
-              {report.is_flagged && (
-                <Badge variant="outline" className="text-xs rounded-lg border-amber-500/40 text-amber-500 gap-1">
-                  <AlertCircle className="h-3 w-3" /> Review
-                </Badge>
-              )}
-            </div>
-            {vehicleDesc && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Car className="h-3 w-3 shrink-0" />
-                <span>{vehicleDesc}</span>
-              </div>
-            )}
-            <div className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
-            </div>
-          </div>
+      <div className="p-3 space-y-2">
+        <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="inline-block hover:scale-105 transition-transform">
+          <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
+        </Link>
 
-          {/* Right side — map + location */}
-          <div className="flex flex-col items-center gap-1 shrink-0 self-stretch">
-            <div className="flex-1 w-[88px]">
-              <MiniMapThumb latitude={report.latitude} longitude={report.longitude} location={report.location} size="fill" />
-            </div>
-            <span className="text-xs text-muted-foreground text-center max-w-[88px] truncate">
-              {report.location}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge
+            variant={inf?.kind === "good" ? "default" : "destructive"}
+            className="text-xs rounded-lg"
+          >
+            {inf?.label || report.infraction}
+          </Badge>
+          {report.is_flagged && (
+            <Badge variant="outline" className="text-xs rounded-lg border-amber-500/40 text-amber-500 gap-1">
+              <AlertCircle className="h-3 w-3" /> Review
+            </Badge>
+          )}
         </div>
 
-        {/* Comment */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 truncate">
+            <MapPin className="h-3 w-3 shrink-0" />
+            {report.location}
+          </span>
+          {(report.latitude && report.longitude) && (
+            <Link
+              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
+              className="shrink-0 p-1 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+              title="View on map"
+            >
+              <Navigation className="h-3.5 w-3.5" />
+            </Link>
+          )}
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+        </div>
+
         {report.comment && (
-          <p className="text-sm text-muted-foreground italic mt-3">
+          <p className="text-xs text-muted-foreground italic">
             "{report.comment}"
           </p>
         )}

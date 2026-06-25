@@ -403,7 +403,7 @@ const HonkZone = () => {
                 />
               </motion.div>
             ) : (
-              <div className={viewMode === "feed" ? "grid gap-4 sm:grid-cols-2" : "grid gap-3 grid-cols-2 sm:grid-cols-3"}>
+              <div className="grid grid-cols-2 gap-3">
                 {filteredReports.map((report, i) => (
                   <SocialReportCard key={report.id} report={report} hasUpvoted={myUpvotes.has(report.id)} votingId={votingId} onUpvote={handleUpvote} index={i} />
                 ))}
