@@ -71,8 +71,8 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
     <div
       ref={containerRef}
       aria-label="Map preview of incident location"
-      className="mt-2 rounded-lg overflow-hidden border border-primary/30 bg-muted/30"
-      style={{ height }}
+      className="mt-2 rounded-lg overflow-hidden border border-border/30 bg-muted/30 pointer-events-none"
+      style={{ height, isolation: "isolate", zIndex: 0 }}
     />
   );
 };
