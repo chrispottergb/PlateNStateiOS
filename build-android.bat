@@ -6,24 +6,29 @@ set VITE_SUPABASE_PROJECT_ID=qcnhusvxygyczbnmbyvd
 set VITE_SUPABASE_URL=https://qcnhusvxygyczbnmbyvd.supabase.co
 set VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbmh1c3Z4eWd5Y3pibm1ieXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg0NTAsImV4cCI6MjA5Nzc1NDQ1MH0.sQJL5eJkI706OwjtUcmr3R1yaT_VaOyEkV7b-Ljrqyk
 
-echo [1/4] Installing dependencies...
+echo [1/5] Installing dependencies...
 call npm install
 if %errorlevel% neq 0 ( echo FAILED: npm install & exit /b 1 )
 
-echo [2/4] Building web bundle...
+echo [2/5] Building web bundle...
 call npm run build
 if %errorlevel% neq 0 ( echo FAILED: npm run build & exit /b 1 )
 
 if not exist android (
-  echo [3/4] Adding Android platform...
+  echo [3/5] Adding Android platform...
   call npx cap add android
 ) else (
-  echo [3/4] Android platform already present, skipping add.
+  echo [3/5] Android platform already present, skipping add.
 )
 
-echo [4/4] Syncing web bundle into Android project...
+echo [4/5] Syncing web bundle into Android project...
 call npx cap sync android
 if %errorlevel% neq 0 ( echo FAILED: npx cap sync android & exit /b 1 )
+
+echo [5/5] Injecting custom URL scheme for OAuth deep links...
+set MANIFEST=android\app\src\main\AndroidManifest.xml
+powershell -Command "(Get-Content '%MANIFEST%') -replace '</activity>', '            <intent-filter>`n                <action android:name=\"android.intent.action.VIEW\" />`n                <category android:name=\"android.intent.category.DEFAULT\" />`n                <category android:name=\"android.intent.category.BROWSABLE\" />`n                <data android:scheme=\"com.plateandstate.platenstate\" />`n            </intent-filter>`n        </activity>' | Set-Content '%MANIFEST%' -Encoding UTF8"
+echo URL scheme injected: com.plateandstate.platenstate://
 
 echo.
 echo === Done! ===
