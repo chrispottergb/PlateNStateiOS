@@ -194,53 +194,6 @@ const ClaimPlate = () => {
       <PaymentTestModeBanner />
       <Header />
       <div className="container max-w-2xl py-10 space-y-6">
-        {/* Dual-entry chooser */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-        >
-          <button
-            type="button"
-            onClick={() => {
-              document
-                .getElementById("claim-card")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-            className="group text-left rounded-2xl border border-border bg-card/60 hover:bg-card hover:border-primary/40 transition-all p-4 shadow-sm"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Claim my plate</span>
-            </div>
-            <p className="text-xs text-muted-foreground mb-2">
-              Lock in your plate, get notified when it's reported, unlock privacy tiers.
-            </p>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-              Start claim <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </button>
-
-          <ReportModal
-            trigger={
-              <button
-                type="button"
-                className="group text-left rounded-2xl border border-border bg-card/60 hover:bg-card hover:border-destructive/40 transition-all p-4 shadow-sm"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Megaphone className="h-5 w-5 text-destructive" />
-                  <span className="font-semibold">Report a plate</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Submit an infraction you witnessed. Costs 1 coin. Confirmation when filed.
-                </p>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive">
-                  File a report <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </button>
-            }
-          />
-        </motion.div>
 
         <motion.div id="claim-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-0 shadow-lg">

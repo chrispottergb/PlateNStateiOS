@@ -113,7 +113,7 @@ function buildRecords(rows: {
       map.set(r.plate_number, rec);
     }
     const inf = INFRACTIONS.find(i => i.type === r.infraction);
-    rec.totalScore += inf?.points ?? 3;
+    rec.totalScore += inf?.points ?? 0;
     rec.reportCount += 1;
     if (r.infraction in rec.infractions) {
       rec.infractions[r.infraction as InfractionType] += 1;

@@ -111,7 +111,9 @@ const OnboardingGate = () => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!user || !termsAcceptedAt) return;
+    if (!user) return;
+    const termsOk = termsAcceptedAt || localStorage.getItem("terms_accepted");
+    if (!termsOk) return;
     const done = localStorage.getItem(ONBOARDING_KEY);
     if (!done) setShow(true);
   }, [user, termsAcceptedAt]);
