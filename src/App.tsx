@@ -10,6 +10,7 @@ import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
 import AccountFab from "@/components/AccountFab";
+import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
@@ -47,7 +48,7 @@ const lazyWithRetry = <T extends React.ComponentType<any>>(
   });
 
 // Lazy-load heavy / less-frequently-hit routes to keep initial bundle small for high-traffic landing
-const Community = lazyWithRetry(() => import("./pages/Community"));
+const Community = lazyWithRetry(() => import("./pages/CommunityFeed"));
 const Business = lazyWithRetry(() => import("./pages/Business"));
 const HonkZone = lazyWithRetry(() => import("./pages/HonkZone"));
 const WallOfShame = lazyWithRetry(() => import("./pages/WallOfShame"));
@@ -187,6 +188,7 @@ const App = () => (
               </Suspense>
               <AccountFab />
               <NotificationDock />
+              <BottomNav />
               <OnboardingGate />
             </BlocklistGate>
           </BrowserRouter>
