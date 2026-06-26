@@ -16,8 +16,13 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    const el = containerRef.current;
+    if (el.clientWidth === 0 || el.clientHeight === 0) {
+      const t = setTimeout(() => el.dispatchEvent(new Event("resize")), 200);
+      return () => clearTimeout(t);
+    }
 
-    const map = L.map(containerRef.current, {
+    const map = L.map(el, {
       center: [latitude, longitude],
       zoom: 12,
       dragging: false,
