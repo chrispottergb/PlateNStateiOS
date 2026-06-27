@@ -55,7 +55,7 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
       .from("community_post_comments")
       .select(`
         id, post_id, user_id, parent_id, body, created_at,
-        profiles!inner(display_name)
+        profiles(display_name)
       `)
       .eq("post_id", post.id)
       .is("parent_id", null)
@@ -87,7 +87,7 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
     const { data, error } = await supabase
       .from("community_post_comments")
       .insert({ post_id: post.id, user_id: user.id, body })
-      .select(`id, post_id, user_id, parent_id, body, created_at, profiles!inner(display_name)`)
+      .select(`id, post_id, user_id, parent_id, body, created_at, profiles(display_name)`)
       .single();
 
     setSubmitting(false);
@@ -114,7 +114,7 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
   }
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 space-y-3 transition-colors hover:border-border/60">
+    <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3 transition-colors hover:border-border">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
@@ -142,7 +142,7 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
       </div>
 
       {/* Body */}
-      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{post.body}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground">{post.body}</p>
 
       {/* Plate tag */}
       {post.plate_tag && (

@@ -18,7 +18,7 @@ async function fetchPostPage(pageParam: number): Promise<CommunityPost[]> {
   const to = from + PAGE_SIZE - 1;
   const { data, error } = await supabase
     .from("community_posts")
-    .select(`id, user_id, body, plate_tag, like_count, comment_count, created_at, profiles!inner(display_name)`)
+    .select(`id, user_id, body, plate_tag, like_count, comment_count, created_at, profiles(display_name)`)
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -109,7 +109,7 @@ export default function CommunityFeed() {
       const { data, error } = await supabase
         .from("community_posts")
         .insert({ user_id: user.id, body: trimmed, plate_tag: plateTag.trim().toUpperCase() || null })
-        .select(`id, user_id, body, plate_tag, like_count, comment_count, created_at, profiles!inner(display_name)`)
+        .select(`id, user_id, body, plate_tag, like_count, comment_count, created_at, profiles(display_name)`)
         .single();
 
       if (error) throw error;
@@ -142,7 +142,7 @@ export default function CommunityFeed() {
 
         {/* Compose */}
         {user ? (
-          <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 space-y-3">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
             <Textarea
               placeholder="Got something to say? Or are you just here to lurk?"
               value={body}
