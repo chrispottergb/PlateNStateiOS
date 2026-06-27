@@ -29,6 +29,8 @@ const QuickCapture = () => {
   const [scanning, setScanning] = useState(false);
   const [detectedPlate, setDetectedPlate] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  // Guard against ghost clicks from the BottomNav tap that navigated here
+  const [tapEnabled, setTapEnabled] = useState(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -125,11 +127,17 @@ const QuickCapture = () => {
     }
   }, [captcha]);
 
-  // Mount: start camera
+  // Mount: start camera. On native, auto-open camera immediately (skip black-screen step).
+  // Delay tap-to-capture briefly to prevent ghost clicks from the BottomNav tap.
   useEffect(() => {
     startCamera();
-    return () => stopCamera();
-  }, [startCamera, stopCamera]);
+    const t = setTimeout(() => setTapEnabled(true), 600);
+    if (isNative) {
+      // Auto-trigger on native so user goes straight to camera without tapping
+      setTimeout(() => capture(), 300);
+    }
+    return () => { clearTimeout(t); stopCamera(); };
+  }, [startCamera, stopCamera]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keyboard / remote-shutter listener.
   // Bluetooth dash shutters typically emit VolumeUp/VolumeDown or Enter.
@@ -187,7 +195,7 @@ const QuickCapture = () => {
       {/* Video viewport */}
       <div
         className="flex-1 relative overflow-hidden cursor-pointer"
-        onClick={capture}
+        onClick={tapEnabled ? capture : undefined}
         role="button"
         aria-label="Tap to capture plate"
       >

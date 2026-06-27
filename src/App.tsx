@@ -100,7 +100,7 @@ const NotificationDock = () => {
   const { user } = useAuth();
   if (!user) return null;
   return (
-    <div className="fixed bottom-6 left-5 z-[60]">
+    <div className="fixed bottom-[148px] left-5 z-[60]">
       <NotificationBell />
     </div>
   );
