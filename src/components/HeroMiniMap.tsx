@@ -47,7 +47,7 @@ const HeroMiniMap = () => {
     markersRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 
-    setTimeout(() => map.invalidateSize(), 300);
+    const resizeTimer = setTimeout(() => map.invalidateSize(), 300);
 
     const loadReports = async () => {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -80,7 +80,7 @@ const HeroMiniMap = () => {
         const bounds = L.latLngBounds(
           reports.filter(r => r.latitude && r.longitude).map(r => [r.latitude!, r.longitude!] as [number, number])
         );
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10 });
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10, animate: false });
       }
     };
 
@@ -104,6 +104,7 @@ const HeroMiniMap = () => {
       .subscribe();
 
     return () => {
+      clearTimeout(resizeTimer);
       supabase.removeChannel(channel);
       map.remove();
       mapRef.current = null;
