@@ -48,6 +48,7 @@ const lazyWithRetry = <T extends React.ComponentType<any>>(
 
 // Lazy-load heavy / less-frequently-hit routes to keep initial bundle small for high-traffic landing
 const Community = lazyWithRetry(() => import("./pages/Community"));
+const CommunityFeed = lazyWithRetry(() => import("./pages/CommunityFeed"));
 const Business = lazyWithRetry(() => import("./pages/Business"));
 const HonkZone = lazyWithRetry(() => import("./pages/HonkZone"));
 const WallOfShame = lazyWithRetry(() => import("./pages/WallOfShame"));
@@ -160,6 +161,7 @@ const App = () => (
                   <Route path="/" element={<HonkZone />} />
                   <Route path="/welcome" element={<Index />} />
                   <Route path="/community" element={<Community />} />
+                  <Route path="/feed" element={<CommunityFeed />} />
                   <Route path="/a-hole-patrol" element={<HonkZone />} />
                   <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
                   <Route path="/business" element={<Business />} />

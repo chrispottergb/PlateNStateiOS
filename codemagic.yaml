@@ -14,6 +14,7 @@ workflows:
         VITE_SUPABASE_PROJECT_ID: "qcnhusvxygyczbnmbyvd"
         VITE_SUPABASE_URL: "https://qcnhusvxygyczbnmbyvd.supabase.co"
         VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbmh1c3Z4eWd5Y3pibm1ieXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg0NTAsImV4cCI6MjA5Nzc1NDQ1MH0.sQJL5eJkI706OwjtUcmr3R1yaT_VaOyEkV7b-Ljrqyk"
+        VITE_PAYMENTS_CLIENT_TOKEN: "pk_live_51TlN4VF1rSA57RFZsaO7QGtEm5KbcbC6imVvdd8xTbz3y1pTBB4ASoXLQ9PWsl5aOZnMy3btovUknoOBmW5kIXxh00qqz0Ix0q"
       node: 22
       xcode: latest
     scripts:
