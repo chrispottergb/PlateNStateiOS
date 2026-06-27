@@ -27,7 +27,7 @@ const AccountFab = () => {
   const isEnterprise = portalMode === "enterprise";
 
   return (
-    <div className="fixed bottom-6 right-5 z-[60]">
+    <div className="fixed bottom-[88px] right-5 z-[60]">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

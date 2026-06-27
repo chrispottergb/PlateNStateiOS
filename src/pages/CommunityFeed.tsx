@@ -130,7 +130,7 @@ export default function CommunityFeed() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-nav">
       <Header />
       <main className="container max-w-2xl py-6 space-y-5">
         <div>

@@ -10,6 +10,7 @@ import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsGate from "@/components/TermsGate";
 import AccountFab from "@/components/AccountFab";
+import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
@@ -187,6 +188,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <BottomNav />
               <AccountFab />
               <NotificationDock />
               <OnboardingGate />

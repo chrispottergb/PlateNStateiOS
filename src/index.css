@@ -170,4 +170,10 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pb-nav {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
 }

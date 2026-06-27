@@ -174,7 +174,7 @@ const WatchMap = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-nav">
       <Header />
 
       {/* Top Bar */}

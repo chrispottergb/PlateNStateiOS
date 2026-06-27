@@ -209,7 +209,7 @@ const HonkZone = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-nav">
       <Header />
 
       <section className="relative overflow-hidden border-b border-border/30">

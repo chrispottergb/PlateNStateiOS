@@ -33,7 +33,7 @@ const WallOfShame = () => {
   }, [rows]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-nav">
       <Header />
       <section className="container py-10 space-y-8 max-w-4xl">
         <div className="flex items-center gap-3">
