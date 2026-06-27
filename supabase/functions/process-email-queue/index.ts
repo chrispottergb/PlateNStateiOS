@@ -1,4 +1,33 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import nodemailer from 'npm:nodemailer@6'
+
+const ZOHO_SMTP_HOST = 'smtp.zoho.com'
+const ZOHO_SMTP_PORT = 587
+
+async function sendViaZohoSmtp(opts: {
+  smtpUser: string
+  smtpPass: string
+  from: string
+  to: string
+  subject: string
+  html: string
+  text: string
+}): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    host: ZOHO_SMTP_HOST,
+    port: ZOHO_SMTP_PORT,
+    secure: false,
+    auth: { user: opts.smtpUser, pass: opts.smtpPass },
+  })
+  const info = await transporter.sendMail({
+    from: opts.from,
+    to: opts.to,
+    subject: opts.subject,
+    html: opts.html,
+    text: opts.text,
+  })
+  console.log('Email sent via Zoho SMTP', { messageId: info.messageId, to: opts.to })
+}
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -78,11 +107,12 @@ async function moveToDlq(
 }
 
 Deno.serve(async (req) => {
-  const resendApiKey = Deno.env.get('RESEND_API_KEY')
+  const smtpUser = Deno.env.get('ZOHO_SMTP_USER')
+  const smtpPass = Deno.env.get('ZOHO_SMTP_PASS')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-  if (!resendApiKey || !supabaseUrl || !supabaseServiceKey) {
+  if (!smtpUser || !smtpPass || !supabaseUrl || !supabaseServiceKey) {
     console.error('Missing required environment variables')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
@@ -248,27 +278,15 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const sendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: payload.from,
-            to: [payload.to],
-            subject: payload.subject,
-            html: payload.html,
-            text: payload.text,
-          }),
+        await sendViaZohoSmtp({
+          smtpUser,
+          smtpPass,
+          from: payload.from,
+          to: payload.to,
+          subject: payload.subject,
+          html: payload.html,
+          text: payload.text,
         })
-
-        if (!sendRes.ok) {
-          const errBody = await sendRes.text()
-          throw Object.assign(new Error(`Resend error ${sendRes.status}: ${errBody}`), {
-            status: sendRes.status,
-          })
-        }
 
         // Log success
         await supabase.from('email_send_log').insert({
