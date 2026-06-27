@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -13,6 +14,7 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -74,11 +76,17 @@ export const LocationMiniMap = ({ latitude, longitude, label, height = 140 }: Lo
 
   return (
     <div
-      ref={containerRef}
-      aria-label="Map preview of incident location"
-      className="mt-2 rounded-lg overflow-hidden border border-border/30 bg-muted/30 pointer-events-none"
+      className="mt-2 rounded-lg overflow-hidden border border-border/30 bg-muted/30 relative cursor-pointer group"
       style={{ height, isolation: "isolate", zIndex: 0 }}
-    />
+      onClick={() => navigate(`/map?lat=${latitude}&lng=${longitude}`)}
+      aria-label="Open full map"
+      role="button"
+    >
+      <div ref={containerRef} className="absolute inset-0 pointer-events-none" />
+      <div className="absolute bottom-2 right-2 z-[1000] rounded-full bg-primary/90 text-primary-foreground px-2.5 py-1 text-xs font-medium opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none">
+        Open Map →
+      </div>
+    </div>
   );
 };
 

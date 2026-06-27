@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ const WatchMap = () => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
+  const [searchParams] = useSearchParams();
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<"24h" | "7d" | "all">("24h");
   const [loading, setLoading] = useState(true);
@@ -112,7 +113,11 @@ const WatchMap = () => {
         setTimeout(initMap, 200);
         return;
       }
-      mapRef.current = L.map(container).setView([44.5, -89.5], 7);
+      const lat = parseFloat(searchParams.get("lat") ?? "");
+      const lng = parseFloat(searchParams.get("lng") ?? "");
+      const initCenter: [number, number] = (lat && lng) ? [lat, lng] : [44.5, -89.5];
+      const initZoom = (lat && lng) ? 13 : 7;
+      mapRef.current = L.map(container).setView(initCenter, initZoom);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(mapRef.current);
