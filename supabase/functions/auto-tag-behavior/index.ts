@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const body = await req.json().catch(() => ({}));
     const comment = typeof body?.comment === "string" ? body.comment.trim() : "";
@@ -39,32 +39,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    const system = `You classify short driver-behavior reports. Read the user's note and pick ONE behavior tag from this list, or null if none fits well.
+    const prompt = `You classify short driver-behavior reports. Read the user's note and pick ONE behavior tag from this list, or null if none fits well.
 
 BAD behaviors: ${BAD_TYPES.join(", ")}
 GOOD behaviors: ${GOOD_TYPES.join(", ")}
 
+User report: ${comment}
+
 Respond with ONLY JSON like {"type":"<tag>","confidence":0.0-1.0}. If nothing fits, respond {"type":null,"confidence":0}.`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: comment },
-        ],
-        response_format: { type: "json_object" },
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 64,
+        messages: [{ role: "user", content: prompt }],
       }),
     });
 
     if (!resp.ok) {
       const text = await resp.text();
-      console.error("AI gateway error", resp.status, text);
+      console.error("Anthropic API error", resp.status, text);
       return new Response(
         JSON.stringify({ type: null, confidence: 0, error: "ai_error" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -72,7 +72,7 @@ Respond with ONLY JSON like {"type":"<tag>","confidence":0.0-1.0}. If nothing fi
     }
 
     const data = await resp.json();
-    const content = data?.choices?.[0]?.message?.content ?? "{}";
+    const content = data?.content?.[0]?.text ?? "{}";
     let parsed: { type: string | null; confidence: number } = { type: null, confidence: 0 };
     try {
       parsed = typeof content === "string" ? JSON.parse(content) : content;

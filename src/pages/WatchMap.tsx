@@ -102,13 +102,25 @@ const WatchMap = () => {
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    mapRef.current = L.map(mapContainerRef.current).setView([44.5, -89.5], 7);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(mapRef.current);
-    markersRef.current = L.layerGroup().addTo(mapRef.current);
-    // WKWebView may report wrong container size on first paint; force recalc
-    setTimeout(() => mapRef.current?.invalidateSize(), 300);
+    const container = mapContainerRef.current;
+
+    function initMap() {
+      if (mapRef.current) return;
+      // On Android/WKWebView the container can render at 0×0 on first paint.
+      // Retry once after a short delay; a second attempt gives up gracefully.
+      if (container.clientWidth === 0 || container.clientHeight === 0) {
+        setTimeout(initMap, 200);
+        return;
+      }
+      mapRef.current = L.map(container).setView([44.5, -89.5], 7);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(mapRef.current);
+      markersRef.current = L.layerGroup().addTo(mapRef.current);
+      setTimeout(() => mapRef.current?.invalidateSize(), 300);
+    }
+
+    initMap();
     return () => { mapRef.current?.remove(); mapRef.current = null; };
   }, []);
 
