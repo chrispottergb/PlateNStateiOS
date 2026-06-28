@@ -11,7 +11,7 @@ export async function pickImageFromLibrary(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
   const perms = await Camera.requestPermissions({ permissions: ['photos'] });
-  if (perms.photos === 'denied') {
+  if (perms.photos !== 'granted') {
     throw new Error('Photo library access denied. Please enable it in Settings > Privacy > Photos.');
   }
   const photo = await Camera.getPhoto({
@@ -34,7 +34,7 @@ export async function takePhotoNative(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
   const perms = await Camera.requestPermissions({ permissions: ['camera'] });
-  if (perms.camera === 'denied') {
+  if (perms.camera !== 'granted') {
     throw new Error('Camera access denied. Please enable it in Settings > Privacy > Camera.');
   }
   const photo = await Camera.getPhoto({
@@ -56,7 +56,7 @@ export async function getPosition(): Promise<{ latitude: number; longitude: numb
     try {
       const { Geolocation } = await import('@capacitor/geolocation');
       const perms = await Geolocation.requestPermissions();
-      if (perms.location === 'denied') return null;
+      if (perms.location !== 'granted') return null;
       // Try high accuracy first, fall back to low accuracy on timeout
       try {
         const pos = await Geolocation.getCurrentPosition({
