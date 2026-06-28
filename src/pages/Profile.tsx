@@ -4,8 +4,9 @@ import Header from "@/components/Header";
 import { INFRACTIONS } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope, Pencil } from "lucide-react";
+import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope, Pencil, Check, X } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +17,7 @@ import { useNavigate, Link } from "react-router-dom";
 import LicensePlate from "@/components/LicensePlate";
 import EditReportModal, { EditableReport } from "@/components/EditReportModal";
 import { differenceInHours } from "date-fns";
+import { toast } from "sonner";
 
 const BADGE_DEFS: Record<string, { label: string; icon: string; description: string }> = {
   first_report: { label: "First Report", icon: "🛡️", description: "Filed your first report" },
@@ -81,6 +83,38 @@ const Profile = () => {
   const queryClient = useQueryClient();
   const [editingReport, setEditingReport] = useState<EditableReport | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
+
+  const saveUsername = async () => {
+    const trimmed = newUsername.trim();
+    if (trimmed.length < 2) { toast.error("Username must be at least 2 characters"); return; }
+    if (trimmed.length > 40) { toast.error("Username must be 40 characters or fewer"); return; }
+    if (!/^[a-zA-Z0-9_\-#]+$/.test(trimmed)) { toast.error("Only letters, numbers, _, - and # allowed"); return; }
+    setSavingUsername(true);
+    try {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("display_name", trimmed)
+        .neq("user_id", user!.id)
+        .maybeSingle();
+      if (existing) { toast.error("That username is already taken"); return; }
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: trimmed })
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile(user!.id) });
+      setEditingUsername(false);
+      toast.success("Username updated");
+    } catch {
+      toast.error("Failed to save username");
+    } finally {
+      setSavingUsername(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -176,7 +210,36 @@ const Profile = () => {
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto mb-3 text-2xl font-bold">
             {(profile.display_name || "D")[0].toUpperCase()}
           </div>
-          <h1 className="text-2xl font-bold">{profile.display_name || "Driver"}</h1>
+          {editingUsername ? (
+            <div className="flex items-center gap-2 justify-center mt-1">
+              <Input
+                autoFocus
+                value={newUsername}
+                onChange={e => setNewUsername(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") saveUsername(); if (e.key === "Escape") setEditingUsername(false); }}
+                placeholder="New username"
+                maxLength={40}
+                className="h-9 text-sm rounded-xl w-44 text-center"
+              />
+              <button onClick={saveUsername} disabled={savingUsername} className="rounded-full p-1.5 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setEditingUsername(false)} className="rounded-full p-1.5 bg-muted hover:bg-muted/70">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 justify-center">
+              <h1 className="text-2xl font-bold">{profile.display_name || "Driver"}</h1>
+              <button
+                onClick={() => { setNewUsername(profile.display_name || ""); setEditingUsername(true); }}
+                className="text-muted-foreground hover:text-primary transition-colors mt-0.5"
+                title="Change username"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground flex items-center gap-1 justify-center">
             <Calendar className="h-3 w-3" /> Reporting for duty since {format(new Date(profile.joined_at), "MMMM yyyy")}
           </p>
