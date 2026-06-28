@@ -4,11 +4,42 @@ import { Button } from "@/components/ui/button";
 import { Camera, MapPin, Shield, Trophy, Briefcase, FileSearch, Users, BarChart3, ArrowRight, X, Search } from "lucide-react";
 
 interface OnboardingCard {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  visual?: React.ReactNode;
   title: string;
   description: string;
   color: string;
 }
+
+const VanityPlateVisual = () => (
+  <div className="w-full space-y-3">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground w-14 text-right shrink-0">Vanity:</span>
+        <div className="flex-1 rounded-lg bg-emerald-500/10 border-2 border-emerald-500/40 px-3 py-2 font-mono text-base font-black tracking-widest text-center text-emerald-400">
+          2{" "}
+          <span className="relative inline-block">
+            <span className="bg-emerald-400/25 rounded px-0.5">·</span>
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-sans font-bold">↓</span>
+          </span>
+          {" "}MAX{" "}
+          <span className="relative inline-block">
+            <span className="bg-emerald-400/25 rounded px-0.5">·</span>
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-sans font-bold">↓</span>
+          </span>
+          {" "}3
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground w-14 text-right shrink-0">≠ this:</span>
+        <div className="flex-1 rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2 font-mono text-base font-black tracking-widest text-center text-destructive/70">
+          2MAX3
+        </div>
+      </div>
+    </div>
+    <p className="text-xs text-muted-foreground text-center">Spaces are part of the plate — include them exactly</p>
+  </div>
+);
 
 const PERSONAL_CARDS: OnboardingCard[] = [
   {
@@ -16,6 +47,12 @@ const PERSONAL_CARDS: OnboardingCard[] = [
     title: "Scan a Plate",
     description: "Tap the report button, snap a photo of a license plate, and our AI reads it instantly. No typing needed.",
     color: "text-primary",
+  },
+  {
+    visual: <VanityPlateVisual />,
+    title: "Vanity Plates Have Spaces",
+    description: "If a plate reads \"2 MAX 3\", enter it with the spaces — not \"2MAX3\". They're registered as different plates, so accuracy matters.",
+    color: "text-emerald-500",
   },
   {
     icon: <MapPin className="h-10 w-10" />,
@@ -112,9 +149,13 @@ const OnboardingWalkthrough = ({ mode, onComplete }: Props) => {
             transition={{ duration: 0.25 }}
             className="text-center space-y-6"
           >
-            <div className={`mx-auto w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center ${card.color}`}>
-              {card.icon}
-            </div>
+            {card.visual ? (
+              <div className={card.color}>{card.visual}</div>
+            ) : (
+              <div className={`mx-auto w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center ${card.color}`}>
+                {card.icon}
+              </div>
+            )}
             <div>
               <h2 className="text-xl font-bold mb-2">{card.title}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
