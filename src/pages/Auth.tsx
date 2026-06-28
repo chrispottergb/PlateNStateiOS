@@ -50,8 +50,9 @@ const Auth = () => {
         if (!acceptedTerms) {
           throw new Error("You must accept the Terms of Service and Privacy Policy to sign up.");
         }
-        if (displayName.trim().length < 2) {
-          throw new Error("Please choose a display name (at least 2 characters).");
+        const trimmedUsername = displayName.trim();
+        if (trimmedUsername.length > 0 && trimmedUsername.length < 2) {
+          throw new Error("Username must be at least 2 characters (or leave it blank for a random one).");
         }
         if (password.length < 10 || !/\d/.test(password)) {
           throw new Error("Password must be at least 10 characters and include a number.");
@@ -60,7 +61,8 @@ const Auth = () => {
           email, password,
           options: {
             data: {
-              display_name: displayName.trim(),
+              // Only pass display_name if user chose one; blank → DB auto-assigns Driver#XXXXX
+              ...(trimmedUsername.length >= 2 ? { display_name: trimmedUsername } : {}),
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
               portal_mode: portalMode,
@@ -82,7 +84,7 @@ const Auth = () => {
               templateName: "welcome",
               recipientEmail: email,
               idempotencyKey: `welcome-${signUpData.user.id}`,
-              templateData: { name: displayName || undefined },
+              templateData: { name: trimmedUsername || undefined },
             },
           }).catch(() => {});
         }
@@ -236,20 +238,22 @@ const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <CaptchaWidget captcha={captcha} />
             {isSignUp && (
-              <>
+              <div className="space-y-1">
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
-                    placeholder="Display name (username)"
-                    required
+                    placeholder="Username (optional)"
                     minLength={2}
                     maxLength={40}
                     className="pl-10 rounded-xl h-11"
                   />
                 </div>
-              </>
+                <p className="text-xs text-muted-foreground pl-1">
+                  Leave blank to stay anonymous — you'll get a random handle like <span className="font-mono">Driver#04821</span>
+                </p>
+              </div>
             )}
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
