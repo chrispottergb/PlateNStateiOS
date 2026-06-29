@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: PlateNState_ASC_Key
+      app_store_connect: pl
     environment:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
