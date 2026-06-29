@@ -23,6 +23,7 @@ import { useCaptcha } from "@/hooks/useCaptcha";
 import { useCredits } from "@/hooks/useCredits";
 import { getClientIp } from "@/lib/clientIp";
 import { useHomeState } from "@/hooks/useHomeState";
+import ClaimUpsellDialog, { claimUpsellDismissed } from "@/components/ClaimUpsellDialog";
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
   CarFront: <CarFront className="h-4 w-4" />,
@@ -83,6 +84,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     controlledOnOpenChange?.(v);
   };
   const [mode, setMode] = useState<"quick" | "detailed">("quick");
+  const [showClaimUpsell, setShowClaimUpsell] = useState(false);
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
@@ -288,6 +290,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       refetchCredits(); // keep header coin count in sync
       reset();
       setOpen(false);
+      // High-intent moment: nudge the reporter to claim their own plate (unless dismissed)
+      if (!claimUpsellDismissed()) {
+        setTimeout(() => setShowClaimUpsell(true), 600);
+      }
     } catch (err: any) {
       toast.error("Something went wrong", { description: err.message });
     } finally {
@@ -374,6 +380,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   );
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md glass-strong rounded-xl border-border/50 max-h-[85vh] overflow-y-auto">
@@ -898,6 +905,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
         )}
       </DialogContent>
     </Dialog>
+    <ClaimUpsellDialog open={showClaimUpsell} onOpenChange={setShowClaimUpsell} />
+    </>
   );
 };
 
