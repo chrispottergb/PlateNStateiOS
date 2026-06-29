@@ -40,3 +40,8 @@ ios/
 android/
 node_modules
 .vercel
+
+# Local agent + tooling artifacts
+.claude/
+supabase/.temp/
+load-test-results.json
