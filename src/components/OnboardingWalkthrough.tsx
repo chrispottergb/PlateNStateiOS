@@ -11,33 +11,41 @@ interface OnboardingCard {
   color: string;
 }
 
+const SpaceGap = () => (
+  <span className="relative inline-flex flex-col items-center mx-1 align-middle">
+    {/* bold arrow pointing down at the gap */}
+    <span className="text-emerald-400 text-lg font-bold leading-none -mb-0.5 animate-bounce">↓</span>
+    {/* the visible gap marker */}
+    <span className="block w-5 h-7 rounded border-2 border-dashed border-emerald-400/70 bg-emerald-400/15" />
+    <span className="text-[9px] font-sans font-bold text-emerald-400 tracking-wide mt-0.5">SPACE</span>
+  </span>
+);
+
 const VanityPlateVisual = () => (
-  <div className="w-full space-y-3">
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground w-14 text-right shrink-0">Vanity:</span>
-        <div className="flex-1 rounded-lg bg-emerald-500/10 border-2 border-emerald-500/40 px-3 py-2 font-mono text-base font-black tracking-widest text-center text-emerald-400">
-          2{" "}
-          <span className="relative inline-block">
-            <span className="bg-emerald-400/25 rounded px-0.5">·</span>
-            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-sans font-bold">↓</span>
-          </span>
-          {" "}MAX{" "}
-          <span className="relative inline-block">
-            <span className="bg-emerald-400/25 rounded px-0.5">·</span>
-            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-sans font-bold">↓</span>
-          </span>
-          {" "}3
-        </div>
+  <div className="w-full space-y-4">
+    {/* CORRECT */}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <span className="text-base">✓</span> Correct
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground w-14 text-right shrink-0">≠ this:</span>
-        <div className="flex-1 rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2 font-mono text-base font-black tracking-widest text-center text-destructive/70">
-          2MAX3
-        </div>
+      <div className="rounded-xl bg-emerald-500/10 border-2 border-emerald-500/50 px-3 pt-5 pb-3 flex items-center justify-center font-mono text-2xl font-black text-emerald-300">
+        2 <SpaceGap /> MAX <SpaceGap /> 3
       </div>
     </div>
-    <p className="text-xs text-muted-foreground text-center">Spaces are part of the plate — include them exactly</p>
+
+    {/* WRONG */}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-center gap-1.5 text-destructive text-xs font-bold uppercase tracking-wider">
+        <span className="text-base">✗</span> Wrong
+      </div>
+      <div className="rounded-xl bg-destructive/10 border-2 border-destructive/40 px-3 py-3 flex items-center justify-center font-mono text-2xl font-black text-destructive/70 line-through decoration-2">
+        2MAX3
+      </div>
+    </div>
+
+    <p className="text-xs text-muted-foreground text-center leading-relaxed">
+      <span className="font-semibold text-foreground">"2 MAX 3"</span> and <span className="font-semibold text-foreground">"2MAX3"</span> are two different plates. Always include the spaces.
+    </p>
   </div>
 );
 
