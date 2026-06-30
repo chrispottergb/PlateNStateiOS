@@ -22,7 +22,9 @@ const Terms = () => {
             <h2 className="text-lg font-semibold text-foreground mb-2">2. User Accounts</h2>
             <p>
               You are responsible for maintaining the confidentiality of your account credentials.
-              You must be at least 18 years old to create an account and submit reports.
+              You must be 18 years of age or older to create an account, submit reports, or
+              otherwise use Plate N' State. By creating an account you confirm that you meet this
+              age requirement.
             </p>
           </div>
 

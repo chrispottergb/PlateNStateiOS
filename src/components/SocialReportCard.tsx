@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import OwnerRemovalRequest from "./OwnerRemovalRequest";
 
 interface SocialReportCardProps {
   report: {
@@ -251,6 +252,12 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
             <ShieldCheck className="h-2.5 w-2.5" /> Patroller
           </Badge>
         )}
+      </div>
+
+      {/* FREE owner removal path — required for app-store UGC compliance.
+          Distinct from any paid dispute; routes to moderators via report_flags. */}
+      <div className="border-t border-border/20 bg-background/30 px-3 py-1.5 text-[11px]">
+        <OwnerRemovalRequest reportId={report.id} />
       </div>
 
       {/* Comment thread (expandable) */}

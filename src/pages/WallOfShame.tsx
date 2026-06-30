@@ -37,7 +37,7 @@ const WallOfShame = () => {
       <Header />
       <section className="container py-10 space-y-8 max-w-4xl">
         <div className="flex items-center gap-3">
-          <Link to="/a-hole-patrol">
+          <Link to="/patrol">
             <Button variant="ghost" size="sm" className="rounded-full">
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>

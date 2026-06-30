@@ -283,7 +283,7 @@ const HonkZone = () => {
           <div className="flex-1 space-y-4">
             {/* Wall of Shame — centered, bold, white */}
             <div className="flex justify-center">
-              <Link to="/a-hole-patrol/wall">
+              <Link to="/patrol/wall">
                 <Button size="lg" variant="outline" className="rounded-full px-10 h-11 font-extrabold text-sm text-white border-destructive/50 bg-destructive/20 hover:bg-destructive/30">
                   Wall of Shame
                 </Button>

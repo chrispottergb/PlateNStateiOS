@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const CONSUMER_TABS = [
   { path: "/", icon: Home, label: "Home", exact: true },
-  { path: "/a-hole-patrol/wall", icon: Trophy, label: "Wall" },
+  { path: "/patrol/wall", icon: Trophy, label: "Wall" },
   { path: "/quick-capture", icon: Camera, label: "Scan", center: true },
   { path: "/map", icon: MapPin, label: "Map" },
   { path: "/feed", icon: Users, label: "Feed" },

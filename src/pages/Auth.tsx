@@ -30,6 +30,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAge, setConfirmedAge] = useState(false);
   const [portalMode, setPortalMode] = useState<"consumer" | "enterprise">("consumer");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +51,9 @@ const Auth = () => {
         if (!acceptedTerms) {
           throw new Error("You must accept the Terms of Service and Privacy Policy to sign up.");
         }
+        if (!confirmedAge) {
+          throw new Error("You must confirm that you are 18 years of age or older to sign up.");
+        }
         const trimmedUsername = displayName.trim();
         if (trimmedUsername.length > 0 && trimmedUsername.length < 2) {
           throw new Error("Username must be at least 2 characters (or leave it blank for a random one).");
@@ -65,6 +69,7 @@ const Auth = () => {
               ...(trimmedUsername.length >= 2 ? { display_name: trimmedUsername } : {}),
               terms_accepted_at: new Date().toISOString(),
               terms_version: "2026-05-11",
+              age_confirmed_18_plus: true,
               portal_mode: portalMode,
             },
             emailRedirectTo: EMAIL_REDIRECT,
@@ -336,6 +341,17 @@ const Auth = () => {
                     including the release of liability.
                   </span>
                 </label>
+                <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={confirmedAge}
+                    onChange={e => setConfirmedAge(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                  />
+                  <span>
+                    I confirm that I am <span className="font-medium text-foreground">18 years of age or older</span>.
+                  </span>
+                </label>
                 {acceptedTerms && (
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
@@ -349,7 +365,7 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading || (isSignUp && !acceptedTerms)}>
+            <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading || (isSignUp && (!acceptedTerms || !confirmedAge))}>
               {loading ? "Please wait..." : isSignUp ? "Activate Snitch Mode" : "Enter the Patrol"}
               <ArrowRight className="h-4 w-4" />
             </Button>

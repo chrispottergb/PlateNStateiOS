@@ -25,30 +25,57 @@ const CsaePolicy = () => {
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">2. Our Approach</h2>
             <p className="mb-2">
-              Plate N' State is a license plate reporting application. Users submit text-based
-              reports of vehicle license plates in connection with traffic incidents, unsafe driving,
-              or parking violations. Our platform does not:
+              Plate N' State is a license plate reporting application. Users submit reports of
+              vehicle license plates in connection with traffic incidents, unsafe driving, or
+              parking violations. To describe our service honestly, the following limited forms of
+              user-generated content exist on the platform:
             </p>
             <ul className="list-disc pl-6 space-y-1 mb-2">
-              <li>Store user-uploaded images or photographs</li>
-              <li>Host user-generated video content</li>
-              <li>Maintain messaging or chat functionality between users</li>
-              <li>Create user profiles with personal information</li>
-              <li>Allow file attachments or media uploads</li>
-              <li>Support user comments or discussion threads on reports</li>
+              <li>
+                <span className="text-foreground font-medium">Short text comments.</span> Users may
+                add text comments of up to 500 characters to license plate reports. All comments are
+                subject to automated filtering and human moderation, and can be removed and flagged
+                for review (see Section 3).
+              </li>
+              <li>
+                <span className="text-foreground font-medium">Transient plate images for OCR.</span>{" "}
+                When a user scans a license plate, the captured image may be transmitted to our
+                optical-character-recognition provider (Anthropic) solely to read the plate text.
+                These images are processed in transit and are not stored, retained, or displayed
+                anywhere on the platform.
+              </li>
+              <li>
+                <span className="text-foreground font-medium">B2B CSV uploads.</span> Verified
+                business (B2B) accounts may upload CSV data files for bulk plate processing. These
+                files are written to private, access-controlled storage, are never publicly visible,
+                and are not shared between users.
+              </li>
+            </ul>
+            <p className="mb-2">
+              Plate N' State deliberately does not provide the features that most commonly serve as
+              CSAE vectors. There are:
+            </p>
+            <ul className="list-disc pl-6 space-y-1 mb-2">
+              <li>No direct messaging, chat, or private communication between users</li>
+              <li>No public user profiles or profile photos</li>
+              <li>No media galleries, photo feeds, or hosting of user-uploaded images or video</li>
+              <li>No mechanism for users to share images or files with one another</li>
             </ul>
             <p>
-              Because Plate N' State does not collect, store, or display user-generated media,
-              images, or personal profiles, the primary vectors for CSAE material are substantially
-              eliminated by design.
+              The only free-text users can author and that other users may see are short, moderated
+              report comments. Because there is no person-to-person messaging, no public imagery, and
+              no media sharing, the primary vectors for CSAE material are substantially contained by
+              design, and the narrow surfaces that do exist are subject to automated detection,
+              human moderation, and user flagging.
             </p>
           </div>
 
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">3. Content Monitoring and Reporting</h2>
-            <h3 className="text-base font-semibold text-foreground mb-1">3.1 Text-Based Content Review</h3>
+            <h3 className="text-base font-semibold text-foreground mb-1">3.1 Content Review</h3>
             <p className="mb-2">
-              All user-submitted license plate reports are text-only entries. Our systems monitor for:
+              User-submitted reports and comments are text entries. Our systems monitor this text
+              for:
             </p>
             <ul className="list-disc pl-6 space-y-1 mb-3">
               <li>Sexually explicit language in report descriptions</li>
@@ -98,8 +125,10 @@ const CsaePolicy = () => {
             </p>
             <h3 className="text-base font-semibold text-foreground mb-1">4.2 Age Restrictions</h3>
             <p className="mb-3">
-              Plate N' State requires users to be 16 years or older. We do not knowingly allow
-              children under 13 to create accounts.
+              Plate N' State is intended for adults. Users must be 18 years of age or older to
+              create an account or submit reports, consistent with our Terms of Service. We do not
+              knowingly permit minors under 18 to create accounts, and any account discovered to
+              belong to a minor will be terminated.
             </p>
             <h3 className="text-base font-semibold text-foreground mb-1">4.3 Data Retention</h3>
             <p>
@@ -139,8 +168,11 @@ const CsaePolicy = () => {
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">7. Third-Party Partnerships</h2>
             <p>
-              Plate N' State does not partner with third-party platforms that allow content uploads,
-              messaging, or profile creation that would introduce CSAE vectors into our ecosystem.
+              Plate N' State does not integrate with third-party platforms that enable user-to-user
+              messaging, public profile creation, or media sharing that would introduce CSAE vectors
+              into our ecosystem. Our only material third-party processing is the transient
+              transmission of scanned plate images to our OCR provider (Anthropic) to read plate
+              text; those images are not stored and are not used to host or distribute media.
             </p>
           </div>
 

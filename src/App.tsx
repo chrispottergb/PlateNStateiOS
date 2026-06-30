@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -165,8 +165,10 @@ const App = () => (
                   <Route path="/welcome" element={<Index />} />
                   <Route path="/community" element={<Community />} />
                   <Route path="/feed" element={<CommunityFeed />} />
-                  <Route path="/a-hole-patrol" element={<HonkZone />} />
-                  <Route path="/a-hole-patrol/wall" element={<WallOfShame />} />
+                  <Route path="/patrol" element={<HonkZone />} />
+                  <Route path="/patrol/wall" element={<WallOfShame />} />
+                  <Route path="/a-hole-patrol" element={<Navigate to="/patrol" replace />} />
+                  <Route path="/a-hole-patrol/wall" element={<Navigate to="/patrol/wall" replace />} />
                   <Route path="/business" element={<Business />} />
                   <Route path="/plate/:plateNumber" element={<PlateDetail />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />

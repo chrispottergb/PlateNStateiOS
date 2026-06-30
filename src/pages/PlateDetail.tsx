@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeReportDialog } from "@/components/DisputeReportDialog";
+import OwnerRemovalRequest from "@/components/OwnerRemovalRequest";
 import { toast } from "sonner";
 
 const HIGH_RISK_INFRACTIONS = new Set([
@@ -272,6 +273,12 @@ const PlateDetail = () => {
                       {(report as any).latitude && (report as any).longitude && (
                         <LocationMiniMap latitude={(report as any).latitude} longitude={(report as any).longitude} height={180} />
                       )}
+                      {/* FREE removal path for the subject of the report — required
+                          by app-store UGC policy. Open to anyone (no plate claim,
+                          no payment), distinct from the paid "verified dispute". */}
+                      <div className="mt-2 text-xs">
+                        <OwnerRemovalRequest reportId={report.id} />
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
