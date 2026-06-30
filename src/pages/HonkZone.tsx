@@ -224,7 +224,7 @@ const HonkZone = () => {
             transition={{ duration: 0.4 }}
             className="space-y-1 text-center"
           >
-            <h1 className="text-2xl sm:text-3xl font-extrabold">The Patrol</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold">Plate N' State</h1>
             <div className="h-5 flex items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.p key={taglineIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="text-xs text-muted-foreground italic">
