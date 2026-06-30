@@ -31,11 +31,11 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_homepage_stats");
       if (error) throw error;
-      const stats = data as { report_count: number; reporter_count: number; city_count: number };
+      const stats = (data ?? {}) as { report_count?: number; reporter_count?: number; city_count?: number };
       return [
-        { label: "Reports Filed", value: stats.report_count.toLocaleString() },
-        { label: "Active Reporters", value: stats.reporter_count.toLocaleString() },
-        { label: "Cities Covered", value: stats.city_count.toLocaleString() },
+        { label: "Reports Filed", value: (stats.report_count ?? 0).toLocaleString() },
+        { label: "Active Reporters", value: (stats.reporter_count ?? 0).toLocaleString() },
+        { label: "Cities Covered", value: (stats.city_count ?? 0).toLocaleString() },
       ];
     },
     staleTime: 60_000,

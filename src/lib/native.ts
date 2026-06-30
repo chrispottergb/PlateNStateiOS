@@ -56,21 +56,14 @@ export async function getPosition(): Promise<{ latitude: number; longitude: numb
     try {
       const { Geolocation } = await import('@capacitor/geolocation');
       const perms = await Geolocation.requestPermissions();
-      if (perms.location !== 'granted') return null;
-      // Try high accuracy first, fall back to low accuracy on timeout
-      try {
-        const pos = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 15000,
-        });
-        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      } catch {
-        const pos = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: false,
-          timeout: 10000,
-        });
-        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      }
+      if (perms.location !== 'granted' && perms.coarseLocation !== 'granted') return null;
+      // Coarse accuracy only — the app declares ACCESS_COARSE_LOCATION (no FINE) and
+      // GPS coords are rounded to ~1km before storage, so high accuracy isn't needed.
+      const pos = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 12000,
+      });
+      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
     } catch {
       return null;
     }
@@ -81,7 +74,7 @@ export async function getPosition(): Promise<{ latitude: number; longitude: numb
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: false, timeout: 10000 },
     );
   });
 }
