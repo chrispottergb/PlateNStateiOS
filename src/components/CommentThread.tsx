@@ -124,6 +124,8 @@ const CommentThread = ({ reportId }: CommentThreadProps) => {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
+                {/* PRIVACY-CRITICAL: must render profiles.display_name only — never real name, email, or device ID.
+                    Source query above must select display_name from profiles, not user.email or user_metadata. */}
                 <span className="text-xs font-semibold text-foreground">{comment.display_name}</span>
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}

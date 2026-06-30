@@ -89,23 +89,25 @@ const Profile = () => {
 
   const saveUsername = async () => {
     const trimmed = newUsername.trim();
+    // Client-side checks are a UX optimization; the RPC is the authority.
     if (trimmed.length < 2) { toast.error("Username must be at least 2 characters"); return; }
     if (trimmed.length > 40) { toast.error("Username must be 40 characters or fewer"); return; }
     if (!/^[a-zA-Z0-9_\-#]+$/.test(trimmed)) { toast.error("Only letters, numbers, _, - and # allowed"); return; }
     setSavingUsername(true);
     try {
-      const { data: existing } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("display_name", trimmed)
-        .neq("user_id", user!.id)
-        .maybeSingle();
-      if (existing) { toast.error("That username is already taken"); return; }
-      const { error } = await supabase
-        .from("profiles")
-        .update({ display_name: trimmed })
-        .eq("user_id", user!.id);
-      if (error) throw error;
+      // PRIVACY-CRITICAL: server-side RPC enforces uniqueness, reserved-name
+      // (admin/moderator/support/platenstate variants), and profanity checks.
+      // Do not bypass with a direct table update — that would defeat impersonation protection.
+      const { error } = await supabase.rpc("update_profile_display_name", { p_display_name: trimmed });
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("USERNAME_TAKEN")) { toast.error("That username is already taken"); return; }
+        if (msg.includes("USERNAME_RESERVED")) { toast.error("That username isn't allowed (reserved or impersonates staff)"); return; }
+        if (msg.includes("USERNAME_TOO_SHORT")) { toast.error("Username must be at least 2 characters"); return; }
+        if (msg.includes("USERNAME_TOO_LONG")) { toast.error("Username must be 40 characters or fewer"); return; }
+        if (msg.includes("USERNAME_INVALID_CHARS")) { toast.error("Only letters, numbers, _, - and # allowed"); return; }
+        throw error;
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.profile(user!.id) });
       setEditingUsername(false);
       toast.success("Username updated");

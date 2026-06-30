@@ -67,6 +67,9 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
     toast.success("Report flagged for review");
   };
 
+  // PRIVACY-CRITICAL: this card intentionally does NOT render the reporter's identity.
+  // Reports are public; the reporter stays anonymous. Do not add reporter name, username,
+  // or avatar here — it would expose who flagged whom and chill participation.
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

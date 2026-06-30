@@ -122,6 +122,9 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
             <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
           </Avatar>
           <div>
+            {/* PRIVACY-CRITICAL: must render display_name (username) only — never real name, email, or device ID.
+                Source must be profiles.display_name, which the DB trigger guarantees is a generated handle
+                unless the user has explicitly chosen a username. See update_profile_display_name RPC. */}
             <p className="text-sm font-medium leading-none">{post.display_name ?? "Anonymous"}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
@@ -200,6 +203,7 @@ export default function CommunityPostCard({ post, liked, onLikeToggle, onDelete 
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5">
+                  {/* PRIVACY-CRITICAL: render display_name only — never real name, email, or device ID. */}
                   <span className="text-xs font-medium">{c.display_name ?? "Anonymous"}</span>
                   <span className="text-[10px] text-muted-foreground">
                     {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}

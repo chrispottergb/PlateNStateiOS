@@ -74,6 +74,10 @@ const ReportComposer = () => {
     <div className="space-y-3">
       <div className="glass-card rounded-2xl border border-foreground/5 p-3 sm:p-4 hover:border-primary/20 transition-colors">
         <div className="flex items-start gap-3">
+          {/* PRIVACY-CRITICAL: self-view only. This composer renders the CURRENT user's own
+              OAuth avatar back to themselves — never to other viewers. Do NOT reuse this
+              pattern to render another user's avatar in any community-facing surface;
+              identity in the community is profiles.display_name only. */}
           <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
             {user?.user_metadata?.avatar_url ? (
               <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />

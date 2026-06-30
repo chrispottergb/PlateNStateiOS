@@ -16,6 +16,8 @@ const PAGE_SIZE = 20;
 async function fetchPostPage(pageParam: number): Promise<CommunityPost[]> {
   const from = pageParam * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  // PRIVACY-CRITICAL: select profiles.display_name only — never join in auth.users.email
+  // or user_metadata. Community feed must surface usernames, not real identities.
   const { data, error } = await supabase
     .from("community_posts")
     .select(`id, user_id, body, plate_tag, like_count, comment_count, created_at, profiles(display_name)`)
