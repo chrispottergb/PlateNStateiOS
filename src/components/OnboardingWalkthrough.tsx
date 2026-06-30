@@ -1,129 +1,332 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Shield, Trophy, Briefcase, FileSearch, Users, BarChart3, ArrowRight, X, Search } from "lucide-react";
+import { Camera, Home as HomeIcon, Map as MapIcon, Users as UsersIcon, MessageSquare, ArrowRight, X, Search, Trophy, Shield, Bell } from "lucide-react";
 
 interface OnboardingCard {
-  icon?: React.ReactNode;
-  visual?: React.ReactNode;
+  visual: React.ReactNode;
   title: string;
   description: string;
-  color: string;
 }
 
+// ────────────────────────────────────────────────────────────────────────
+// Reusable phone-frame mockup. Mirrors the actual app layout so users
+// can recognize what to tap when they exit the walkthrough.
+// Pass `highlight` to pulse one of the bottom-nav tabs.
+// ────────────────────────────────────────────────────────────────────────
+type TabKey = "home" | "wall" | "scan" | "map" | "feed";
+
+const PhoneMockup = ({
+  highlight,
+  arrowLabel,
+  arrowFrom = "left",
+  topContent,
+  bellHighlight,
+  fabHighlight,
+}: {
+  highlight?: TabKey;
+  arrowLabel?: string;
+  arrowFrom?: "left" | "right" | "top";
+  topContent?: React.ReactNode;
+  bellHighlight?: boolean;
+  fabHighlight?: boolean;
+}) => {
+  const tabs: { key: TabKey; icon: React.ReactNode; label: string; hero?: boolean }[] = [
+    { key: "home", icon: <HomeIcon className="h-4 w-4" />, label: "Home" },
+    { key: "wall", icon: <Trophy className="h-4 w-4" />, label: "Wall" },
+    { key: "scan", icon: <Camera className="h-6 w-6" />, label: "Scan", hero: true },
+    { key: "map",  icon: <MapIcon className="h-4 w-4" />, label: "Map" },
+    { key: "feed", icon: <MessageSquare className="h-4 w-4" />, label: "Feed" },
+  ];
+
+  return (
+    <div className="relative mx-auto" style={{ width: 220 }}>
+      {/* Phone shell */}
+      <div className="relative rounded-[28px] bg-card/80 border-2 border-foreground/15 shadow-xl overflow-hidden" style={{ height: 320 }}>
+        {/* Notch */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground/15 rounded-b-xl z-10" />
+
+        {/* Content area */}
+        <div className="absolute inset-0 top-5 bottom-14 px-3 py-3 flex flex-col">
+          {topContent}
+        </div>
+
+        {/* Notification bell (bottom-left), highlighted if needed */}
+        {bellHighlight && (
+          <div className="absolute bottom-16 left-3 z-20">
+            <div className="relative">
+              <div className="absolute inset-0 -m-2 rounded-full bg-primary/40 animate-ping" />
+              <div className="relative h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                <Bell className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Account FAB (bottom-right), highlighted if needed */}
+        {fabHighlight && (
+          <div className="absolute bottom-16 right-3 z-20">
+            <div className="relative">
+              <div className="absolute inset-0 -m-2 rounded-full bg-accent/40 animate-ping" />
+              <div className="relative h-8 w-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg text-base font-bold">
+                ⚙
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom nav */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-background/95 border-t border-border/60 flex items-end justify-around px-2 pb-1">
+          {tabs.map(tab => {
+            const isHighlighted = highlight === tab.key;
+            if (tab.hero) {
+              return (
+                <div key={tab.key} className="relative -mt-4">
+                  {isHighlighted && <div className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />}
+                  <div className={`relative h-11 w-11 rounded-full flex items-center justify-center shadow-lg ${isHighlighted ? "bg-primary text-primary-foreground ring-4 ring-primary/40" : "bg-primary/70 text-primary-foreground"}`}>
+                    {tab.icon}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={tab.key} className="relative flex flex-col items-center gap-0.5 px-1 py-1">
+                {isHighlighted && (
+                  <div className="absolute inset-0 -m-1 rounded-lg bg-primary/30 animate-pulse" />
+                )}
+                <div className={`relative ${isHighlighted ? "text-primary" : "text-muted-foreground"}`}>
+                  {tab.icon}
+                </div>
+                <span className={`relative text-[8px] font-medium ${isHighlighted ? "text-primary" : "text-muted-foreground"}`}>{tab.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Arrow + label callout */}
+      {arrowLabel && (
+        <div
+          className={`absolute flex items-center gap-1.5 ${
+            arrowFrom === "left"  ? "-left-2 bottom-7 -translate-x-full" :
+            arrowFrom === "right" ? "-right-2 bottom-7 translate-x-full flex-row-reverse" :
+                                    "left-1/2 -top-8 -translate-x-1/2 flex-col"
+          }`}
+        >
+          <span className="text-3xl leading-none drop-shadow-lg animate-bounce" aria-hidden>
+            {arrowFrom === "top" ? "👇" : arrowFrom === "right" ? "👈" : "👉"}
+          </span>
+          <span className="bg-primary text-primary-foreground text-[11px] font-bold px-2 py-1 rounded-lg shadow-md whitespace-nowrap">
+            {arrowLabel}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────────────────
+// Vanity-plate spacing visual (special, not a phone mockup)
+// ────────────────────────────────────────────────────────────────────────
 const SpaceGap = () => (
   <span className="relative inline-flex flex-col items-center mx-1 align-middle">
-    {/* bold arrow pointing down at the gap */}
-    <span className="text-emerald-400 text-lg font-bold leading-none -mb-0.5 animate-bounce">↓</span>
-    {/* the visible gap marker */}
-    <span className="block w-5 h-7 rounded border-2 border-dashed border-emerald-400/70 bg-emerald-400/15" />
-    <span className="text-[9px] font-sans font-bold text-emerald-400 tracking-wide mt-0.5">SPACE</span>
+    <span className="text-emerald-300 text-xl font-black leading-none -mb-0.5 animate-bounce">↓</span>
+    <span className="block w-5 h-7 rounded border-2 border-dashed border-emerald-300 bg-emerald-400/30" />
+    <span className="text-[9px] font-sans font-black text-emerald-200 tracking-wide mt-0.5">SPACE</span>
   </span>
 );
 
 const VanityPlateVisual = () => (
-  <div className="w-full space-y-4">
+  <div className="w-full space-y-3 max-w-[260px] mx-auto">
     {/* CORRECT */}
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+    <div>
+      <div className="flex items-center justify-center gap-1.5 text-emerald-300 text-xs font-black uppercase tracking-wider mb-1.5">
         <span className="text-base">✓</span> Correct
       </div>
-      <div className="rounded-xl bg-emerald-500/10 border-2 border-emerald-500/50 px-3 pt-5 pb-3 flex items-center justify-center font-mono text-2xl font-black text-emerald-300">
+      <div className="rounded-xl bg-emerald-600/30 border-2 border-emerald-400 px-3 pt-5 pb-3 flex items-center justify-center font-mono text-2xl font-black text-white">
         2 <SpaceGap /> MAX <SpaceGap /> 3
       </div>
     </div>
 
-    {/* WRONG */}
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-center gap-1.5 text-destructive text-xs font-bold uppercase tracking-wider">
+    {/* WRONG — solid red bg, white bold text, no fading */}
+    <div>
+      <div className="flex items-center justify-center gap-1.5 text-red-300 text-xs font-black uppercase tracking-wider mb-1.5">
         <span className="text-base">✗</span> Wrong
       </div>
-      <div className="rounded-xl bg-destructive/10 border-2 border-destructive/40 px-3 py-3 flex items-center justify-center font-mono text-2xl font-black text-destructive/70 line-through decoration-2">
+      <div className="rounded-xl bg-red-600 border-2 border-red-400 px-3 py-3 flex items-center justify-center font-mono text-2xl font-black text-white line-through decoration-white decoration-[3px]">
         2MAX3
       </div>
     </div>
-
-    <p className="text-xs text-muted-foreground text-center leading-relaxed">
-      <span className="font-semibold text-foreground">"2 MAX 3"</span> and <span className="font-semibold text-foreground">"2MAX3"</span> are two different plates. Always include the spaces.
-    </p>
   </div>
 );
 
+// ────────────────────────────────────────────────────────────────────────
+// PERSONAL CARDS — every card now shows WHERE in the app to tap
+// ────────────────────────────────────────────────────────────────────────
 const PERSONAL_CARDS: OnboardingCard[] = [
   {
-    icon: <Camera className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        highlight="scan"
+        arrowLabel="Tap to scan"
+        arrowFrom="left"
+        topContent={
+          <div className="flex-1 flex items-center justify-center text-muted-foreground text-[10px] opacity-50">
+            (home screen)
+          </div>
+        }
+      />
+    ),
     title: "Scan a Plate",
-    description: "Tap the report button, snap a photo of a license plate, and our AI reads it instantly. No typing needed.",
-    color: "text-primary",
+    description: "Tap the big camera button in the center of the bottom bar. Point it at a license plate — the AI reads it instantly.",
   },
   {
     visual: <VanityPlateVisual />,
     title: "Vanity Plates Have Spaces",
-    description: "If a plate reads \"2 MAX 3\", enter it with the spaces — not \"2MAX3\". They're registered as different plates, so accuracy matters.",
-    color: "text-emerald-500",
+    description: "If a plate reads \"2 MAX 3\", enter it with the spaces — not \"2MAX3\". They're different plates and reporting the wrong one helps nobody.",
   },
   {
-    icon: <MapPin className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        highlight="scan"
+        arrowLabel="Same button"
+        arrowFrom="left"
+        topContent={
+          <div className="flex-1 flex flex-col gap-1.5 mt-2">
+            <div className="rounded bg-foreground/10 h-3 w-3/4 mx-auto" />
+            <div className="rounded bg-foreground/10 h-2 w-1/2 mx-auto" />
+            <div className="mt-2 rounded-lg bg-destructive/30 border border-destructive/60 p-1.5 text-[8px] text-destructive-foreground font-bold text-center">
+              Pick infraction · Add details · Submit
+            </div>
+            <div className="text-[8px] text-center text-muted-foreground mt-1">📍 GPS auto-attached</div>
+          </div>
+        }
+      />
+    ),
     title: "File a Report",
-    description: "Pick the infraction, add details, and submit. Your GPS location is attached automatically.",
-    color: "text-destructive",
+    description: "After the AI reads the plate, a form pops up. Pick what the driver did, add details, and submit. Your GPS attaches automatically.",
   },
   {
-    icon: <Trophy className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        fabHighlight
+        arrowLabel="Tap account"
+        arrowFrom="right"
+        topContent={
+          <div className="flex-1 flex flex-col items-center justify-center gap-1.5">
+            <Trophy className="h-5 w-5 text-warning" />
+            <div className="text-[10px] font-bold text-foreground">Level 3 — Road Watcher</div>
+            <div className="h-1.5 w-32 rounded-full bg-muted overflow-hidden">
+              <div className="h-full w-2/3 bg-primary" />
+            </div>
+            <div className="text-[8px] text-muted-foreground">245 / 400 XP</div>
+            <div className="flex gap-1 mt-1">
+              <span className="text-xs">🛡️</span><span className="text-xs">👁️</span><span className="text-xs">🔥</span><span className="text-xs opacity-30">⚔️</span>
+            </div>
+          </div>
+        }
+      />
+    ),
     title: "Earn XP & Rank Up",
-    description: "Every report earns XP. Climb the leaderboard and earn badges for your patrol activity.",
-    color: "text-warning",
+    description: "Every report earns XP and unlocks badges. Tap the account button (bottom-right) to see your level, streak, and trophies.",
   },
   {
-    icon: <Shield className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        fabHighlight
+        arrowLabel="Account → Claim"
+        arrowFrom="right"
+        topContent={
+          <div className="flex-1 flex flex-col items-center justify-center gap-2">
+            <Shield className="h-6 w-6 text-accent" />
+            <div className="rounded-lg bg-accent/20 border border-accent/40 px-2 py-1.5 font-mono text-sm font-black text-foreground tracking-wider">
+              ABC 1234
+            </div>
+            <div className="text-[9px] text-center text-accent font-semibold">🔔 You'll be notified if<br/>anyone reports it</div>
+          </div>
+        }
+      />
+    ),
     title: "Claim Your Plate",
-    description: "Own your plate number to get notified when someone reports it. Dispute false reports easily.",
-    color: "text-accent",
+    description: "Lock in your own plate so you're notified instantly when someone reports it — and so you can dispute false ones. Tap the account button → Claim.",
   },
   {
-    icon: <Search className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        highlight="home"
+        arrowLabel="Search bar"
+        arrowFrom="left"
+        topContent={
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="rounded-full bg-muted/70 border-2 border-primary/60 px-2 py-1.5 flex items-center gap-1.5 text-[10px] text-foreground font-mono shadow-lg ring-2 ring-primary/30">
+              <Search className="h-3 w-3 text-primary" />
+              <span className="font-bold">ABC 1234</span>
+            </div>
+            <div className="text-[8px] text-muted-foreground text-center mt-1">→ History · Risk score · Map</div>
+          </div>
+        }
+      />
+    ),
     title: "Look Up Any Plate",
-    description: "Search any license plate to see its report history, risk score, and where incidents occurred.",
-    color: "text-amber-500",
+    description: "Type any plate into the search bar at the top of the Home screen to see its full report history, risk score, and incident map.",
   },
   {
-    icon: <MapPin className="h-10 w-10" />,
+    visual: (
+      <PhoneMockup
+        highlight="map"
+        arrowLabel="Live map"
+        arrowFrom="left"
+        topContent={
+          <div className="flex-1 rounded-lg bg-emerald-900/30 border border-emerald-700/40 relative overflow-hidden">
+            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-1 p-1.5 opacity-60">
+              {Array.from({length:9}).map((_,i)=><div key={i} className="bg-emerald-800/30 rounded-sm" />)}
+            </div>
+            <span className="absolute top-3 left-4 text-base">📍</span>
+            <span className="absolute top-7 right-6 text-base">📍</span>
+            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-base">📍</span>
+          </div>
+        }
+      />
+    ),
     title: "Watch the Map",
-    description: "See live reports on the map. Check the Wall of Shame for the worst offenders in your area.",
-    color: "text-emerald-500",
+    description: "See live reports near you on the Map tab. The Wall of Shame shows the worst offenders in your area.",
   },
 ];
 
+// ────────────────────────────────────────────────────────────────────────
+// ENTERPRISE CARDS — kept abstract; B2B users don't need the same hand-holding
+// ────────────────────────────────────────────────────────────────────────
+const EnterpriseIcon = ({ children, color }: { children: React.ReactNode; color: string }) => (
+  <div className={`mx-auto w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center ${color}`}>
+    {children}
+  </div>
+);
+
 const ENTERPRISE_CARDS: OnboardingCard[] = [
   {
-    icon: <Briefcase className="h-10 w-10" />,
+    visual: <EnterpriseIcon color="text-accent"><Shield className="h-10 w-10" /></EnterpriseIcon>,
     title: "Fleet Dashboard",
     description: "Monitor all your vehicles in one place. Get alerts when a fleet vehicle is reported.",
-    color: "text-accent",
   },
   {
-    icon: <FileSearch className="h-10 w-10" />,
+    visual: <EnterpriseIcon color="text-primary"><Search className="h-10 w-10" /></EnterpriseIcon>,
     title: "Batch Screening",
     description: "Upload a CSV of plate numbers to screen them all at once. Get risk scores instantly.",
-    color: "text-primary",
   },
   {
-    icon: <BarChart3 className="h-10 w-10" />,
+    visual: <EnterpriseIcon color="text-warning"><Trophy className="h-10 w-10" /></EnterpriseIcon>,
     title: "Risk Scoring",
     description: "Every plate gets a risk score based on report history. Use it for underwriting or hiring decisions.",
-    color: "text-warning",
   },
   {
-    icon: <Shield className="h-10 w-10" />,
+    visual: <EnterpriseIcon color="text-destructive"><Shield className="h-10 w-10" /></EnterpriseIcon>,
     title: "Insurance & Law Enforcement",
     description: "Dedicated portals for insurance companies and agencies with advanced lookup tools.",
-    color: "text-destructive",
   },
   {
-    icon: <Users className="h-10 w-10" />,
+    visual: <EnterpriseIcon color="text-emerald-500"><UsersIcon className="h-10 w-10" /></EnterpriseIcon>,
     title: "API Access",
     description: "Integrate plate data into your own systems. Enterprise tiers include full API access.",
-    color: "text-emerald-500",
   },
 ];
 
@@ -155,24 +358,18 @@ const OnboardingWalkthrough = ({ mode, onComplete }: Props) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.25 }}
-            className="text-center space-y-6"
+            className="text-center space-y-5"
           >
-            {card.visual ? (
-              <div className={card.color}>{card.visual}</div>
-            ) : (
-              <div className={`mx-auto w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center ${card.color}`}>
-                {card.icon}
-              </div>
-            )}
+            <div>{card.visual}</div>
             <div>
-              <h2 className="text-xl font-bold mb-2">{card.title}</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
+              <h2 className="text-xl font-extrabold mb-2">{card.title}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed px-2">{card.description}</p>
             </div>
           </motion.div>
         </AnimatePresence>
 
         {/* Dots */}
-        <div className="flex justify-center gap-2 mt-8 mb-6">
+        <div className="flex justify-center gap-2 mt-6 mb-5">
           {cards.map((_, i) => (
             <div
               key={i}
@@ -197,7 +394,7 @@ const OnboardingWalkthrough = ({ mode, onComplete }: Props) => {
             onClick={() => isLast ? onComplete() : setStep(step + 1)}
             className="flex-1 rounded-full h-11 gap-2 glow"
           >
-            {isLast ? "Get Started" : "Next"}
+            {isLast ? "Got it, let's go" : "Next"}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

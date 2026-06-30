@@ -106,7 +106,9 @@ const NotificationDock = () => {
   );
 };
 
-const ONBOARDING_KEY = "onboarding_completed";
+// Bump the suffix to re-show the walkthrough to every user (one-time) after
+// adding cards or other onboarding changes. v2 ships the vanity-plate spacing card.
+const ONBOARDING_KEY = "onboarding_completed_v2";
 
 const OnboardingGate = () => {
   const { user, portalMode, termsAcceptedAt } = useAuth();

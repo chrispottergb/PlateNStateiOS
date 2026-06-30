@@ -350,7 +350,7 @@ const Auth = () => {
             )}
 
             <Button type="submit" className="w-full rounded-full glow h-11 text-sm font-semibold gap-2" disabled={loading || (isSignUp && !acceptedTerms)}>
-              {loading ? "Please wait..." : isSignUp ? "Join the Patrol" : "Enter the Patrol"}
+              {loading ? "Please wait..." : isSignUp ? "Activate Snitch Mode" : "Enter the Patrol"}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
