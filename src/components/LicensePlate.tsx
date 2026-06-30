@@ -55,7 +55,7 @@ const LicensePlate = ({ plateNumber, state, size = "md", className }: LicensePla
       </span>
 
       <span
-        className={cn("font-mono font-black z-10 select-none tracking-widest leading-none", s.number)}
+        className={cn("font-mono font-black z-10 select-none tracking-widest leading-none whitespace-nowrap", s.number)}
         style={{
           color: style.text,
           textShadow: "1px 1px 0px rgba(0,0,0,0.08)",

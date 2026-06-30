@@ -62,6 +62,13 @@ interface Report {
   upvote_count: number;
   vehicle_type: string | null;
   vehicle_color: string | null;
+  comment?: string | null;
+  is_flagged?: boolean;
+  state?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  reporter_id?: string | null;
+  reporter_name?: string | null;
 }
 
 const ReportComposer = () => {
@@ -146,16 +153,23 @@ const HonkZone = () => {
     [trendingPlatesRaw]
   );
 
-  // Feed — React Query handles caching + 30s background refresh (no setInterval needed)
+  // Feed — React Query handles caching + 30s background refresh (no setInterval needed).
+  // Reporter byline: reports.reporter_id → auth.users (no PostgREST join to profiles),
+  // so we batch-fetch profiles by user_id in a follow-up and merge display_name in JS.
   const { data: reports = [], isLoading: loading } = useQuery<Report[]>({
     queryKey: ["honkzone-reports", sortMode],
     queryFn: async () => {
-      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, is_flagged, state, latitude, longitude");
+      let query = supabase.from("reports").select("id, plate_number, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, comment, is_flagged, state, latitude, longitude, reporter_id");
       if (sortMode === "new") query = query.order("created_at", { ascending: false });
       else if (sortMode === "top") query = query.order("upvote_count", { ascending: false });
       else query = query.order("upvote_count", { ascending: false }).order("created_at", { ascending: false });
-      const { data } = await query.limit(30);
-      return (data ?? []) as Report[];
+      const { data: rows } = await query.limit(30);
+      const reports = (rows ?? []) as Report[];
+      const ids = Array.from(new Set(reports.map(r => r.reporter_id).filter(Boolean))) as string[];
+      if (!ids.length) return reports;
+      const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", ids);
+      const nameMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p.display_name]));
+      return reports.map(r => ({ ...r, reporter_name: r.reporter_id ? nameMap.get(r.reporter_id) ?? null : null }));
     },
     refetchInterval: 30_000,
     staleTime: 15_000,

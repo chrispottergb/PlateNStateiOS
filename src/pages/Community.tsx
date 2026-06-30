@@ -33,6 +33,15 @@ interface Report {
   location: string;
   created_at: string;
   upvote_count: number;
+  state?: string | null;
+  vehicle_type?: string | null;
+  vehicle_color?: string | null;
+  comment?: string | null;
+  is_flagged?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  reporter_id?: string | null;
+  reporter_name?: string | null;
 }
 
 const Community = () => {
@@ -48,12 +57,20 @@ const Community = () => {
 
   useEffect(() => {
     const fetchReports = async () => {
-      const { data } = await supabase
+      const { data: rows } = await supabase
         .from("reports")
-        .select("id, plate_number, state, infraction, location, created_at, upvote_count, is_flagged")
+        .select("id, plate_number, state, infraction, location, created_at, upvote_count, vehicle_type, vehicle_color, comment, is_flagged, latitude, longitude, reporter_id")
         .order("created_at", { ascending: false })
         .limit(12);
-      if (data) setReports(data);
+      const reports = (rows ?? []) as Report[];
+      const ids = Array.from(new Set(reports.map(r => r.reporter_id).filter(Boolean))) as string[];
+      if (ids.length) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", ids);
+        const nameMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p.display_name]));
+        setReports(reports.map(r => ({ ...r, reporter_name: r.reporter_id ? nameMap.get(r.reporter_id) ?? null : null })));
+      } else {
+        setReports(reports);
+      }
     };
     fetchReports();
     // Poll every 30 s instead of holding an open WebSocket

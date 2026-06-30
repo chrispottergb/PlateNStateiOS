@@ -47,7 +47,7 @@ const WallOfShame = () => {
               <span className="text-3xl">💀</span>
               <span className="gradient-text">Wall of Shame</span>
             </h1>
-            <p className="text-sm text-muted-foreground">The most "gifted" drivers — refreshed every 5 min</p>
+            <p className="text-sm text-muted-foreground">Receipts, kept fresh. Updated every 5 min.</p>
           </div>
         </div>
 
@@ -84,8 +84,8 @@ const WallOfShame = () => {
           >
             <div className="absolute top-0 right-0 w-48 h-48 bg-destructive/5 rounded-full blur-3xl" />
             <div className="relative z-10">
-              <Badge variant="destructive" className="mb-4 rounded-full px-3 py-1 text-xs uppercase tracking-widest font-bold gap-1.5">
-                <Crown className="h-3 w-3" /> Worst of the Week
+              <Badge className="mb-4 rounded-full px-3 py-1 text-xs uppercase tracking-widest font-bold gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <Crown className="h-3 w-3" /> Reigning Champion of Chaos
               </Badge>
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <Link to={`/plate/${encodeURIComponent(driverOfTheWeek.plateNumber)}`}>
@@ -94,12 +94,12 @@ const WallOfShame = () => {
                 <div className="text-center sm:text-left space-y-2">
                   <p className="text-4xl font-black font-mono gradient-text-fire">{driverOfTheWeek.totalScore} pts</p>
                   <p className="text-sm text-muted-foreground">
-                    Top sin: <span className="font-semibold text-foreground">{driverOfTheWeek.topInfraction}</span>
+                    Specialty: <span className="font-semibold text-foreground">{driverOfTheWeek.topInfraction}</span>
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1 justify-center sm:justify-start">
-                    <MapPin className="h-3 w-3" /> Last reported {driverOfTheWeek.lastLocation}
+                    <MapPin className="h-3 w-3" /> Last sighting {driverOfTheWeek.lastLocation}
                   </p>
-                  <p className="text-xs text-muted-foreground">{driverOfTheWeek.reportCount} reports filed</p>
+                  <p className="text-xs text-muted-foreground">{driverOfTheWeek.reportCount} witnesses (and counting)</p>
                 </div>
               </div>
             </div>
@@ -108,7 +108,7 @@ const WallOfShame = () => {
 
         <div>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Skull className="h-5 w-5 text-destructive" />
+            <Skull className="h-5 w-5 text-amber-500" />
             The Naughty List
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -118,10 +118,15 @@ const WallOfShame = () => {
                 ? <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-16 space-y-3">
                     <div className="text-5xl">💀</div>
                     <p className="text-lg font-extrabold">The Wall is Bare</p>
-                    <p className="text-sm text-muted-foreground">The roads are… suspiciously clean. Start reporting and fill this wall with shame. 🤔</p>
+                    <p className="text-sm text-muted-foreground">Everyone's behaving. Suspicious. Go report someone before this gets weird. 🤔</p>
                   </motion.div>
                 : rows.map((plate, i) => {
                     const topInf = INFRACTIONS.find(inf => inf.type === plate.top_infraction);
+                    const rankTitle =
+                      i === 0 ? "Top Menace" :
+                      i === 1 ? "Runner-up" :
+                      i === 2 ? "Bronze Boy" :
+                      `Honorable Mention #${i + 1}`;
                     return (
                       <motion.div
                         key={`${plate.state}-${plate.plate_number}`}
@@ -130,12 +135,12 @@ const WallOfShame = () => {
                         transition={{ delay: i * 0.04 }}
                       >
                         <Link to={`/plate/${encodeURIComponent(plate.plate_number)}`} className="block">
-                          <div className="rounded-xl glass-card p-4 hover:border-primary/30 transition-all group">
+                          <div className="rounded-xl glass-card p-4 hover:border-amber-500/30 transition-all group">
                             <div className="flex items-center gap-4">
                               <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm shrink-0 ${
-                                i === 0 ? "bg-amber-500/20 text-amber-500" :
-                                i === 1 ? "bg-muted text-muted-foreground" :
-                                i === 2 ? "bg-orange-800/20 text-orange-600" :
+                                i === 0 ? "bg-amber-500/25 text-amber-300 ring-2 ring-amber-500/40" :
+                                i === 1 ? "bg-amber-500/15 text-amber-400" :
+                                i === 2 ? "bg-amber-500/10 text-amber-400" :
                                 "bg-muted/50 text-muted-foreground"
                               }`}>
                                 #{i + 1}
@@ -143,8 +148,9 @@ const WallOfShame = () => {
                               <LicensePlate plateNumber={plate.plate_number} state={plate.state} size="sm" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-lg font-bold font-mono gradient-text-fire">{plate.total_score} pts</p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {topInf?.label || "Various"} · {plate.report_count} reports · {plate.state}
+                                <p className="text-[10px] uppercase tracking-wider text-amber-400/90 font-semibold mt-0.5">{rankTitle}</p>
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                  {topInf?.label || "Various"} · {plate.report_count} witnesses · {plate.state}
                                 </p>
                               </div>
                             </div>
