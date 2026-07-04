@@ -140,27 +140,8 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
       transition={{ delay: index * 0.03, duration: 0.3 }}
       className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden hover:border-border/60 transition-colors"
     >
-      {/* 3-zone main row */}
-      <div className="flex" style={{ minHeight: 120 }}>
-        {/* ZONE 1 — vehicle render (tinted to reported color) */}
-        <div className="relative shrink-0 w-[92px] bg-muted/40 flex items-center justify-center overflow-hidden">
-          <VIcon className="h-12 w-12" style={{ color: tint }} aria-hidden />
-          {vehicleLabel && (
-            <span className="absolute bottom-1.5 left-1.5 right-1.5 truncate text-center bg-black/70 text-white text-[8px] font-semibold tracking-wider px-1.5 py-0.5 rounded-md">
-              {vehicleLabel}
-            </span>
-          )}
-          {(report.latitude && report.longitude) && (
-            <Link
-              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
-              className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-              title="View on map"
-              aria-label="Open on map"
-            >
-              <MapPin className="h-2.5 w-2.5" />
-            </Link>
-          )}
-        </div>
+      {/* Main row — info + plate/votes (vehicle-render zone removed) */}
+      <div className="flex" style={{ minHeight: 100 }}>
 
         {/* ZONE 2 — info (flex) */}
         <div className="flex-1 min-w-0 px-3 py-2.5 flex flex-col justify-between gap-2">
