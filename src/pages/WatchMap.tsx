@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, Clock, RefreshCw, Search, MapPin, Plus } from "lucide-react";
+import { Clock, RefreshCw, Search, Plus } from "lucide-react";
 import ReportModal from "@/components/ReportModal";
 
 interface Report {
@@ -179,79 +179,58 @@ const WatchMap = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-nav">
+    <div className="h-screen overflow-hidden bg-background">
       <Header />
 
-      {/* Top Bar */}
-      <div className="container py-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Neighborhood Watch
-            </h1>
-            <p className="text-xs text-muted-foreground">Real-time incident reports across all 50 US states</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchReports} className="rounded-full">
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-            </Button>
-          </div>
-        </div>
+      {/* Full-bleed map fixed between the 56px Header and the bottom nav (72px + safe area).
+          Fixed positioning avoids the WKWebView flex/percentage height-collapse and makes
+          the page unscrollable by construction — the map always fills the visible viewport. */}
+      <div
+        className="fixed left-0 right-0"
+        style={{ top: "56px", bottom: "calc(72px + env(safe-area-inset-bottom, 0px))" }}
+      >
+        <div ref={mapContainerRef} className="absolute inset-0 z-0" />
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Search overlay — row 1 (frosted so it stays readable over map tiles) */}
+        <form onSubmit={handleSearch} className="absolute top-3 left-3 right-3 z-[1000]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
+            onBlur={() => mapRef.current?.invalidateSize()}
             placeholder="Search plates across all 50 states..."
-            className="pl-9 rounded-full font-mono"
+            className="pl-9 h-11 rounded-full font-mono bg-background/90 backdrop-blur-md shadow-lg border-border/50"
             maxLength={8}
           />
         </form>
 
-        {/* Filter Chips */}
-        <div className="flex gap-2">
+        {/* Filters + report count (folded into active chip) + refresh — row 2 */}
+        <div className="absolute top-[60px] left-3 right-3 z-[1000] flex items-center gap-2 overflow-x-auto scrollbar-hide">
           {(["24h", "7d", "all"] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium shadow-md transition-colors ${
+                filter === f ? "bg-primary text-primary-foreground" : "bg-background/90 backdrop-blur-md text-muted-foreground"
               }`}
             >
               {f === "24h" && <><Clock className="h-3 w-3 inline mr-1" />Last 24h</>}
               {f === "7d" && "Last 7 Days"}
               {f === "all" && "All Time"}
+              {filter === f && ` · ${reports.length}`}
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Map — use calc to fill viewport; flex-1 alone doesn't establish height in WKWebView */}
-      <div className="relative" style={{ height: "calc(100vh - 160px)", minHeight: "400px" }}>
-        <div ref={mapContainerRef} className="absolute inset-0 z-0" />
-
-        {/* Report count overlay */}
-        <div className="absolute top-3 left-3 z-[1000]">
-          <Badge variant="secondary" className="shadow-md text-xs px-2.5 py-1 rounded-full">
-            {reports.length} {reports.length === 1 ? "report" : "reports"}
-            {filter === "24h" && " in 24h"}
-            {filter === "7d" && " in 7d"}
-          </Badge>
+          <button
+            onClick={fetchReports}
+            aria-label="Refresh reports"
+            className="ml-auto shrink-0 h-8 w-8 rounded-full bg-background/90 backdrop-blur-md shadow-md flex items-center justify-center"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+          </button>
         </div>
 
-        {/* Live badge */}
-        <div className="absolute top-3 right-3 z-[1000]">
-          <Badge className="bg-emerald-500/90 text-white shadow-md text-xs px-2.5 py-1 rounded-full gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-            Live Across 50 States
-          </Badge>
-        </div>
-
-        {/* Legend */}
-        <div className="absolute bottom-3 left-3 z-[1000] flex gap-2">
+        {/* Legend — bottom-left, stacked so it never collides with the FAB */}
+        <div className="absolute bottom-3 left-3 z-[1000] flex flex-col gap-1.5 items-start">
           <Badge variant="secondary" className="shadow-md text-xs px-2 py-1 gap-1.5 rounded-full">
             <span className="h-2 w-2 rounded-full bg-destructive" /> Reckless
           </Badge>

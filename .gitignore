@@ -45,3 +45,4 @@ node_modules
 .claude/
 supabase/.temp/
 load-test-results.json
+assets/
