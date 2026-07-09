@@ -235,6 +235,17 @@ const ClaimPlate = () => {
                     </div>
                   )}
 
+                  {/* Launch promo — fulfilled by the Stripe webhook (claim_bonus,
+                      first claim per account only) */}
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 flex items-center gap-2">
+                    <span className="text-xl">🎁</span>
+                    <p className="text-xs leading-snug">
+                      <span className="font-bold text-amber-500">New-claimer bonus:</span>{" "}
+                      get <span className="font-bold">25 free coins</span> with your first plate claim —
+                      that's 25 reports on the house.
+                    </p>
+                  </div>
+
                   {/* Pricing tier picker */}
                   <div className="grid grid-cols-2 gap-2">
                     {CLAIM_TIERS.map(tier => (
