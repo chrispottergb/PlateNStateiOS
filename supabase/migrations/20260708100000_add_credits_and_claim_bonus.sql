@@ -31,4 +31,6 @@ END;
 $$;
 
 -- Service-role only (the webhook). Clients must never mint their own coins.
-REVOKE EXECUTE ON FUNCTION public.add_credits(uuid, integer, text, text) FROM anon, authenticated;
+-- NOTE: PUBLIC must be in the revoke list — functions default-grant EXECUTE to
+-- PUBLIC, so revoking only anon/authenticated leaves the door wide open.
+REVOKE ALL ON FUNCTION public.add_credits(uuid, integer, text, text) FROM PUBLIC, anon, authenticated;
