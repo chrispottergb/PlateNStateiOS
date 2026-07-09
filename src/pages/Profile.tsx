@@ -336,7 +336,7 @@ const Profile = () => {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <Badge variant="outline" className="text-xs text-primary rounded-full">+{inf?.points ?? 3} XP</Badge>
+                        <Badge variant="outline" className="text-xs text-primary rounded-full">+{Math.abs(inf?.points ?? 3)} XP</Badge>
                         <p className="text-xs text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
                       </div>
                     </div>

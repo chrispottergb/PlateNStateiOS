@@ -55,15 +55,31 @@ export async function getPosition(): Promise<{ latitude: number; longitude: numb
   if (isNative) {
     try {
       const { Geolocation } = await import('@capacitor/geolocation');
-      const perms = await Geolocation.requestPermissions();
-      if (perms.location !== 'granted' && perms.coarseLocation !== 'granted') return null;
-      // Coarse accuracy only — the app declares ACCESS_COARSE_LOCATION (no FINE) and
-      // GPS coords are rounded to ~1km before storage, so high accuracy isn't needed.
-      const pos = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: false,
-        timeout: 12000,
-      });
-      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      // Request ONLY the coarseLocation alias. The default (no-arg) call requests
+      // the 'location' alias too, which maps to ACCESS_FINE_LOCATION — a permission
+      // deliberately absent from our manifest. Capacitor then throws "missing
+      // permission in manifest" BEFORE showing any prompt, which we'd misreport
+      // as the user denying permission.
+      const perms = await Geolocation.requestPermissions({ permissions: ['coarseLocation'] });
+      if (perms.coarseLocation !== 'granted' && perms.location !== 'granted') return null;
+      // Coarse accuracy only — GPS coords are rounded to ~1km before storage,
+      // so high accuracy isn't needed.
+      try {
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 12000,
+        });
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      } catch {
+        // First fix can time out on coarse (cell/Wi-Fi) providers — retry once
+        // with a longer window and accept a cached recent position.
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 20000,
+          maximumAge: 120000,
+        });
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      }
     } catch {
       return null;
     }

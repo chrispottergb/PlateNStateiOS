@@ -57,6 +57,7 @@ const PlateDetail = lazyWithRetry(() => import("./pages/PlateDetail"));
 const Leaderboard = lazyWithRetry(() => import("./pages/Leaderboard"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const ClaimPlate = lazyWithRetry(() => import("./pages/ClaimPlate"));
+const CheckoutReturn = lazyWithRetry(() => import("./pages/CheckoutReturn"));
 const Fleet = lazyWithRetry(() => import("./pages/Fleet"));
 const InsurancePortal = lazyWithRetry(() => import("./pages/InsurancePortal"));
 const BatchScreening = lazyWithRetry(() => import("./pages/BatchScreening"));
@@ -107,14 +108,19 @@ const NotificationDock = () => {
 };
 
 // Bump the suffix to re-show the walkthrough to every user (one-time) after
-// adding cards or other onboarding changes. v2 ships the vanity-plate spacing card.
-const ONBOARDING_KEY = "onboarding_completed_v2";
+// adding cards or other onboarding changes. v3 ships the location-permission card.
+const ONBOARDING_KEY = "onboarding_completed_v3";
 
 const OnboardingGate = () => {
   const { user, portalMode, termsAcceptedAt } = useAuth();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // ?walkthrough forces the walkthrough (support/debug: replay it on request)
+    if (new URLSearchParams(window.location.search).has("walkthrough")) {
+      setShow(true);
+      return;
+    }
     if (!user) return;
     const termsOk = termsAcceptedAt || localStorage.getItem("terms_accepted");
     if (!termsOk) return;
@@ -175,6 +181,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/claim" element={<ClaimPlate />} />
+                  <Route path="/checkout-return" element={<CheckoutReturn />} />
                   <Route path="/fleet" element={<Fleet />} />
                   <Route path="/map" element={<WatchMap />} />
                   <Route path="/insurance" element={<InsurancePortal />} />

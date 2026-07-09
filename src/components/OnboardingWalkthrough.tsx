@@ -163,7 +163,49 @@ const VanityPlateVisual = () => (
 // ────────────────────────────────────────────────────────────────────────
 // PERSONAL CARDS — every card now shows WHERE in the app to tap
 // ────────────────────────────────────────────────────────────────────────
+const LocationPermissionVisual = () => (
+  <div className="relative mx-auto" style={{ width: 220 }}>
+    <div className="relative rounded-[28px] bg-card/80 border-2 border-foreground/15 shadow-xl overflow-hidden" style={{ height: 320 }}>
+      {/* Notch */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-4 bg-foreground/15 rounded-b-xl z-10" />
+      {/* Dimmed app behind the dialog */}
+      <div className="absolute inset-0 top-5 px-3 py-3 opacity-30">
+        <div className="rounded bg-foreground/10 h-3 w-3/4 mx-auto mt-2" />
+        <div className="rounded bg-foreground/10 h-2 w-1/2 mx-auto mt-2" />
+        <div className="rounded bg-foreground/10 h-16 w-full mt-4" />
+      </div>
+      {/* Mock system permission dialog */}
+      <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 rounded-2xl bg-background border border-border shadow-2xl p-4 z-20">
+        <div className="text-2xl text-center mb-2">📍</div>
+        <p className="text-[11px] font-bold text-center text-foreground leading-snug mb-3">
+          Allow Plate N' State to access this device's location?
+        </p>
+        <div className="space-y-1.5">
+          <div className="relative">
+            <div className="absolute inset-0 -m-1 rounded-lg bg-primary/40 animate-ping" />
+            <div className="relative rounded-lg bg-primary text-primary-foreground text-[10px] font-bold text-center py-1.5 ring-2 ring-primary/50">
+              While using the app ✓
+            </div>
+          </div>
+          <div className="rounded-lg bg-muted text-muted-foreground text-[10px] text-center py-1.5">Only this time</div>
+          <div className="rounded-lg bg-muted text-muted-foreground text-[10px] text-center py-1.5 line-through">Don't allow</div>
+        </div>
+      </div>
+    </div>
+    {/* Arrow callout pointing at the dialog */}
+    <div className="absolute -left-2 top-1/2 -translate-x-full -translate-y-1/2 flex items-center gap-1.5">
+      <span className="bg-primary text-primary-foreground text-[11px] font-bold px-2 py-1 rounded-lg shadow-md whitespace-nowrap">This one</span>
+      <span className="text-3xl leading-none drop-shadow-lg animate-bounce" aria-hidden>👉</span>
+    </div>
+  </div>
+);
+
 const PERSONAL_CARDS: OnboardingCard[] = [
+  {
+    visual: <LocationPermissionVisual />,
+    title: "Location On, or No Snitching",
+    description: "Reports need to say WHERE it happened — shocking, we know. When Android asks for location, tap \"While using the app.\" Tap \"Don't allow\" and you'll be describing the crime scene from memory like it's 1987.",
+  },
   {
     visual: (
       <PhoneMockup

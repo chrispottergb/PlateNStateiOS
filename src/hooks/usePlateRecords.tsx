@@ -113,7 +113,8 @@ function buildRecords(rows: {
       map.set(r.plate_number, rec);
     }
     const inf = INFRACTIONS.find(i => i.type === r.infraction);
-    rec.totalScore += inf?.points ?? 0;
+    // Mirror public.infraction_points(): unspecified = +2, any unknown type = +5.
+    rec.totalScore += inf?.points ?? (r.infraction === "unspecified" ? 2 : 5);
     rec.reportCount += 1;
     if (r.infraction in rec.infractions) {
       rec.infractions[r.infraction as InfractionType] += 1;
@@ -125,6 +126,15 @@ function buildRecords(rows: {
     }
   }
   return Array.from(map.values()).sort((a, b) => b.totalScore - a.totalScore);
+}
+
+export interface PlateStats {
+  good_reports: number;
+  bad_reports: number;
+  good_witnesses: number;
+  bad_witnesses: number;
+  total_score: number;
+  report_count: number;
 }
 
 export function usePlateDetail(plateNumber: string) {
@@ -142,11 +152,25 @@ export function usePlateDetail(plateNumber: string) {
     enabled: !!plateNumber,
   });
 
+  // Server-side stats: good/bad split, distinct witnesses, and the ANTI-GAMED
+  // score (spam/sockpuppet reports carry 0 weight — see 20260708 migration).
+  const { data: stats } = useQuery({
+    queryKey: ["plate-stats", plateNumber],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_plate_stats", { p_plate: plateNumber });
+      if (error) throw error;
+      return (Array.isArray(data) ? data[0] : data) as PlateStats | null;
+    },
+    staleTime: 30_000,
+    enabled: !!plateNumber,
+  });
+
   const rows = data ?? [];
   const records = rows.length > 0 ? buildRecords(rows as any) : [];
 
   return {
     plate: records[0] ?? null,
+    stats: stats ?? null,
     reports: rows as {
       id: string; infraction: string; location: string;
       created_at: string; upvote_count: number; is_flagged?: boolean; state?: string | null;

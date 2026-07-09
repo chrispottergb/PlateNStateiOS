@@ -21,18 +21,19 @@ const HIGH_RISK_INFRACTIONS = new Set([
   "passing_school_bus", "brake_checking", "ran_red_light",
 ]);
 
+// Shame points: high positive = bad driver, negative/zero = good or unknown.
 const getSeverityLabel = (score: number, hasHighRiskInfraction = false) => {
-  if (score <= -10 || hasHighRiskInfraction) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
-  if (score <= -6) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
-  if (score <= -3) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
-  if (score < 0) return { label: "LOW RISK", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
+  if (score >= 25 || hasHighRiskInfraction) return { label: "CRITICAL OFFENDER", color: "bg-destructive/15 text-destructive border-destructive/30" };
+  if (score >= 12) return { label: "HIGH RISK", color: "bg-orange-500/15 text-orange-500 border-orange-500/30" };
+  if (score >= 6) return { label: "MODERATE", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
+  if (score > 0) return { label: "LOW RISK", color: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" };
   return { label: "CLEAN", color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" };
 };
 
 const PlateDetail = () => {
   const { plateNumber } = useParams<{ plateNumber: string }>();
   const decoded = decodeURIComponent(plateNumber || "");
-  const { plate, reports, loading } = usePlateDetail(decoded);
+  const { plate, stats, reports, loading } = usePlateDetail(decoded);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [isOwner, setIsOwner] = useState(false);
   const [disputeReportId, setDisputeReportId] = useState<string | null>(null);
@@ -167,27 +168,39 @@ const PlateDetail = () => {
           </div>
         </motion.div>
 
-        {/* Stat Cards */}
+        {/* Stat Cards — good on the left, bad on the right, verdict in the middle.
+            Counts come from get_plate_stats: score is the anti-gamed (weighted)
+            total, and "witnesses" = DISTINCT reporters so sockpuppet spam is
+            visibly pointless (40 reports · 2 witnesses reads as the scam it is). */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           className="grid grid-cols-3 gap-3 mb-6"
         >
-          <div className="rounded-xl glass-card p-4 text-center">
-            <BarChart3 className="h-5 w-5 mx-auto text-primary mb-1" />
-            <p className="text-2xl font-bold font-mono">{plate.reportCount}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Reports</p>
+          <div className="rounded-xl glass-card p-4 text-center border border-emerald-500/20">
+            <p className="text-lg leading-none mb-1">👍</p>
+            <p className="text-2xl font-bold font-mono text-emerald-500">{stats?.good_reports ?? 0}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Good</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {stats?.good_witnesses ?? 0} witness{(stats?.good_witnesses ?? 0) === 1 ? "" : "es"}
+            </p>
           </div>
           <div className="rounded-xl glass-card p-4 text-center">
             <AlertTriangle className="h-5 w-5 mx-auto text-amber-500 mb-1" />
-            <p className={`text-2xl font-bold font-mono ${getScoreColor(plate.totalScore)}`}>{plate.totalScore}</p>
+            <p className={`text-2xl font-bold font-mono ${getScoreColor(stats?.total_score ?? plate.totalScore)}`}>
+              {stats?.total_score ?? plate.totalScore}
+            </p>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Score</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{stats?.report_count ?? plate.reportCount} reports</p>
           </div>
-          <div className="rounded-xl glass-card p-4 text-center">
-            <CheckCircle2 className="h-5 w-5 mx-auto text-emerald-500 mb-1" />
-            <p className="text-2xl font-bold font-mono">{verifiedCount}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Verified</p>
+          <div className="rounded-xl glass-card p-4 text-center border border-destructive/20">
+            <p className="text-lg leading-none mb-1">👎</p>
+            <p className="text-2xl font-bold font-mono text-destructive">{stats?.bad_reports ?? 0}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Bad</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {stats?.bad_witnesses ?? 0} witness{(stats?.bad_witnesses ?? 0) === 1 ? "" : "es"}
+            </p>
           </div>
         </motion.div>
 
@@ -198,7 +211,12 @@ const PlateDetail = () => {
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Top Infractions</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Top Infractions</h2>
+            <span className="inline-flex items-center gap-1 text-xs text-emerald-500 font-semibold">
+              <CheckCircle2 className="h-3.5 w-3.5" /> {verifiedCount} community-verified
+            </span>
+          </div>
           <div className="flex flex-wrap gap-2">
             {INFRACTIONS.filter(inf => plate.infractions[inf.type] > 0)
               .sort((a, b) => plate.infractions[b.type] - plate.infractions[a.type])

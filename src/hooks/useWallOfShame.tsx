@@ -10,28 +10,23 @@ export interface WallOfShameRow {
   top_infraction: string | null;
 }
 
-// MV refreshes every 5 min via pg_cron — cache client-side for the same window
+// Reads the wall_of_shame_mv materialized view (refreshed every 10 min via
+// pg_cron) — worst shame-scores first. Cache client-side for the same window
 // so 1000 concurrent users don't fire 1000 identical DB queries per page load.
 export function useWallOfShame(state?: string | null, limit = 20) {
   const { data, isLoading } = useQuery({
     queryKey: ["wall-of-shame", state ?? null, limit],
     queryFn: async () => {
       let query = supabase
-        .from("reports")
-        .select("plate_number, infraction, location, created_at, state")
-        .order("created_at", { ascending: false })
+        .from("wall_of_shame_mv")
+        .select("state, plate_number, report_count, total_score, last_reported_at, top_infraction")
+        .gt("total_score", 0) // the shame wall is for offenders, not good samaritans
+        .order("total_score", { ascending: false })
         .limit(limit);
       if (state) query = query.eq("state", state);
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []).map((r: any) => ({
-        state: r.state || "",
-        plate_number: r.plate_number,
-        report_count: 1,
-        total_score: 0,
-        last_reported_at: r.created_at,
-        top_infraction: r.infraction,
-      })) as WallOfShameRow[];
+      return (data ?? []) as WallOfShameRow[];
     },
     staleTime: 5 * 60_000,
   });

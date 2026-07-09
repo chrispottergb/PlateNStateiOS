@@ -47,6 +47,15 @@ export const useNativeDeepLinks = () => {
               return;
             }
 
+            // Checkout bounce-back: com.plateandstate.platenstate://return?to=<encoded path>
+            // (sent by platenstate.com/checkout-return after Stripe payment)
+            const returnTo = queryParams.get("to");
+            if (returnTo && rawUrl.includes("://return")) {
+              await closeBrowser();
+              navigate(decodeURIComponent(returnTo), { replace: true });
+              return;
+            }
+
             const code = queryParams.get("code") || hashParams.get("code");
             if (code) {
               await supabase.auth.exchangeCodeForSession(code).catch(() => {});
