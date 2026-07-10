@@ -2,6 +2,13 @@ import { Capacitor } from '@capacitor/core';
 
 export const isNative = Capacitor.isNativePlatform();
 
+// Apple Guideline 3.1.1: digital goods may not be sold in the iOS app via
+// external payment (Stripe). Per 3.1.3(b) users CAN access content purchased
+// elsewhere, so on iOS all purchase UI is hidden entirely — no buy buttons,
+// no links to external checkout. Android/web are unaffected.
+export const isIOS = Capacitor.getPlatform() === "ios";
+export const purchasesEnabled = !isIOS;
+
 // Camera — picks from photo library on native, returns base64 data URL.
 // Returns null on web (caller should trigger a file input instead).
 // NOTE: AndroidManifest.xml must include <uses-permission android:name="android.permission.CAMERA" />

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/Header";
+import { CoinStore } from "@/components/CoinStore";
 import { INFRACTIONS } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -267,6 +268,11 @@ const Profile = () => {
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Coins</p>
           </div>
+        </motion.div>
+
+        {/* Coin store — renders nothing on iOS (Apple 3.1.1) */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-6">
+          <CoinStore />
         </motion.div>
 
         {/* Level Progress */}

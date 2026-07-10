@@ -10,6 +10,7 @@ import { AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckoutDialog } from "./CheckoutDialog";
+import { purchasesEnabled } from "@/lib/native";
 
 interface DisputeReportDialogProps {
   open: boolean;
@@ -74,6 +75,23 @@ export function DisputeReportDialog({ open, onClose, reportId, plateNumber }: Di
   };
 
   if (pendingDisputeId) {
+    // Apple 3.1.1: no external payment on iOS. Free disputes work everywhere;
+    // a fee-based dispute stays saved server-side but can't be paid here.
+    if (!purchasesEnabled) {
+      return (
+        <Dialog open={true} onOpenChange={(v) => { if (!v) { setPendingDisputeId(null); onClose(); } }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Dispute saved</DialogTitle>
+              <DialogDescription>
+                This dispute requires a review fee, which isn't available in this version of the app.
+                Your dispute has been saved to your account.
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      );
+    }
     return (
       <CheckoutDialog
         open={true}

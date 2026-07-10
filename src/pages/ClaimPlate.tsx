@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import PlateScanner from "@/components/PlateScanner";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
+import { purchasesEnabled } from "@/lib/native";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import ReportModal from "@/components/ReportModal";
 import { Car, CheckCircle, Shield, Camera, Eye, EyeOff, Lock, Loader2, Megaphone, ShieldCheck, ArrowRight, Info } from "lucide-react";
@@ -195,6 +196,10 @@ const ClaimPlate = () => {
       <Header />
       <div className="container max-w-2xl py-10 space-y-6">
 
+        {/* Purchase UI hidden on iOS — Apple 3.1.1 forbids selling digital goods
+            via external payment; users' existing claims below stay accessible
+            per 3.1.3(b). */}
+        {purchasesEnabled && (
         <motion.div id="claim-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-0 shadow-lg">
             <CardHeader className="text-center">
@@ -284,12 +289,13 @@ const ClaimPlate = () => {
             </CardContent>
           </Card>
         </motion.div>
+        )}
 
         {claimedPlates && claimedPlates.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Your Plates</h3>
-              {subs && subs.length > 0 && (
+              {subs && subs.length > 0 && purchasesEnabled && (
                 <Button variant="outline" size="sm" onClick={openBillingPortal} disabled={portalLoading}>
                   {portalLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
                   Manage Billing
@@ -326,7 +332,9 @@ const ClaimPlate = () => {
                       </div>
                     </div>
 
-                    {/* Tier picker */}
+                    {/* Tier picker — subscription upsell, hidden on iOS (Apple 3.1.1).
+                        Active-tier badges above still show what the user owns. */}
+                    {purchasesEnabled && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                       <div className={`rounded-lg border p-3 ${tier === "privacy" ? "border-blue-500 bg-blue-50/30" : "border-border"}`}>
                         <div className="flex items-center gap-2 mb-1">
@@ -372,8 +380,9 @@ const ClaimPlate = () => {
                         </Button>
                       </div>
                     </div>
+                    )}
 
-                    {!plate.paid && (
+                    {!plate.paid && purchasesEnabled && (
                       <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
                         This plate was claimed before paid claims existed. Blacklist tiers require a paid claim — claim it again above to enable them.
                       </p>
