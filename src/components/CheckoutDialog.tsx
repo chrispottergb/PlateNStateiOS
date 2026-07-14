@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CreditCard, ExternalLink } from "lucide-react";
-import { isNative } from "@/lib/native";
+import { isNative, isIOS } from "@/lib/native";
 
 const API_BASE = "https://platenstate-scan-api.vercel.app";
 
@@ -28,6 +28,15 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       const email = session?.user?.email;
+
+      // iOS: Apple In-App Purchase instead of Stripe (Guideline 3.1.1).
+      if (isIOS) {
+        const { buyWithApple } = await import("@/lib/payments");
+        await buyWithApple(priceId, { userId, plateNumber, disputeId });
+        toast({ title: "Purchase complete", description: "Your account has been updated." });
+        onClose();
+        return;
+      }
 
       const finalReturnUrl = returnUrl || `${window.location.origin}/claim`;
 
