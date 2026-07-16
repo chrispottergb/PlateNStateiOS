@@ -113,8 +113,9 @@ function buildRecords(rows: {
       map.set(r.plate_number, rec);
     }
     const inf = INFRACTIONS.find(i => i.type === r.infraction);
-    // Mirror public.infraction_points(): unspecified = +2, any unknown type = +5.
-    rec.totalScore += inf?.points ?? (r.infraction === "unspecified" ? 2 : 5);
+    // Mirror public.infraction_points(): unspecified = 0 (no rating given, so
+    // no score movement), any unknown type = +5.
+    rec.totalScore += inf?.points ?? (r.infraction === "unspecified" ? 0 : 5);
     rec.reportCount += 1;
     if (r.infraction in rec.infractions) {
       rec.infractions[r.infraction as InfractionType] += 1;
@@ -143,7 +144,7 @@ export function usePlateDetail(plateNumber: string) {
     queryFn: async () => {
       const { data } = await supabase
         .from("reports")
-        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state, latitude, longitude")
+        .select("id, plate_number, infraction, location, created_at, upvote_count, is_flagged, state, latitude, longitude, comment")
         .eq("plate_number", plateNumber)
         .order("created_at", { ascending: false });
       return data ?? [];

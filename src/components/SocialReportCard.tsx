@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { INFRACTIONS } from "@/lib/data";
+import { INFRACTIONS, infractionLabel } from "@/lib/data";
 import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
@@ -96,10 +96,10 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge
-            variant={inf?.kind === "good" ? "default" : "destructive"}
+            variant={inf?.kind === "good" ? "default" : report.infraction === "unspecified" ? "secondary" : "destructive"}
             className="text-xs rounded-lg"
           >
-            {inf?.label || report.infraction}
+            {infractionLabel(report.infraction, report.comment)}
           </Badge>
           {report.is_flagged && (
             <Badge variant="outline" className="text-xs rounded-lg border-amber-500/40 text-amber-500 gap-1">

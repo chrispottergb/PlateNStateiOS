@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "./ui/badge";
-import { INFRACTIONS } from "@/lib/data";
+import { INFRACTIONS, infractionLabel } from "@/lib/data";
 import { motion } from "framer-motion";
 
 interface FreshCatch {
@@ -87,7 +87,7 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
                   variant={inf?.kind === "good" ? "default" : "destructive"}
                   className="text-xs px-2 py-0.5 max-w-[90px] truncate"
                 >
-                  {inf?.label || r.infraction}
+                  {infractionLabel(r.infraction)}
                 </Badge>
               </motion.div>
             </Link>

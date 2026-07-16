@@ -233,6 +233,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const captcha = useCaptcha();
   const handleSubmit = async () => {
     if (!user) return;
+    if (!plateState) {
+      toast({ title: "Confirm the plate's state", description: "The scanner couldn't read it — pick the state so the report lands on the right vehicle.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const ip = await getClientIp();
@@ -305,7 +309,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const formatPlate = (value: string) => value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, 10);
 
   const hasVerifiedLocation = latitude !== null && longitude !== null && !!autoDetectedLocation && !!incidentState;
-  const canSubmitQuick = plateNumber.trim().length >= 4 && hasVerifiedLocation;
+  const canSubmitQuick = plateNumber.trim().length >= 4 && hasVerifiedLocation && !!plateState;
 
   const canProceed = () => {
     if (step === 1) return plateNumber.trim().length >= 4;
@@ -417,6 +421,11 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
+                    } else {
+                      // OCR couldn't read the state — force the user to pick it.
+                      // Silently defaulting to home/GPS state can pin a report on
+                      // the SAME plate number registered in a DIFFERENT state.
+                      setPlateState("");
                     }
                     if (gps && latitude === null) {
                       setLatitude(gps.latitude);
@@ -437,7 +446,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   maxLength={10}
                 />
                 <Select value={plateState} onValueChange={setPlateState}>
-                  <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg h-12"><SelectValue /></SelectTrigger>
+                  <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className={`rounded-lg h-12 ${!plateState ? "border-destructive ring-2 ring-destructive/40 animate-pulse" : ""}`}>
+                    <SelectValue placeholder="State?" />
+                  </SelectTrigger>
                   <SelectContent className="max-h-72">
                     {US_STATES.map(s => (
                       <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>
@@ -445,9 +456,15 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
-              </p>
+              {!plateState ? (
+                <p className="text-xs text-destructive font-semibold mt-1">
+                  Couldn't read the state off the plate — confirm it before submitting. Same plate number, different state = different (innocent) driver.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
+                </p>
+              )}
             </div>
 
             {/* Location — locked to GPS to prevent fraudulent reports */}
@@ -583,6 +600,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                     setPlateNumber(plate.slice(0, 10));
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
+                    } else {
+                      setPlateState(""); // force manual state confirmation (see quick mode)
                     }
                     if (gps && latitude === null) {
                       setLatitude(gps.latitude);
@@ -603,7 +622,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       maxLength={10}
                     />
                     <Select value={plateState} onValueChange={setPlateState}>
-                      <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className="rounded-lg"><SelectValue /></SelectTrigger>
+                      <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className={`rounded-lg ${!plateState ? "border-destructive ring-2 ring-destructive/40" : ""}`}>
+                        <SelectValue placeholder="State?" />
+                      </SelectTrigger>
                       <SelectContent className="max-h-72">
                         {US_STATES.map(s => (
                           <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>

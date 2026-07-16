@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import ReportModal from "@/components/ReportModal";
 import LicensePlate from "@/components/LicensePlate";
-import { INFRACTIONS, getScoreColor, getScoreBg } from "@/lib/data";
+import { INFRACTIONS, infractionLabel, getScoreColor, getScoreBg } from "@/lib/data";
 import { usePlateDetail } from "@/hooks/usePlateRecords";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -266,8 +266,10 @@ const PlateDetail = () => {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <Badge variant="secondary" className="rounded-full text-xs">{inf?.label || report.infraction}</Badge>
-                        <span className="text-xs text-muted-foreground font-mono">+{inf?.points ?? 3} pts</span>
+                        <Badge variant="secondary" className="rounded-full text-xs">{infractionLabel(report.infraction, (report as any).comment)}</Badge>
+                        {(inf?.points ?? 0) !== 0 && (
+                          <span className="text-xs text-muted-foreground font-mono">{(inf?.points ?? 0) > 0 ? "+" : ""}{inf?.points} pts</span>
+                        )}
                         {report.upvote_count >= 3 && (
                           <Badge variant="outline" className="text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" /> Verified

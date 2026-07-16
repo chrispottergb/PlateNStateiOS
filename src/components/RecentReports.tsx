@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { INFRACTIONS } from "@/lib/data";
+import { INFRACTIONS, infractionLabel } from "@/lib/data";
 import { MapPin, ThumbsUp } from "lucide-react";
 import LicensePlate from "./LicensePlate";
 import { Badge } from "@/components/ui/badge";
@@ -109,7 +109,7 @@ const RecentReports = () => {
               <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
             </Link>
             <Badge variant="secondary" className="text-xs shrink-0 rounded-full">
-              {inf?.label || report.infraction}
+              {infractionLabel(report.infraction)}
             </Badge>
             <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto shrink-0">
               <MapPin className="h-3 w-3" />

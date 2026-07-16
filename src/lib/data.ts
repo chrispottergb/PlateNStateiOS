@@ -69,6 +69,15 @@ export const WISCONSIN_CITIES = [
   "West Allis", "La Crosse", "Sheboygan", "Wauwatosa", "Fond du Lac",
 ];
 
+// Human-readable infraction label. 'unspecified' (no behavior tag picked) shows
+// "See comment" when the reporter left one, "Unrated" otherwise — never the raw
+// sentinel string.
+export function infractionLabel(type: string | null | undefined, comment?: string | null): string {
+  if (!type) return "Unrated";
+  if (type === "unspecified") return comment?.trim() ? "See comment" : "Unrated";
+  return INFRACTIONS.find(i => i.type === type)?.label ?? type.replace(/_/g, " ");
+}
+
 // Shame points: high positive = bad driver (red), negative = good driver (green).
 export function getScoreColor(score: number): string {
   if (score >= 10) return "text-destructive";

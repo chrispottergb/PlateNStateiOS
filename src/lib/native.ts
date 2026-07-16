@@ -17,9 +17,16 @@ export const purchasesEnabled = !isIOS;
 export async function pickImageFromLibrary(): Promise<string | null> {
   if (!isNative) return null;
   const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-  const perms = await Camera.requestPermissions({ permissions: ['photos'] });
-  if (perms.photos !== 'granted') {
-    throw new Error('Photo library access denied. Please enable it in Settings > Privacy > Photos.');
+  // Do NOT request the 'photos' permission on Android: it maps to
+  // READ_MEDIA_IMAGES, which is deliberately stripped from the manifest
+  // (Google Play photo-permission policy), so the request auto-denies and we'd
+  // throw before the picker ever opens. The system Photo Picker used by
+  // getPhoto needs no permission at all. iOS still gets its native prompt.
+  if (isIOS) {
+    const perms = await Camera.requestPermissions({ permissions: ['photos'] });
+    if (perms.photos !== 'granted') {
+      throw new Error('Photo library access denied. Please enable it in Settings > Privacy > Photos.');
+    }
   }
   const photo = await Camera.getPhoto({
     quality: 70,
