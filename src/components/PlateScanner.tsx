@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface PlateScannerProps {
-  onResult: (plateNumber: string, state: string | null, gps?: { latitude: number; longitude: number } | null) => void;
+  onResult: (plateNumber: string, state: string | null, gps?: { latitude: number; longitude: number } | null, stackedPrefix?: string | null) => void;
 }
 
 type PendingAction = "native-camera" | "web-camera" | "upload";
@@ -66,9 +66,17 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
 
       if (data?.plate_number) {
         // Plates can be up to 10 chars; apply OCR character correction
-        const cleaned = correctOcrPlate(String(data.plate_number)).slice(0, 10);
+        let cleaned = correctOcrPlate(String(data.plate_number)).slice(0, 10);
         const resolvedState: string | null = data.state || null;
-        onResult(cleaned, resolvedState, data.gps || null);
+        const stacked: string | null = data.stacked_prefix
+          ? String(data.stacked_prefix).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2)
+          : null;
+        // The main field shows the number without the stacked prefix (it lives in
+        // its own box). Strip a leading prefix occurrence so it isn't duplicated.
+        if (stacked && cleaned.replace(/\s/g, "").startsWith(stacked)) {
+          cleaned = cleaned.replace(/\s/g, "").slice(stacked.length);
+        }
+        onResult(cleaned, resolvedState, data.gps || null, stacked);
         addScan(cleaned, resolvedState, { confidence: data.confidence, raw: data.plate_number });
         toast.success(`Plate detected: ${data.plate_number}`, {
           description: data.state ? `State: ${data.state} (${data.confidence} confidence)` : `Confidence: ${data.confidence}`,

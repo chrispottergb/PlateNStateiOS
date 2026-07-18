@@ -147,7 +147,7 @@ const WallOfShame = () => {
                               </div>
                               <LicensePlate plateNumber={plate.plate_number} state={plate.state} size="sm" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-lg font-bold font-mono gradient-text-fire">{plate.total_score} pts</p>
+                                <p className="text-lg font-bold font-mono text-destructive">{plate.total_score} pts</p>
                                 <p className="text-[10px] uppercase tracking-wider text-amber-400/90 font-semibold mt-0.5">{rankTitle}</p>
                                 <p className="text-xs text-muted-foreground truncate mt-0.5">
                                   {topInf?.label || "Various"} · {plate.report_count} witnesses · {plate.state}

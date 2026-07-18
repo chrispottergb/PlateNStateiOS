@@ -100,6 +100,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [manualOverride, setManualOverride] = useState(false);
   // Plate's home state (where the plate is registered) — defaults to user's home_state
   const [plateState, setPlateState] = useState<string>(homeState || "WI");
+  // Small stacked characters to the LEFT of the main plate (e.g. Illinois "FP").
+  const [stackedPrefix, setStackedPrefix] = useState<string>("");
   // Incident state (where the report happened) — set by GPS reverse-geocode
   const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
   const [detectedStateCode, setDetectedStateCode] = useState<string | null>(null);
@@ -133,6 +135,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
     setDetectedStateCode(null);
     setManualOverride(false);
     setPlateState(homeState || "WI");
+    setStackedPrefix("");
     setIncidentState(homeState || "WI");
     setDateTime(new Date().toISOString().slice(0, 16));
     setVehicleType("");
@@ -248,8 +251,10 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
       }
       // Infraction is now OPTIONAL — use sentinel when missing
       const finalInfraction = infraction ?? "unspecified";
+      // Combine the stacked prefix with the main plate (e.g. "FP" + "239633").
+      const finalPlate = [stackedPrefix.trim(), plateNumber.trim()].filter(Boolean).join(" ");
       const { error } = await supabase.rpc("spend_credit_on_report", {
-        p_plate_number: plateNumber,
+        p_plate_number: finalPlate,
         p_infraction: finalInfraction,
         p_location: finalLocation,
         p_latitude: latitude,
@@ -417,8 +422,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
             {/* Plate input + state */}
             <div>
               <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate & State</Label>
-              <PlateScanner onResult={(plate, scannedState, gps) => {
+              <PlateScanner onResult={(plate, scannedState, gps, stacked) => {
                     setPlateNumber(plate.slice(0, 10));
+                    setStackedPrefix(stacked || "");
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     } else {
@@ -436,7 +442,16 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       detectLocation();
                     }
                   }} />
-              <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
+              <div className="mt-1.5 grid grid-cols-[36px_1fr_90px] gap-2">
+                {/* Stacked-prefix box (e.g. Illinois "FP") — chars sit stacked on a real plate */}
+                <Input
+                  aria-label="Stacked prefix"
+                  value={stackedPrefix}
+                  onChange={e => setStackedPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2))}
+                  placeholder="FP"
+                  className="font-mono text-sm font-bold text-center rounded-lg h-12 px-0 [writing-mode:vertical-rl]"
+                  maxLength={2}
+                />
                 <Input
                   id="quick-plate"
                   value={plateNumber}
@@ -596,8 +611,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="plate" className="text-sm font-medium">License Plate & State</Label>
-                  <PlateScanner onResult={(plate, scannedState, gps) => {
+                  <PlateScanner onResult={(plate, scannedState, gps, stacked) => {
                     setPlateNumber(plate.slice(0, 10));
+                    setStackedPrefix(stacked || "");
                     if (scannedState && US_STATES.some(s => s.code === scannedState)) {
                       setPlateState(scannedState);
                     } else {
@@ -612,7 +628,16 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
                       detectLocation();
                     }
                   }} />
-                  <div className="mt-1.5 grid grid-cols-[1fr_90px] gap-2">
+                  <div className="mt-1.5 grid grid-cols-[32px_1fr_90px] gap-2">
+                    {/* Stacked-prefix box (e.g. Illinois "FP") */}
+                    <Input
+                      aria-label="Stacked prefix"
+                      value={stackedPrefix}
+                      onChange={e => setStackedPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2))}
+                      placeholder="FP"
+                      className="font-mono text-sm font-bold text-center rounded-lg px-0 [writing-mode:vertical-rl]"
+                      maxLength={2}
+                    />
                     <Input
                       id="plate"
                       value={plateNumber}
