@@ -87,32 +87,6 @@ workflows:
           plutil -p "$PLIST" | grep -iE "UsageDescription|Encryption|URLSchemes"
           echo "=== Full CFBundleURLTypes ==="
           plutil -extract CFBundleURLTypes json -o - "$PLIST"
-      - name: Add Sign in with Apple entitlement
-        script: |
-          set -e
-          # Guideline 4.8 requires Sign in with Apple. The iOS project is generated
-          # fresh each build, so create the entitlements file and wire it into the
-          # App target's build settings here.
-          ENT="ios/App/App/App.entitlements"
-          cat > "$ENT" << 'ENTPLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>com.apple.developer.applesignin</key>
-            <array><string>Default</string></array>
-          </dict>
-          </plist>
-          ENTPLIST
-          plutil -lint "$ENT"
-          ruby -e '
-            require "xcodeproj"
-            proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
-            t = proj.targets.find { |x| x.name == "App" }
-            t.build_configurations.each { |c| c.build_settings["CODE_SIGN_ENTITLEMENTS"] = "App/App.entitlements" }
-            proj.save
-            puts "CODE_SIGN_ENTITLEMENTS set on App target"
-          '
       - name: Resolve Swift Package dependencies (with retry)
         script: |
           set -e

@@ -64,36 +64,6 @@ export async function takePhotoNative(): Promise<string | null> {
   return `data:image/jpeg;base64,${photo.base64String}`;
 }
 
-// Sign in with Apple (iOS) — required by App Store Guideline 4.8 alongside
-// Google login. Uses @capgo/capacitor-social-login (Capacitor 8 compatible,
-// coexists with cordova-plugin-purchase's SPM version). Returns the Apple
-// identity token + raw nonce for supabase.auth.signInWithIdToken.
-let appleInit = false;
-export async function signInWithAppleNative(): Promise<{ identityToken: string; rawNonce: string } | null> {
-  if (!isIOS) return null;
-  const { SocialLogin } = await import('@capgo/capacitor-social-login');
-
-  if (!appleInit) {
-    await SocialLogin.initialize({ apple: { clientId: 'com.plateandstate.platenstate' } });
-    appleInit = true;
-  }
-
-  // Apple embeds SHA256(nonce) in the token; Supabase verifies against the raw nonce.
-  const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-  const hashed = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce));
-  const hashedNonce = Array.from(new Uint8Array(hashed))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
-
-  const res: any = await SocialLogin.login({
-    provider: 'apple',
-    options: { scopes: ['email', 'name'], nonce: hashedNonce },
-  });
-  const identityToken = res?.result?.idToken;
-  if (!identityToken) return null;
-  return { identityToken, rawNonce };
-}
-
 // Geolocation — uses Capacitor plugin on native, browser API on web.
 export async function getPosition(): Promise<{ latitude: number; longitude: number } | null> {
   if (isNative) {

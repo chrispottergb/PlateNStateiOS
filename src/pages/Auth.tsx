@@ -202,20 +202,28 @@ const Auth = () => {
               onClick={async () => {
                 setLoading(true);
                 try {
-                  const { signInWithAppleNative } = await import("@/lib/native");
-                  const apple = await signInWithAppleNative();
-                  if (!apple) throw new Error("Apple sign-in was cancelled");
-                  const { error } = await supabase.auth.signInWithIdToken({
+                  // Web-based Sign in with Apple via Supabase OAuth — mirrors the
+                  // Google flow: opens Apple's auth page, redirects back via the
+                  // custom scheme handled by useNativeDeepLinks. No native plugin.
+                  if (isNative) {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                      provider: "apple",
+                      options: { redirectTo: OAUTH_REDIRECT, skipBrowserRedirect: true },
+                    });
+                    if (error) throw error;
+                    if (data?.url) {
+                      const { Browser } = await import("@capacitor/browser");
+                      await Browser.open({ url: data.url, presentationStyle: "popover" });
+                    }
+                    return;
+                  }
+                  const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: "apple",
-                    token: apple.identityToken,
-                    nonce: apple.rawNonce,
+                    options: { redirectTo: OAUTH_REDIRECT },
                   });
                   if (error) throw error;
-                  navigate("/");
                 } catch (error: any) {
-                  if (!/cancel/i.test(error.message)) {
-                    toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
-                  }
+                  toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
                 } finally {
                   setLoading(false);
                 }
