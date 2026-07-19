@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCaptcha, CaptchaWidget } from "@/hooks/useCaptcha";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Shield, CheckCircle2, Skull, Briefcase, Eye, EyeOff } from "lucide-react";
-import { isNative } from "@/lib/native";
+import { isNative, isIOS } from "@/lib/native";
 import logoIcon from "@/assets/logo-icon.png";
 import authBg from "@/assets/auth-bg.jpg";
 
@@ -192,6 +192,39 @@ const Auth = () => {
               Sign Up
             </button>
           </div>
+
+          {/* Sign in with Apple — iOS only, shown first per Apple HIG + Guideline 4.8 */}
+          {isIOS && (
+            <Button
+              type="button"
+              className="w-full rounded-full h-11 text-sm font-medium gap-2 mb-3 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const { signInWithAppleNative } = await import("@/lib/native");
+                  const apple = await signInWithAppleNative();
+                  if (!apple) throw new Error("Apple sign-in was cancelled");
+                  const { error } = await supabase.auth.signInWithIdToken({
+                    provider: "apple",
+                    token: apple.identityToken,
+                    nonce: apple.rawNonce,
+                  });
+                  if (error) throw error;
+                  navigate("/");
+                } catch (error: any) {
+                  if (!/cancel/i.test(error.message)) {
+                    toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
+                  }
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.51 4.09l-.02-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+              Continue with Apple
+            </Button>
+          )}
 
           <Button
             type="button"
