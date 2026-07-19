@@ -65,11 +65,18 @@ export async function takePhotoNative(): Promise<string | null> {
 }
 
 // Sign in with Apple (iOS) — required by App Store Guideline 4.8 alongside
-// Google login. Returns the Apple identity token + the raw nonce so the caller
-// can complete the session via supabase.auth.signInWithIdToken.
+// Google login. Uses @capgo/capacitor-social-login (Capacitor 8 compatible,
+// coexists with cordova-plugin-purchase's SPM version). Returns the Apple
+// identity token + raw nonce for supabase.auth.signInWithIdToken.
+let appleInit = false;
 export async function signInWithAppleNative(): Promise<{ identityToken: string; rawNonce: string } | null> {
   if (!isIOS) return null;
-  const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+  const { SocialLogin } = await import('@capgo/capacitor-social-login');
+
+  if (!appleInit) {
+    await SocialLogin.initialize({ apple: { clientId: 'com.plateandstate.platenstate' } });
+    appleInit = true;
+  }
 
   // Apple embeds SHA256(nonce) in the token; Supabase verifies against the raw nonce.
   const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -78,11 +85,11 @@ export async function signInWithAppleNative(): Promise<{ identityToken: string; 
   const hashedNonce = Array.from(new Uint8Array(hashed))
     .map(b => b.toString(16).padStart(2, '0')).join('');
 
-  const res = await SignInWithApple.authorize({
-    requestedScopes: [],
-    nonce: hashedNonce,
+  const res: any = await SocialLogin.login({
+    provider: 'apple',
+    options: { scopes: ['email', 'name'], nonce: hashedNonce },
   });
-  const identityToken = res?.response?.identityToken;
+  const identityToken = res?.result?.idToken;
   if (!identityToken) return null;
   return { identityToken, rawNonce };
 }
