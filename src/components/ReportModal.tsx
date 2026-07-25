@@ -65,13 +65,18 @@ interface ReportModalProps {
   trigger: React.ReactNode;
   initialPlate?: string;
   initialComment?: string;
+  // Plate's registration state, as read by the scanner. Pass "" to mean
+  // "scanned but state unreadable — force the user to pick it". Leave undefined
+  // for non-scan callers so it defaults to the user's home state.
+  initialState?: string;
+  initialStacked?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 const TOTAL_STEPS = 6;
 
-const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
+const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialState, initialStacked = "", open: controlledOpen, onOpenChange: controlledOnOpenChange }: ReportModalProps) => {
   const { user } = useAuth();
   const { homeState } = useHomeState();
   const { refetch: refetchCredits } = useCredits();
@@ -99,9 +104,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", open: co
   const [autoDetectedLocation, setAutoDetectedLocation] = useState<string | null>(null);
   const [manualOverride, setManualOverride] = useState(false);
   // Plate's home state (where the plate is registered) — defaults to user's home_state
-  const [plateState, setPlateState] = useState<string>(homeState || "WI");
+  const [plateState, setPlateState] = useState<string>(initialState !== undefined ? initialState : (homeState || "WI"));
   // Small stacked characters to the LEFT of the main plate (e.g. Illinois "FP").
-  const [stackedPrefix, setStackedPrefix] = useState<string>("");
+  const [stackedPrefix, setStackedPrefix] = useState<string>(initialStacked);
   // Incident state (where the report happened) — set by GPS reverse-geocode
   const [incidentState, setIncidentState] = useState<string>(homeState || "WI");
   const [detectedStateCode, setDetectedStateCode] = useState<string | null>(null);

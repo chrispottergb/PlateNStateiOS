@@ -28,6 +28,10 @@ const QuickCapture = () => {
   const [ready, setReady] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [detectedPlate, setDetectedPlate] = useState<string>("");
+  // "" means the scanner couldn't read the state → ReportModal forces a manual pick
+  // (never silently defaults to home state, which would mis-attribute out-of-state plates).
+  const [detectedState, setDetectedState] = useState<string>("");
+  const [detectedStacked, setDetectedStacked] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   // Guard against ghost clicks from the BottomNav tap that navigated here
   const [tapEnabled, setTapEnabled] = useState(false);
@@ -105,7 +109,15 @@ const QuickCapture = () => {
       if (!resp.ok) throw new Error(data?.error || "Scan failed");
 
       if (data?.plate_number) {
-        const plate = String(data.plate_number).toUpperCase().replace(/\s+/g, "").slice(0, 10);
+        let plate = String(data.plate_number).toUpperCase().replace(/\s+/g, "").slice(0, 10);
+        const stacked: string = data.stacked_prefix
+          ? String(data.stacked_prefix).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2)
+          : "";
+        // Strip the stacked prefix from the main number so it isn't duplicated
+        // (it rides in its own field in the report form).
+        if (stacked && plate.startsWith(stacked)) plate = plate.slice(stacked.length);
+        setDetectedStacked(stacked);
+        setDetectedState(data.state || "");
         setDetectedPlate(plate);
         toast.success(`Plate detected: ${plate}`, {
           description: data.state
@@ -167,8 +179,10 @@ const QuickCapture = () => {
       {/* Hidden ReportModal trigger — clicked programmatically after detection */}
       <div className="hidden">
         <ReportModal
-          key={detectedPlate || "empty"}
+          key={`${detectedPlate}|${detectedState}|${detectedStacked}` || "empty"}
           initialPlate={detectedPlate}
+          initialState={detectedState}
+          initialStacked={detectedStacked}
           trigger={<button ref={reportTriggerRef}>open</button>}
         />
       </div>
