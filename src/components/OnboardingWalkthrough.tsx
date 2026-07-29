@@ -251,6 +251,26 @@ const PERSONAL_CARDS: OnboardingCard[] = [
   {
     visual: (
       <PhoneMockup
+        topContent={
+          <div className="flex-1 flex flex-col items-center justify-center gap-2">
+            <div className="text-3xl">🪙</div>
+            <div className="text-[13px] font-extrabold text-foreground">20 FREE Reports</div>
+            <div className="rounded-lg bg-primary/20 border border-primary/50 px-2 py-1 text-[9px] text-center font-semibold">
+              Already in your account
+            </div>
+            <div className="text-[8px] text-center text-muted-foreground px-2">
+              1 coin = 1 report · Need more later? Coin packs in your Profile.
+            </div>
+          </div>
+        }
+      />
+    ),
+    title: "Your First 20 Are On Us",
+    description: "You start with 20 free reports — no card, no trial, no fine print written by lawyers. That's 20 bad drivers you can immortalize before spending a dime. Use them wisely. Or don't, they're free.",
+  },
+  {
+    visual: (
+      <PhoneMockup
         fabHighlight
         arrowLabel="Tap account"
         arrowFrom="right"
