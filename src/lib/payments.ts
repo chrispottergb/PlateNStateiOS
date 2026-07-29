@@ -8,7 +8,9 @@ import { isIOS } from "@/lib/native";
 const API_BASE = "https://platenstate-scan-api.vercel.app";
 
 export const IAP_PRODUCT_IDS = [
-  "coins_10", "coins_50", "coins_100", "report_dispute_fee",
+  "coins_15", "coins_25", "coins_40", "report_dispute_fee",
+  // Legacy pack ids kept registered so past purchases still restore/verify
+  "coins_10", "coins_50", "coins_100",
   "plate_claim_1yr", "plate_claim_2yr", "plate_claim_5yr", "plate_claim_lifetime",
 ] as const;
 export const IAP_SUBSCRIPTION_IDS = ["plate_privacy_monthly", "plate_total_block_monthly"] as const;

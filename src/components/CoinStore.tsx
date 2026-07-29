@@ -5,9 +5,9 @@ import { purchasesEnabled } from "@/lib/native";
 import { Coins } from "lucide-react";
 
 const COIN_PACKS = [
-  { priceId: "coins_10", coins: 10, price: "$0.99", perReport: "10¢" },
-  { priceId: "coins_50", coins: 50, price: "$3.99", perReport: "8¢", badge: "Popular" },
-  { priceId: "coins_100", coins: 100, price: "$6.99", perReport: "7¢", badge: "Best Value" },
+  { priceId: "coins_15", coins: 15, price: "$1.99", perReport: "13¢" },
+  { priceId: "coins_25", coins: 25, price: "$3.99", perReport: "16¢", badge: "Popular" },
+  { priceId: "coins_40", coins: 40, price: "$5.99", perReport: "15¢", badge: "Biggest Pack" },
 ];
 
 /**
