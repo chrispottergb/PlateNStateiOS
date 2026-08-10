@@ -8,6 +8,16 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { useIsBlocked } from "@/hooks/useIsBlocked";
 import BlockedScreen from "@/components/BlockedScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { CoinStore } from "@/components/CoinStore";
+
+// Dev-only page for capturing App Store review screenshots of the coin store.
+const DevCoinStore = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="w-full max-w-md">
+      <CoinStore />
+    </div>
+  </div>
+);
 import TermsGate from "@/components/TermsGate";
 import AccountFab from "@/components/AccountFab";
 import BottomNav from "@/components/BottomNav";
@@ -167,6 +177,10 @@ const App = () => (
             <BlocklistGate>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
+                  {/* Dev-only bare coin store, used to capture App Store review screenshots. Stripped from production builds. */}
+                  {import.meta.env.DEV && (
+                    <Route path="/dev/coinstore" element={<DevCoinStore />} />
+                  )}
                   <Route path="/" element={<HonkZone />} />
                   <Route path="/welcome" element={<Index />} />
                   <Route path="/community" element={<Community />} />
