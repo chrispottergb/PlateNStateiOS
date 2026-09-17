@@ -4,157 +4,196 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Dark (default) palette: near-black navy surfaces, amber primary, blue-gray
+   neutrals. Hierarchy is carried by four navy steps, never pure black.
+     background  #07131C   secondary/muted/card  #0D1B26
+     popover     #122431   input                 #152A38
+     primary     #F5A623   destructive #EF4444   success #55B97A
+   --------------------------------------------------------------------------- */
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 15% 10%;
+    --background: 206 30% 97%;
+    --foreground: 206 45% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 15% 10%;
+    --card-foreground: 206 45% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 15% 10%;
-    --primary: 214 100% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 222 15% 10%;
-    --muted: 220 16% 94%;
-    --muted-foreground: 220 10% 44%;
-    --accent: 38 92% 52%;
-    --accent-foreground: 30 30% 8%;
-    --destructive: 0 84% 55%;
+    --popover-foreground: 206 45% 10%;
+    --primary: 37 91% 50%;
+    --primary-foreground: 206 60% 7%;
+    --secondary: 206 25% 93%;
+    --secondary-foreground: 206 45% 10%;
+    --muted: 206 25% 93%;
+    --muted-foreground: 206 15% 42%;
+    --accent: 206 25% 90%;
+    --accent-foreground: 206 45% 10%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 14% 88%;
-    --input: 220 14% 88%;
-    --ring: 214 100% 52%;
+    --border: 206 20% 84%;
+    --input: 0 0% 100%;
+    --ring: 37 91% 50%;
     --radius: 0.75rem;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --success: 160 84% 36%;
+    --warning: 37 91% 50%;
+    --warning-foreground: 206 60% 7%;
+    --success: 142 42% 40%;
     --success-foreground: 0 0% 100%;
-    --glow-primary: 214 100% 52%;
-    --glow-accent: 38 92% 52%;
-    --glow-destructive: 0 84% 55%;
-    --sidebar-background: 220 20% 98%;
-    --sidebar-foreground: 222 15% 30%;
-    --sidebar-primary: 214 100% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 16% 94%;
-    --sidebar-accent-foreground: 222 15% 10%;
-    --sidebar-border: 220 14% 88%;
-    --sidebar-ring: 214 100% 52%;
+    --info: 217 91% 50%;
+    --accent-2: 25 95% 48%;
+    --icon-muted: 208 17% 50%;
+    --glow-primary: 37 91% 50%;
+    --glow-accent: 37 91% 50%;
+    --glow-destructive: 0 84% 60%;
+    --sidebar-background: 206 30% 97%;
+    --sidebar-foreground: 206 45% 25%;
+    --sidebar-primary: 37 91% 50%;
+    --sidebar-primary-foreground: 206 60% 7%;
+    --sidebar-accent: 206 25% 93%;
+    --sidebar-accent-foreground: 206 45% 10%;
+    --sidebar-border: 206 20% 84%;
+    --sidebar-ring: 37 91% 50%;
   }
 
   .dark {
-    --background: 222 14% 5%;
-    --foreground: 220 16% 92%;
-    --card: 222 14% 8%;
-    --card-foreground: 220 16% 92%;
-    --popover: 222 14% 8%;
-    --popover-foreground: 220 16% 92%;
-    --primary: 214 100% 62%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 222 12% 12%;
-    --secondary-foreground: 220 16% 92%;
-    --muted: 222 12% 11%;
-    --muted-foreground: 220 8% 50%;
-    --accent: 38 92% 58%;
-    --accent-foreground: 30 30% 6%;
-    --destructive: 0 72% 48%;
+    --background: 206 60% 7%;          /* #07131C */
+    --foreground: 203 35% 93%;         /* #E6EEF3 */
+    --card: 206 49% 10%;               /* #0D1B26 */
+    --card-foreground: 203 35% 93%;
+    --popover: 205 46% 13%;            /* #122431 */
+    --popover-foreground: 203 35% 93%;
+    --primary: 37 91% 55%;             /* #F5A623 */
+    --primary-foreground: 206 60% 7%;
+    --secondary: 205 46% 13%;          /* #122431 */
+    --secondary-foreground: 203 35% 93%;
+    --muted: 206 49% 10%;
+    --muted-foreground: 208 19% 69%;   /* #A0B0BE */
+    --accent: 209 30% 17%;             /* #1F2D3A */
+    --accent-foreground: 203 35% 93%;
+    --destructive: 0 84% 60%;          /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
-    --border: 222 10% 14%;
-    --input: 222 10% 14%;
-    --ring: 214 100% 62%;
-    --warning: 38 92% 58%;
-    --warning-foreground: 30 30% 6%;
-    --success: 160 72% 42%;
-    --success-foreground: 0 0% 100%;
-    --glow-primary: 214 100% 62%;
-    --glow-accent: 38 92% 58%;
+    --border: 215 25% 27%;             /* #334155 */
+    --input: 204 45% 15%;              /* #152A38 */
+    --ring: 37 91% 55%;
+    --warning: 37 91% 55%;
+    --warning-foreground: 206 60% 7%;
+    --success: 142 42% 53%;            /* #55B97A */
+    --success-foreground: 206 60% 7%;
+    --info: 217 91% 60%;               /* #3B82F6 */
+    --accent-2: 25 95% 53%;            /* #F97316 */
+    --icon-muted: 208 17% 60%;         /* #889AAA */
+    --glow-primary: 37 91% 55%;
+    --glow-accent: 37 91% 55%;
     --glow-destructive: 0 84% 60%;
-    --sidebar-background: 222 14% 5%;
-    --sidebar-foreground: 220 16% 92%;
-    --sidebar-primary: 214 100% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 12% 11%;
-    --sidebar-accent-foreground: 220 16% 92%;
-    --sidebar-border: 222 10% 14%;
-    --sidebar-ring: 214 100% 62%;
+    --sidebar-background: 206 60% 7%;
+    --sidebar-foreground: 204 35% 93%;
+    --sidebar-primary: 37 91% 55%;
+    --sidebar-primary-foreground: 206 60% 7%;
+    --sidebar-accent: 206 49% 10%;
+    --sidebar-accent-foreground: 204 35% 93%;
+    --sidebar-border: 207 31% 18%;
+    --sidebar-ring: 37 91% 55%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border) / 0.45);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer utilities {
+  /* Surface primitives. The legacy .glass* names are kept so every existing
+     call site inherits the new solid, layered-navy treatment without edits. */
   .glass {
-    @apply backdrop-blur-xl border;
-    background: hsl(var(--card) / 0.65);
-    border-color: hsl(var(--foreground) / 0.07);
+    @apply border rounded-xl;
+    background: hsl(var(--card));
+    border-color: hsl(var(--border) / 0.6);
   }
 
   .glass-strong {
-    @apply backdrop-blur-2xl border-b;
-    background: hsl(var(--background) / 0.92);
-    border-color: hsl(var(--foreground) / 0.07);
+    @apply border-b;
+    background: hsl(var(--popover));
+    border-color: hsl(var(--border) / 0.6);
   }
 
   .glass-card {
-    @apply backdrop-blur-xl border rounded-2xl;
-    background: hsl(var(--card) / 0.85);
-    border-color: hsl(var(--foreground) / 0.07);
+    @apply border rounded-2xl;
+    background: hsl(var(--card));
+    border-color: hsl(var(--border) / 0.6);
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.02) inset;
   }
 
+  .surface-elevated {
+    background: hsl(var(--popover));
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+
+  /* Depth: restrained. These used to be neon glows. */
   .glow {
     box-shadow:
-      0 1px 3px hsl(var(--glow-primary) / 0.12),
-      0 0 22px -4px hsl(var(--glow-primary) / 0.28),
-      0 0 0 1px hsl(var(--glow-primary) / 0.06);
+      0 1px 2px hsl(206 60% 4% / 0.4),
+      0 8px 24px -8px hsl(var(--glow-primary) / 0.35);
   }
 
   .glow-lg {
     box-shadow:
-      0 2px 6px hsl(var(--glow-primary) / 0.10),
-      0 0 36px -6px hsl(var(--glow-primary) / 0.32),
-      0 0 0 1px hsl(var(--glow-primary) / 0.06);
+      0 2px 4px hsl(206 60% 4% / 0.4),
+      0 12px 32px -8px hsl(var(--glow-primary) / 0.4);
   }
 
   .glow-accent {
     box-shadow:
-      0 1px 3px hsl(var(--glow-accent) / 0.15),
-      0 0 22px -4px hsl(var(--glow-accent) / 0.30),
-      0 0 0 1px hsl(var(--glow-accent) / 0.08);
+      0 1px 2px hsl(206 60% 4% / 0.4),
+      0 8px 24px -8px hsl(var(--glow-accent) / 0.35);
   }
 
   .glow-destructive {
     box-shadow:
-      0 1px 3px hsl(var(--glow-destructive) / 0.15),
-      0 0 22px -4px hsl(var(--glow-destructive) / 0.28),
-      0 0 0 1px hsl(var(--glow-destructive) / 0.06);
+      0 1px 2px hsl(206 60% 4% / 0.4),
+      0 8px 24px -8px hsl(var(--glow-destructive) / 0.35);
   }
 
-  /* White → electric blue — used on hero headings */
+  .shadow-elevated {
+    box-shadow:
+      0 1px 2px hsl(206 60% 4% / 0.5),
+      0 12px 32px -12px hsl(206 60% 4% / 0.8);
+  }
+
+  /* Headline treatment: white with a faint cool tint at the tail. */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(220 20% 97%), hsl(214 100% 72%));
+    background-image: linear-gradient(135deg, hsl(204 35% 97%), hsl(205 30% 80%));
   }
 
-  /* Gold shimmer — replaces the old teal gradient */
   .gradient-text-accent {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(44 95% 72%), hsl(38 92% 52%));
+    background-image: linear-gradient(135deg, hsl(42 95% 68%), hsl(37 91% 52%));
   }
 
   .gradient-text-fire {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(38 95% 60%), hsl(0 75% 55%));
+    background-image: linear-gradient(135deg, hsl(37 91% 58%), hsl(0 84% 60%));
   }
 
   .gradient-border {
@@ -166,11 +205,20 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(var(--glow-primary) / 0.35), hsl(var(--glow-accent) / 0.20), transparent);
+    background: linear-gradient(135deg, hsl(var(--glow-primary) / 0.35), transparent 60%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+
+  /* Section eyebrow label: compact uppercase, blue-gray. */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  .press {
+    @apply transition-transform duration-150 active:scale-[0.98];
   }
 
   .scrollbar-hide {
@@ -183,7 +231,17 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .pb-nav {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
   }
+  .pb-nav {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Tone down bright OSM tiles inside the dark UI. Filter applies to the tile
+   pane only, so markers, controls and hit-testing are untouched. Kept outside
+   @layer so Tailwind's purge never drops the Leaflet selector. */
+.map-dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(195deg) brightness(0.8) contrast(1.05) saturate(0.5);
 }

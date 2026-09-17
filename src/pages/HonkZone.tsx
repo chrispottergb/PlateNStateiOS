@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AlertTriangle, Search, Skull, TrendingUp, Flame, LayoutGrid, LayoutList, ShieldCheck } from "lucide-react";
+import { Search, Skull, ShieldCheck, Camera, Inbox, User, Users, Route, Flame, CarFront, CircleAlert, Gauge, ParkingSquare, ArrowLeftRight, Smartphone, AlertTriangle, ChevronRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroMiniMap = lazy(() => import("@/components/HeroMiniMap"));
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +10,7 @@ import Header from "@/components/Header";
 import SocialReportCard from "@/components/SocialReportCard";
 import FreshCatches from "@/components/FreshCatches";
 import TrendingPlates from "@/components/TrendingPlates";
+import SectionHeader from "@/components/SectionHeader";
 import ReportModal from "@/components/ReportModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,14 +33,14 @@ const FUNNY_TAGLINES = [
   "Honk if you love accountability 📯",
 ];
 
-const FLAIR_FILTERS = [
-  { key: "all", label: "🔥 All" },
-  { key: "tailgating", label: "🐌 Tailgaters" },
-  { key: "ran_red_light", label: "🚦 Red Runners" },
-  { key: "speeding", label: "🏎️ Speed Demons" },
-  { key: "bad_parking", label: "🎨 Parking Picassos" },
-  { key: "aggressive_lane_change", label: "🐍 Lane Snakers" },
-  { key: "distracted_driving", label: "📱 Textaholics" },
+const FLAIR_FILTERS: { key: string; label: string; icon: LucideIcon }[] = [
+  { key: "all", label: "All", icon: Flame },
+  { key: "tailgating", label: "Tailgaters", icon: CarFront },
+  { key: "ran_red_light", label: "Red Runners", icon: CircleAlert },
+  { key: "speeding", label: "Speed Demons", icon: Gauge },
+  { key: "bad_parking", label: "Parking Picassos", icon: ParkingSquare },
+  { key: "aggressive_lane_change", label: "Lane Snakers", icon: ArrowLeftRight },
+  { key: "distracted_driving", label: "Textaholics", icon: Smartphone },
 ];
 
 const COMPOSER_PROMPTS = [
@@ -78,35 +81,7 @@ const ReportComposer = () => {
   const [promptIndex] = useState(() => Math.floor(Math.random() * COMPOSER_PROMPTS.length));
 
   return (
-    <div className="space-y-3">
-      <div className="glass-card rounded-2xl border border-foreground/5 p-3 sm:p-4 hover:border-primary/20 transition-colors">
-        <div className="flex items-start gap-3">
-          {/* PRIVACY-CRITICAL: self-view only. This composer renders the CURRENT user's own
-              OAuth avatar back to themselves — never to other viewers. Do NOT reuse this
-              pattern to render another user's avatar in any community-facing surface;
-              identity in the community is profiles.display_name only. */}
-          <div className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-lg shadow-inner ring-1 ring-foreground/5">
-            {user?.user_metadata?.avatar_url ? (
-              <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
-            ) : (
-              <span aria-hidden>🚨</span>
-            )}
-          </div>
-          <textarea
-            value={text}
-            onChange={e => setText(e.target.value.slice(0, 500))}
-            placeholder={COMPOSER_PROMPTS[promptIndex]}
-            rows={1}
-            maxLength={500}
-            className="flex-1 min-w-0 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none resize-none border-0 focus:ring-0 py-2"
-            onInput={(e) => {
-              const el = e.currentTarget;
-              el.style.height = "auto";
-              el.style.height = Math.min(el.scrollHeight, 160) + "px";
-            }}
-          />
-        </div>
-      </div>
+    <div>
       <ReportModal
         initialComment={text}
         open={open}
@@ -115,16 +90,55 @@ const ReportComposer = () => {
           if (!v) setText("");
         }}
         trigger={
-          <Button
-            size="lg"
+          <button
+            type="button"
             onClick={() => setOpen(true)}
-            className="gap-2 font-bold text-base w-full rounded-full glow h-12"
+            className="relative w-full h-[58px] flex items-center justify-center gap-3 rounded-[14px] text-[#0B1017] text-[19px] font-bold tracking-[-0.01em] transition-[filter,transform] duration-150 hover:brightness-[1.03] active:translate-y-px active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            style={{
+              background: "linear-gradient(180deg, #F8AE2E 0%, #F5A623 60%, #EE9E1C 100%)",
+              boxShadow: "0 1px 0 rgba(255,255,255,0.28) inset, 0 -1px 0 rgba(0,0,0,0.10) inset, 0 4px 10px -2px rgba(0,0,0,0.5), 0 8px 16px -10px rgba(245,166,35,0.28)",
+            }}
           >
-            <AlertTriangle className="h-5 w-5" />
+            <Camera className="h-6 w-6" strokeWidth={2.25} />
             Report a Plate
-          </Button>
+            <ChevronRight className="absolute right-4 h-5 w-5" strokeWidth={2.5} />
+          </button>
         }
       />
+      <p className="text-center text-[13px] text-muted-foreground mt-2.5">Snap it. Report it. Make an impact.</p>
+
+      {/* Optional pre-modal note (prefills the report comment). Hidden in the
+          default Home state; it only renders once text exists, and the same
+          comment can be entered inside the report modal's "Add Details" field. */}
+      {text && (
+        <div className="w-full flex items-start gap-2 mt-2">
+          {/* PRIVACY-CRITICAL: self-view only. This composer renders the CURRENT user's own
+              OAuth avatar back to themselves — never to other viewers. Do NOT reuse this
+              pattern to render another user's avatar in any community-facing surface;
+              identity in the community is profiles.display_name only. */}
+          <div className="shrink-0 mt-1.5 h-6 w-6 rounded-full bg-[#122431] flex items-center justify-center text-icon-muted overflow-hidden">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <User className="h-3.5 w-3.5" aria-hidden />
+            )}
+          </div>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value.slice(0, 500))}
+            placeholder={COMPOSER_PROMPTS[promptIndex]}
+            rows={1}
+            maxLength={500}
+            aria-label="Report note"
+            className="flex-1 min-w-0 bg-[#0D1B26] rounded-xl border border-[#889AAA]/[0.16] px-3 text-[13px] leading-5 text-foreground placeholder:text-[#889AAA] outline-none resize-none focus:border-primary py-2"
+            onInput={(e) => {
+              const el = e.currentTarget;
+              el.style.height = "auto";
+              el.style.height = Math.min(el.scrollHeight, 160) + "px";
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -228,83 +242,116 @@ const HonkZone = () => {
 
   return (
     <div className="min-h-screen bg-background pb-nav">
-      <Header />
+      {/* ===== ZONE 1: cinematic hero + header ===== */}
+      <section className="relative">
+        <Header overlay />
 
-      <section className="relative overflow-hidden border-b border-border/30">
-        <div className="container py-6 sm:py-8 space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="space-y-1 text-center"
-          >
-            <h1 className="text-2xl sm:text-3xl font-extrabold">Plate N' State</h1>
-            <div className="h-5 flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.p key={taglineIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="text-xs text-muted-foreground italic">
-                  {FUNNY_TAGLINES[taglineIndex]}
-                </motion.p>
-              </AnimatePresence>
-            </div>
-          </motion.div>
+        {/* Backdrop: image → navy tint → top vignette → bottom dissolve into page.
+            Swap `heroBg` for the production road asset without touching JSX. */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover object-[center_35%]" style={{ filter: "contrast(1.08) saturate(0.9)" }} />
+          {/* navy tint, lighter at the roadway centre */}
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 45%, rgba(7,19,28,0.25) 0%, rgba(7,19,28,0.55) 60%, rgba(7,19,28,0.85) 100%)" }} />
+          {/* top vignette for header legibility */}
+          <div className="absolute inset-x-0 top-0 h-32" style={{ background: "linear-gradient(180deg, rgba(7,19,28,0.9) 0%, rgba(7,19,28,0) 100%)" }} />
+          {/* bottom dissolve into page */}
+          <div className="absolute inset-x-0 bottom-0 h-[58%]" style={{ background: "linear-gradient(180deg, rgba(7,19,28,0) 0%, rgba(7,19,28,0.75) 45%, #07131C 100%)" }} />
+        </div>
 
-          {/* Live incident map */}
-          <Suspense fallback={<div className="h-[280px] rounded-2xl bg-muted/30 animate-pulse" />}>
-            <HeroMiniMap />
-          </Suspense>
+        <div className="container relative pt-[calc(68px+env(safe-area-inset-top,0px))] pb-2">
+          <h1 className="font-extrabold uppercase tracking-[-0.015em]" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.55)" }}>
+            <span className="block text-[38px] leading-[0.95] text-[#F2F6F8]">See it.</span>
+            <span className="block text-[42px] leading-[0.98] text-primary">Report it.</span>
+            <span className="block text-[28px] leading-[1] text-[#F2F6F8] mt-1">Make roads safer.</span>
+          </h1>
 
-          {/* Claim Your Plate gold banner */}
-          <Link to="/claim" className="block">
-            <div className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-400 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer">
-              <ShieldCheck className="h-5 w-5 text-amber-950" />
-              <span className="text-amber-950 font-extrabold text-base tracking-wide">Claim Your Plate</span>
-            </div>
-          </Link>
+          {/* Trust row — three equal columns, may wrap to two lines, never truncates */}
+          <ul className="mt-5 grid grid-cols-3 gap-2 text-[11.5px] font-medium leading-[1.15] text-[#F2F6F8]/85 text-center">
+            <li className="flex flex-col items-center gap-1.5"><ShieldCheck className="h-5 w-5 text-primary" strokeWidth={1.75} /><span>Safer<br />Drivers</span></li>
+            <li className="flex flex-col items-center gap-1.5"><Users className="h-5 w-5 text-primary" strokeWidth={1.75} /><span>Stronger<br />Communities</span></li>
+            <li className="flex flex-col items-center gap-1.5"><Route className="h-5 w-5 text-primary" strokeWidth={1.75} /><span>Real<br />Change</span></li>
+          </ul>
         </div>
       </section>
 
-      <div className="container pb-20 relative z-10">
-        {/* Twitter-style report composer */}
-        {!loading && (
-          <div className="mt-4 mb-4">
-            <ReportComposer />
-          </div>
-        )}
+      {/* ===== ZONE 2: primary report CTA ===== */}
+      <section className="container pt-2 pb-5">
+        {!loading && <ReportComposer />}
+      </section>
 
-        {/* Fresh Catches */}
-        {reports.length > 0 && (
-          <div className="mb-8 mt-2">
-            <FreshCatches reports={reports.slice(0, 10)} />
+      {/* ===== ZONE 3: secondary plate lookup ===== */}
+      <section className="container pt-1 pb-6">
+        <form onSubmit={handleSearch}>
+          <label htmlFor="plate-lookup" className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#A0B0BE]">Look up a plate</label>
+          <p className="text-[13px] text-muted-foreground mt-1 mb-2.5">Check a plate's history and community reports.</p>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#889AAA] pointer-events-none" strokeWidth={2} />
+            <Input
+              id="plate-lookup"
+              value={searchPlate}
+              onChange={e => setSearchPlate(e.target.value.toUpperCase())}
+              placeholder="Enter license plate (e.g. ABC123)"
+              aria-label="License plate"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={10}
+              className="h-[50px] py-0 pl-12 pr-11 rounded-[12px] bg-[#122431] border-[#889AAA]/[0.14] text-[16px] font-mono tracking-[0.06em] placeholder:font-sans placeholder:tracking-normal placeholder:text-[13.5px] placeholder:text-[#889AAA]"
+            />
+            <button
+              type="submit"
+              aria-label="Search plate"
+              disabled={searchPlate.trim().length < 3}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-10 w-10 rounded-[10px] flex items-center justify-center text-foreground transition-colors duration-150 hover:bg-white/5 disabled:text-[#889AAA] press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+            </button>
           </div>
-        )}
+        </form>
+      </section>
 
+      {/* ===== ZONE 4: live map ===== */}
+      <section className="container pb-6">
+        <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0D1B26] animate-pulse" />}>
+          <div className="map-dark">
+            <HeroMiniMap />
+          </div>
+        </Suspense>
+      </section>
+
+      {/* ===== ZONE 5: recent activity ===== */}
+      <div className="container pb-16 relative z-10">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main feed */}
-          <div className="flex-1 space-y-4">
-            {/* Wall of Shame — centered, bold, white */}
-            <div className="flex justify-center">
-              <Link to="/patrol/wall">
-                <Button size="lg" variant="outline" className="rounded-full px-10 h-11 font-extrabold text-sm text-white border-destructive/50 bg-destructive/20 hover:bg-destructive/30">
-                  Wall of Shame
-                </Button>
+          <div className="flex-1 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-[22px] font-bold tracking-tight">Recent Activity</h2>
+              <Link to="/patrol/wall" className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#A0B0BE] hover:text-foreground transition-colors">
+                <Skull className="h-3.5 w-3.5" /> Wall of Shame
               </Link>
             </div>
 
             {/* Flair filters */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {FLAIR_FILTERS.map(f => (
-                <button
-                  key={f.key}
-                  onClick={() => setFlairFilter(f.key)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    flairFilter === f.key
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "bg-muted/30 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+              {FLAIR_FILTERS.map(f => {
+                const Icon = f.icon;
+                const active = flairFilter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setFlairFilter(f.key)}
+                    aria-pressed={active}
+                    className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-2.5 h-[30px] text-[11.5px] font-semibold border transition-colors duration-150 ${
+                      active
+                        ? "bg-primary/10 text-primary border-primary/35"
+                        : "bg-transparent text-[#A0B0BE] border-[#889AAA]/[0.14] hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-[#889AAA]"}`} />
+                    {f.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Vehicle filters — hidden behind disclosure */}
@@ -340,37 +387,55 @@ const HonkZone = () => {
             </div>
 
             {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-52 rounded-2xl" />
+              <div className="rounded-2xl bg-[#0D1B26] overflow-hidden divide-y divide-[#889AAA]/[0.12]">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[76px] rounded-none bg-transparent" />
                 ))}
               </div>
             ) : filteredReports.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16 glass-card p-10 rounded-2xl space-y-4"
+                className="text-center pt-5 pb-5 px-6 space-y-2.5"
               >
-                <div className="text-6xl">🦗</div>
-                <p className="text-xl font-extrabold">Suspiciously Quiet…</p>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                <Inbox className="mx-auto h-9 w-9 text-[#889AAA]" strokeWidth={1.5} />
+                <p className="text-[20px] font-bold">Suspiciously Quiet…</p>
+                <p className="text-[14px] text-muted-foreground max-w-[300px] mx-auto leading-snug">
                   Either everyone's driving like angels or nobody's snitching yet. We both know which one it is.
                 </p>
                 <ReportModal
                   trigger={
-                    <Button size="lg" className="rounded-full gap-2 mt-2 glow">
-                      <AlertTriangle className="h-4 w-4" /> Be the First to Report
+                    <Button variant="secondary" className="h-12 px-5 gap-2 mt-1 bg-[#122431] border-[#889AAA]/[0.16]">
+                      <AlertTriangle className="h-4 w-4 text-primary" /> Be the First to Report
                     </Button>
                   }
                 />
               </motion.div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-[#0D1B26] border border-[#889AAA]/[0.14] overflow-hidden divide-y divide-[#889AAA]/[0.12]">
                 {filteredReports.map((report, i) => (
                   <SocialReportCard key={report.id} report={report} hasUpvoted={myUpvotes.has(report.id)} votingId={votingId} onUpvote={handleUpvote} index={i} />
                 ))}
               </div>
             )}
+
+            {/* Fresh Catches */}
+            {reports.length > 0 && (
+              <div className="pt-4">
+                <FreshCatches reports={reports.slice(0, 10)} />
+              </div>
+            )}
+
+            <Link
+              to="/claim"
+              className="flex items-center justify-between h-[60px] border-y border-[#889AAA]/[0.12] text-foreground hover:text-primary transition-colors"
+            >
+              <span className="inline-flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary shrink-0" strokeWidth={1.75} />
+                <span className="text-[15px] font-semibold">Claim Your Plate</span>
+              </span>
+              <ChevronRight className="h-[18px] w-[18px] text-[#889AAA]" />
+            </Link>
           </div>
 
           {/* Sidebar */}

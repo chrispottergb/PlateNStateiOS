@@ -223,7 +223,7 @@ const QuickCapture = () => {
 
         {/* Scan reticle */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="border-2 border-primary/80 rounded-xl w-[80%] max-w-md h-32 flex items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+          <div className="border-2 border-primary rounded-xl w-[80%] max-w-md h-32 flex items-center justify-center shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]">
             <ScanLine className="h-8 w-8 text-primary animate-pulse" />
           </div>
         </div>
@@ -262,7 +262,7 @@ const QuickCapture = () => {
             size="lg"
             onClick={capture}
             disabled={!ready || scanning}
-            className="rounded-full h-16 w-16 p-0"
+            className="rounded-full h-16 w-16 p-0 ring-4 ring-white/20"
             aria-label="Capture plate"
           >
             {scanning ? (

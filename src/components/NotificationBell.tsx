@@ -15,19 +15,20 @@ const NotificationBell = () => {
       <PopoverTrigger asChild>
         <Button
           size="icon"
+          variant="secondary"
           aria-label="Notifications"
-          className="relative h-12 w-12 rounded-full shadow-lg glow hover:scale-105 transition-transform"
+          className="relative h-10 w-10 rounded-full"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-[18px] w-[18px]" />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+            <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 glass-strong rounded-xl" side="top" align="start">
-        <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/50">
+      <PopoverContent className="w-80 p-0 rounded-2xl overflow-hidden" side="bottom" align="end" sideOffset={8}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <p className="text-sm font-semibold">Notifications</p>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" className="text-xs h-auto py-1 rounded-full" onClick={markAllRead}>
@@ -47,8 +48,8 @@ const NotificationBell = () => {
                 <Link
                   key={n.id}
                   to={linkTo}
-                  className={`block px-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-muted/50 transition-colors ${
-                    !n.read ? "bg-primary/5" : ""
+                  className={`block px-4 py-3 border-b border-border last:border-0 hover:bg-accent transition-colors ${
+                    !n.read ? "bg-primary/[0.06]" : ""
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -57,7 +58,7 @@ const NotificationBell = () => {
                       {isDispute ? (
                         <p className="text-sm">
                           Your dispute for <span className="font-mono font-bold">{n.plate_number}</span> was{" "}
-                          <span className={`font-medium ${n.infraction === "dispute_upheld" ? "text-emerald-600" : "text-destructive"}`}>
+                          <span className={`font-medium ${n.infraction === "dispute_upheld" ? "text-success" : "text-destructive"}`}>
                             {n.infraction === "dispute_upheld" ? "upheld — the post has been removed" : "denied"}
                           </span>
                         </p>

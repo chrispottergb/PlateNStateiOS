@@ -100,7 +100,7 @@ const RecentReports = () => {
         return (
           <div
             key={report.id}
-            className="flex items-center gap-3 rounded-xl glass px-4 py-3 transition-all hover:glow group"
+            className="flex items-center gap-3 glass px-4 py-3 transition-colors duration-150 hover:border-muted-foreground/30 group"
           >
             <Link
               to={`/plate/${encodeURIComponent(report.plate_number)}`}

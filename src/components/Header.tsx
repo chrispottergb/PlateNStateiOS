@@ -3,26 +3,45 @@ import { Briefcase, Truck, ShieldCheck, Shield } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import NotificationBell from "@/components/NotificationBell";
 
-const Header = () => {
+interface HeaderProps {
+  /** Transparent, absolutely positioned over a hero image (Home). */
+  overlay?: boolean;
+}
+
+const Header = ({ overlay = false }: HeaderProps) => {
   const location = useLocation();
   const { user, portalMode } = useAuth();
   const isEnterprise = portalMode === "enterprise";
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   const navLinkClass = (path: string) =>
-    `flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+    `flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
       isActive(path)
-        ? "bg-primary/15 text-primary"
-        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+        ? "bg-primary/12 text-primary"
+        : "text-muted-foreground hover:text-foreground hover:bg-accent"
     }`;
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/30 w-full">
-      <div className="container flex h-14 items-center justify-between gap-3">
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={logoIcon} alt="Plate N' State" className="h-7 w-7" />
-          <span className="font-bold text-sm tracking-tight">Plate N' State</span>
+    <header
+      className={
+        overlay
+          ? "absolute top-0 left-0 right-0 z-40 w-full pt-safe"
+          : "sticky top-0 z-40 bg-background/85 backdrop-blur-md border-b border-border/40 w-full pt-safe"
+      }
+    >
+      <div className={`container flex items-center justify-between gap-2 ${overlay ? "h-[68px]" : "h-[60px]"}`}>
+        <Link to="/" className="flex items-center gap-2.5 min-w-0">
+          <img src={logoIcon} alt="" className={`shrink-0 ${overlay ? "h-9 w-9" : "h-7 w-7"}`} />
+          <span className="flex flex-col leading-none min-w-0">
+            <span className={`font-extrabold tracking-wide uppercase whitespace-nowrap ${overlay ? "text-[17px]" : "text-[15px]"}`}>
+              Plate <span className="text-primary">N'</span> State
+            </span>
+            <span className="mt-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-muted-foreground whitespace-nowrap truncate">
+              Drivers accountable. Roads safer.
+            </span>
+          </span>
         </Link>
         {/* Enterprise portal nav stays in header */}
         {isEnterprise && (
@@ -46,9 +65,11 @@ const Header = () => {
           </nav>
         )}
 
+        {user && !isEnterprise && <NotificationBell />}
+
         {!user && (
-          <Link to="/auth">
-            <Button size="sm" className="rounded-full text-xs h-9 px-5">
+          <Link to="/auth" className="shrink-0">
+            <Button size="sm" variant={overlay ? "secondary" : "default"} className={overlay ? "h-8 px-3 text-xs bg-[#0D1B26]/70 backdrop-blur-sm border-[#889AAA]/[0.2]" : "h-9 px-3.5"}>
               Sign In
             </Button>
           </Link>

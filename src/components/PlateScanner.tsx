@@ -257,18 +257,18 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="flex-1 h-11 rounded-lg"
+            className="flex-1 h-11"
             onClick={() => requestAction("upload")}
           >
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="h-4 w-4 mr-1 text-primary" />
             Upload Photo
           </Button>
           <Button
             variant="outline"
-            className="flex-1 h-11 rounded-lg"
+            className="flex-1 h-11"
             onClick={() => requestAction(isNative ? "native-camera" : "web-camera")}
           >
-            <Camera className="h-4 w-4 mr-2" />
+            <Camera className="h-4 w-4 mr-1 text-primary" />
             Live Scan
           </Button>
         </div>
@@ -278,7 +278,7 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               Confirm you're not driving
             </AlertDialogTitle>
             <AlertDialogDescription asChild>

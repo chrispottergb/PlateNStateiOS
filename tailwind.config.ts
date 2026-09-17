@@ -7,7 +7,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "1.5rem",
+      padding: "1.25rem",
       screens: {
         "2xl": "1400px",
       },
@@ -60,6 +60,9 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        info: "hsl(var(--info))",
+        "accent-2": "hsl(var(--accent-2))",
+        "icon-muted": "hsl(var(--icon-muted))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

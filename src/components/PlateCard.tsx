@@ -14,7 +14,7 @@ const PlateCard = ({ plate, rank }: PlateCardProps) => {
   return (
     <Link
       to={`/plate/${encodeURIComponent(plate.plateNumber)}`}
-      className="group block rounded-xl glass p-4 transition-all hover:glow hover:-translate-y-0.5"
+      className="group block glass-card p-4 transition-colors duration-150 hover:border-muted-foreground/30"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

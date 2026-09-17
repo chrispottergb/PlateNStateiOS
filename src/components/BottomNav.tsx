@@ -35,9 +35,9 @@ export default function BottomNav() {
   if (portalMode === "enterprise") return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="bg-background/90 backdrop-blur-xl border-t border-border/40 px-2 pb-safe">
-        <div className="flex items-end justify-around max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="bg-[#0A1620]/95 backdrop-blur-md border-t border-[#889AAA]/[0.08] px-2 pb-safe">
+        <div className="flex items-end justify-around max-w-lg mx-auto h-[74px]">
           {CONSUMER_TABS.map(({ path, icon: Icon, label, exact, center }) => {
             const active = exact
               ? location.pathname === path
@@ -48,19 +48,18 @@ export default function BottomNav() {
                 <Link
                   key={path}
                   to={path}
-                  className="flex flex-col items-center -mt-4 mb-1"
+                  className="flex flex-col items-center -mt-7 pb-2 min-w-[60px]"
                   aria-label={label}
                 >
                   <div
-                    className={`h-14 w-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${
-                      active
-                        ? "bg-primary scale-95 shadow-primary/40"
-                        : "bg-primary hover:bg-primary/90 active:scale-95"
+                    className={`h-[62px] w-[62px] rounded-full flex items-center justify-center bg-primary text-[#0B1017] ring-[3px] ring-[#0A1620] transition-transform duration-150 active:scale-95 ${
+                      active ? "scale-95" : ""
                     }`}
+                    style={{ boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 18px -6px hsl(var(--primary) / 0.55), 0 2px 4px rgba(0,0,0,0.4)" }}
                   >
-                    <Icon className="h-6 w-6 text-primary-foreground" strokeWidth={2} />
+                    <Icon className="h-6 w-6" strokeWidth={2.25} />
                   </div>
-                  <span className="text-[10px] font-medium mt-1 text-muted-foreground">
+                  <span className="text-[12px] font-semibold mt-1.5 text-foreground/90 leading-none">
                     {label}
                   </span>
                 </Link>
@@ -71,18 +70,18 @@ export default function BottomNav() {
               <Link
                 key={path}
                 to={path}
-                className="flex flex-col items-center gap-1 py-2.5 px-3 min-w-[48px] transition-all duration-150"
+                className="flex flex-col items-center gap-2 pb-2.5 px-3 min-w-[56px] transition-colors duration-150"
                 aria-label={label}
               >
                 <Icon
-                  className={`h-5 w-5 transition-colors ${
-                    active ? "text-primary" : "text-muted-foreground"
+                  className={`h-[24px] w-[24px] transition-colors ${
+                    active ? "text-primary" : "text-icon-muted"
                   }`}
-                  strokeWidth={active ? 2.5 : 1.75}
+                  strokeWidth={1.75}
                 />
                 <span
-                  className={`text-[10px] font-medium transition-colors ${
-                    active ? "text-primary" : "text-muted-foreground"
+                  className={`text-[12px] font-semibold leading-none transition-colors ${
+                    active ? "text-primary" : "text-icon-muted/80"
                   }`}
                 >
                   {label}

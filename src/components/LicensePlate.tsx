@@ -37,7 +37,7 @@ const LicensePlate = ({ plateNumber, state, size = "md", className }: LicensePla
   return (
     <div
       className={cn(
-        "relative flex flex-col items-center justify-between overflow-hidden border-2 border-foreground/20 shadow-md",
+        "relative flex flex-col items-center justify-between overflow-hidden border-[3px] border-[#c9ced4] shadow-[0_0_0_1px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.5)_inset,0_-2px_0_rgba(0,0,0,0.12)_inset,0_4px_6px_-2px_rgba(0,0,0,0.5),0_18px_36px_-14px_rgba(0,0,0,0.85)]",
         s.container,
         className
       )}
@@ -46,27 +46,29 @@ const LicensePlate = ({ plateNumber, state, size = "md", className }: LicensePla
       {/* Top + bottom accent borders */}
       <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: style.text }} />
       <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: style.text }} />
+      {/* Controlled highlight across the upper half */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%)" }} />
 
       <span
-        className={cn("font-bold uppercase mt-[6%] z-10 select-none", s.header)}
-        style={{ color: style.text, fontFamily: "'Inter', sans-serif" }}
+        className={cn("font-sans font-bold uppercase mt-[6%] z-10 select-none", s.header)}
+        style={{ color: style.text }}
       >
         {st.name}
       </span>
 
       <span
-        className={cn("font-mono font-black z-10 select-none tracking-widest leading-none whitespace-nowrap", s.number)}
+        className={cn("font-mono font-bold z-10 select-none tracking-widest leading-none whitespace-nowrap", s.number)}
         style={{
           color: style.text,
-          textShadow: "1px 1px 0px rgba(0,0,0,0.08)",
+          textShadow: "0 1px 0 rgba(255,255,255,0.25), 0 -1px 0 rgba(0,0,0,0.15)",
         }}
       >
         {plateNumber}
       </span>
 
       <span
-        className={cn("font-bold uppercase mb-[6%] z-10 select-none text-center px-1 truncate max-w-full", s.footer)}
-        style={{ color: style.accent, fontFamily: "'Inter', sans-serif" }}
+        className={cn("font-sans font-bold uppercase mb-[6%] z-10 select-none text-center px-1 truncate max-w-full", s.footer)}
+        style={{ color: style.accent }}
       >
         {style.slogan}
       </span>

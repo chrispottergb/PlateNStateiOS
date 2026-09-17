@@ -32,8 +32,9 @@ const AccountFab = () => {
         <PopoverTrigger asChild>
           <Button
             size="icon"
+            variant="secondary"
             aria-label="Account menu"
-            className="h-12 w-12 rounded-full shadow-lg glow hover:scale-105 transition-transform"
+            className="h-12 w-12 rounded-full shadow-elevated bg-popover"
           >
             <ChevronUp
               className={`h-5 w-5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -44,10 +45,10 @@ const AccountFab = () => {
           side="top"
           align="end"
           sideOffset={12}
-          className="w-64 p-2 glass-strong rounded-2xl border border-border/50 shadow-2xl"
+          className="w-64 p-2 rounded-2xl"
         >
           {/* Token counter */}
-          <div className="flex items-center justify-between rounded-xl bg-warning/10 border border-warning/20 px-3 py-2.5 mb-2">
+          <div className="flex items-center justify-between rounded-xl bg-warning/10 border border-warning/25 px-3 py-2.5 mb-2">
             <div className="flex items-center gap-2">
               <Coins className="h-4 w-4 text-warning" />
               <span className="text-xs font-medium text-warning">Tokens</span>
@@ -61,7 +62,7 @@ const AccountFab = () => {
           <Link
             to="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted/60 transition-colors"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
           >
             <User className="h-4 w-4 text-muted-foreground" />
             My Account
@@ -71,7 +72,7 @@ const AccountFab = () => {
           <Link
             to="/business"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted/60 transition-colors"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
           >
             <Briefcase className="h-4 w-4 text-muted-foreground" />
             Enterprise
@@ -86,14 +87,14 @@ const AccountFab = () => {
             <Link
               to="/admin"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted/60 transition-colors"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
             >
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               Admin
             </Link>
           )}
 
-          <div className="my-1 border-t border-border/50" />
+          <div className="my-1 border-t border-border" />
 
           <button
             onClick={() => {

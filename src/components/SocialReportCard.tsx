@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { INFRACTIONS, infractionLabel } from "@/lib/data";
-import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, Car } from "lucide-react";
-import LicensePlate from "./LicensePlate";
+import { MapPin, ThumbsUp, MessageCircle, Flag, AlertCircle, ChevronRight } from "lucide-react";
+import PlateChip from "./PlateChip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,79 +75,89 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
-      className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden hover:border-border/60 transition-colors"
+      className="bg-transparent"
     >
-      {/* Main content */}
-      <div className="p-3 space-y-2">
-        <div className="relative inline-block">
-          <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="inline-block hover:scale-105 transition-transform">
-            <LicensePlate plateNumber={report.plate_number} state={report.state} size="sm" />
-          </Link>
-          {(report.latitude && report.longitude) && (
-            <Link
-              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
-              className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-              title="View on map"
+      {/* Row */}
+      <div className="flex items-center gap-3 px-3 py-3">
+        <Link to={`/plate/${encodeURIComponent(report.plate_number)}`} className="shrink-0 press">
+          <PlateChip plateNumber={report.plate_number} state={report.state} />
+        </Link>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={`h-[18px] w-[18px] shrink-0 rounded-full flex items-center justify-center text-[11px] font-black leading-none ${
+                inf?.kind === "good" ? "bg-success text-[#07131C]" : report.infraction === "unspecified" ? "bg-[#889AAA] text-[#07131C]" : "bg-destructive text-white"
+              }`}
+              aria-hidden
             >
-              <MapPin className="h-3 w-3" />
-            </Link>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge
-            variant={inf?.kind === "good" ? "default" : report.infraction === "unspecified" ? "secondary" : "destructive"}
-            className="text-xs rounded-lg"
-          >
-            {infractionLabel(report.infraction, report.comment)}
-          </Badge>
-          {report.is_flagged && (
-            <Badge variant="outline" className="text-xs rounded-lg border-amber-500/40 text-amber-500 gap-1">
-              <AlertCircle className="h-3 w-3" /> Review
-            </Badge>
-          )}
-        </div>
-
-        <div className="text-xs text-muted-foreground truncate">
-          <MapPin className="h-3 w-3 shrink-0 inline mr-1" />
-          {report.location} · {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
-        </div>
-
-        {report.comment && (
-          <p className="text-xs text-muted-foreground italic">
-            "{report.comment}"
+              {inf?.kind === "good" ? "+" : "!"}
+            </span>
+            <p className="text-[15px] font-bold truncate leading-tight">{infractionLabel(report.infraction, report.comment)}</p>
+            {report.is_flagged && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-warning/40 text-warning gap-1 shrink-0">
+                <AlertCircle className="h-3 w-3" /> Review
+              </Badge>
+            )}
+          </div>
+          <p className="text-[12.5px] text-muted-foreground truncate mt-0.5">
+            {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+            <span className="mx-1.5 text-icon-muted">•</span>
+            {report.location}
           </p>
-        )}
-      </div>
+          {report.comment && (
+            <p className="text-[12.5px] text-muted-foreground/90 truncate mt-0.5">{report.comment}</p>
+          )}
+        </div>
 
-      {/* Action bar */}
-      <div className="flex items-center gap-1 px-3 py-2 border-t border-border/20">
-        <Button
-          variant={hasUpvoted ? "default" : "ghost"}
-          size="sm"
-          className={`h-8 px-3 gap-1.5 rounded-full text-xs ${hasUpvoted ? "" : "text-muted-foreground hover:text-primary"}`}
-          disabled={votingId === report.id || hasUpvoted}
-          onClick={() => onUpvote(report.id)}
-        >
-          <ThumbsUp className="h-3.5 w-3.5" />
-          <span className="font-mono">{report.upvote_count}</span>
-        </Button>
-        <button
-          onClick={() => setShowComments(v => !v)}
-          className={`h-8 px-3 rounded-full text-xs flex items-center gap-1.5 transition-colors ${showComments ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
-        >
-          <MessageCircle className="h-3.5 w-3.5" />
-          Comment
-        </button>
-        <div className="ml-auto">
+        {/* Compact existing actions */}
+        <div className="flex items-center shrink-0 -mr-1">
           <button
+            type="button"
+            disabled={votingId === report.id || hasUpvoted}
+            onClick={() => onUpvote(report.id)}
+            aria-label="Upvote report"
+            className={`h-8 px-1.5 rounded-lg inline-flex items-center gap-1 text-[13px] font-semibold tabular-nums transition-colors duration-150 disabled:opacity-100 ${hasUpvoted ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+          >
+            <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={2} />
+            {report.upvote_count}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowComments(v => !v)}
+            aria-label="Comments"
+            className={`h-8 w-8 rounded-lg inline-flex items-center justify-center transition-colors duration-150 ${showComments ? "text-primary" : "text-icon-muted hover:text-foreground"}`}
+          >
+            <MessageCircle className="h-[17px] w-[17px]" strokeWidth={2} />
+          </button>
+          <button
+            type="button"
             disabled={flagged}
             onClick={() => setFlagOpen(true)}
             title="Flag as false report"
-            className={`h-8 px-2 rounded-full transition-colors ${flagged ? "text-amber-500" : "text-muted-foreground hover:text-amber-500 hover:bg-muted/50"}`}
+            aria-label="Flag as false report"
+            className={`h-8 w-7 rounded-lg inline-flex items-center justify-center transition-colors duration-150 ${flagged ? "text-warning" : "text-icon-muted hover:text-warning"}`}
           >
-            <Flag className="h-3.5 w-3.5" />
+            <Flag className="h-[15px] w-[15px]" strokeWidth={2} />
           </button>
+          {(report.latitude && report.longitude) ? (
+            <Link
+              to={`/map?lat=${report.latitude}&lng=${report.longitude}`}
+              className="h-8 w-7 inline-flex items-center justify-center text-icon-muted hover:text-foreground"
+              title="View on map"
+              aria-label="View on map"
+            >
+              <MapPin className="h-4 w-4" />
+            </Link>
+          ) : (
+            <Link
+              to={`/plate/${encodeURIComponent(report.plate_number)}`}
+              className="h-8 w-7 inline-flex items-center justify-center text-icon-muted hover:text-foreground"
+              aria-label="Open plate"
+            >
+              <ChevronRight className="h-[18px] w-[18px]" strokeWidth={2.25} />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -158,7 +168,7 @@ const SocialReportCard = ({ report, hasUpvoted, votingId, onUpvote, index }: Soc
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border/20 overflow-hidden"
+            className="border-t border-[#889AAA]/[0.12] overflow-hidden"
           >
             <CommentThread reportId={report.id} />
           </motion.div>

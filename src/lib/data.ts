@@ -82,13 +82,13 @@ export function infractionLabel(type: string | null | undefined, comment?: strin
 export function getScoreColor(score: number): string {
   if (score >= 10) return "text-destructive";
   if (score >= 3) return "text-warning";
-  if (score <= -1) return "text-emerald-500";
+  if (score <= -1) return "text-success";
   return "text-muted-foreground";
 }
 
 export function getScoreBg(score: number): string {
   if (score >= 10) return "bg-destructive/10";
   if (score >= 3) return "bg-warning/10";
-  if (score <= -1) return "bg-emerald-500/10";
+  if (score <= -1) return "bg-success/10";
   return "bg-muted";
 }

@@ -21,7 +21,6 @@ const DevCoinStore = () => (
 import TermsGate from "@/components/TermsGate";
 import AccountFab from "@/components/AccountFab";
 import BottomNav from "@/components/BottomNav";
-import NotificationBell from "@/components/NotificationBell";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import { useNativeDeepLinks } from "@/hooks/useNativeDeepLinks";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,16 +104,6 @@ const queryClient = new QueryClient({
 const NativeDeepLinkBridge = () => {
   useNativeDeepLinks();
   return null;
-};
-
-const NotificationDock = () => {
-  const { user } = useAuth();
-  if (!user) return null;
-  return (
-    <div className="fixed bottom-[88px] left-5 z-[60]">
-      <NotificationBell />
-    </div>
-  );
 };
 
 // Bump the suffix to re-show the walkthrough to every user (one-time) after
@@ -215,7 +204,6 @@ const App = () => (
               </Suspense>
               <BottomNav />
               <AccountFab />
-              <NotificationDock />
               <OnboardingGate />
             </BlocklistGate>
           </BrowserRouter>

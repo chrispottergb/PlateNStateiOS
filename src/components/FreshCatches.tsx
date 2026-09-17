@@ -68,8 +68,8 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
-        🔥 Fresh Catches
+      <h3 className="eyebrow px-1">
+        Fresh Catches
       </h3>
       <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
         {reports.slice(0, 10).map((r, i) => {
@@ -80,7 +80,7 @@ const FreshCatches = ({ reports }: FreshCatchesProps) => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="flex-shrink-0 flex flex-col items-center gap-2 group rounded-xl border border-border/40 bg-card/60 p-3 hover:border-border/60 transition-colors"
+                className="flex-shrink-0 flex flex-col items-center gap-2 group rounded-xl bg-[#0D1B26] p-2.5 hover:bg-accent/60 transition-colors duration-150"
               >
                 <LicensePlate plateNumber={r.plate_number} state={r.state} size="sm" />
                 <Badge

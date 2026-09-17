@@ -13,9 +13,9 @@ interface MapReport {
 }
 
 const severityColor = (infraction: string) => {
-  if (infraction === "reckless_driving" || infraction === "road_rage" || infraction === "ran_red_light") return "#ef4444";
-  if (infraction === "speeding" || infraction === "distracted_driving") return "#f59e0b";
-  return "#3b82f6";
+  if (infraction === "reckless_driving" || infraction === "road_rage" || infraction === "ran_red_light") return "#EF4444";
+  if (infraction === "speeding" || infraction === "distracted_driving") return "#F5A623";
+  return "#3B82F6";
 };
 
 const HeroMiniMap = () => {
@@ -146,17 +146,28 @@ const HeroMiniMap = () => {
 
   return (
     <a href="/map" className="block">
-      <div className="relative rounded-2xl overflow-hidden border border-border/30 cursor-pointer hover:border-primary/30 transition-colors" style={{ isolation: "isolate", zIndex: 0 }}>
+      {/* Editorial heading above the map surface */}
+      <div className="flex items-center justify-between mb-2.5">
+        <p className="text-[17px] font-bold tracking-tight">Live Activity Near You</p>
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-success">
+          <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+          Live
+        </span>
+      </div>
+
+      <div className="relative rounded-2xl overflow-hidden bg-[#0D1B26] cursor-pointer shadow-[0_0_0_1px_rgba(136,154,170,0.12)]" style={{ isolation: "isolate", zIndex: 0 }}>
         <div
           ref={containerRef}
           className="w-full pointer-events-none"
-          style={{ height: "240px" }}
+          style={{ height: "196px" }}
         />
-        <div className="absolute top-3 left-3 right-20 z-[1000]">
+        {/* Location / plate search — existing behaviour, presented as map discovery */}
+        <div className="absolute top-2.5 left-2.5 z-[1000] w-[50%]">
           <input
             type="text"
-            placeholder={searchError ? "Not found" : "Search plate or city, state..."}
-            className={`w-full rounded-full bg-background/90 backdrop-blur-sm border px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none pointer-events-auto ${searchError ? "border-destructive/50 placeholder:text-destructive" : "border-border/40 focus:border-primary/50"}`}
+            placeholder={searchError ? "Not found" : "Search city, state or plate…"}
+            aria-label="Search map by location or plate"
+            className={`w-full h-7 rounded-md bg-[#0D1B26]/75 backdrop-blur-sm border px-2.5 text-[11px] text-foreground placeholder:text-[#889AAA]/80 outline-none pointer-events-auto transition-colors ${searchError ? "border-destructive/50 placeholder:text-destructive" : "border-[#889AAA]/[0.12] focus:border-primary"}`}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               e.stopPropagation();
@@ -164,12 +175,8 @@ const HeroMiniMap = () => {
             }}
           />
         </div>
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Live
-        </div>
-        <div className="absolute bottom-3 right-3 z-[1000] rounded-full bg-primary/90 text-primary-foreground px-3 py-1 text-xs font-medium pointer-events-auto">
-          Open Map →
+        <div className="absolute bottom-2.5 right-2.5 z-[1000] inline-flex items-center gap-1.5 rounded-full bg-[#0D1B26]/95 border border-[#889AAA]/[0.18] text-foreground pl-3.5 pr-3 h-9 text-[13px] font-semibold pointer-events-auto">
+          Open Map <span aria-hidden>→</span>
         </div>
       </div>
     </a>

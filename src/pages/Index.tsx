@@ -50,20 +50,15 @@ const Index = () => {
   if (user) return <Navigate to="/watch" replace />;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col noise-overlay">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       <section className="relative flex-1 flex items-center justify-center overflow-hidden">
         {/* Layered background */}
         <div className="absolute inset-0">
-          <img src={heroBg} alt="" className="w-full h-full object-cover opacity-10" />
-          <div className="absolute inset-0 gradient-mesh-bg" />
+          <img src={heroBg} alt="" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background" />
         </div>
-        <div className="absolute inset-0 dot-grid opacity-40" />
-
-        {/* Floating orbs */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
 
         <div className="container relative py-16 sm:py-24 z-10">
           <motion.div
@@ -76,10 +71,10 @@ const Index = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-1.5"
             >
               <Shield className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Plate N' State</span>
+              <span className="eyebrow">Plate N' State</span>
             </motion.div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
@@ -96,7 +91,7 @@ const Index = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="text-sm text-muted-foreground italic"
+                  className="text-sm text-muted-foreground"
                 >
                   {FUNNY_TAGLINES[taglineIndex]}
                 </motion.p>
@@ -109,7 +104,7 @@ const Index = () => {
                 trigger={
                   <button
                     type="button"
-                    className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-bold text-base px-7 py-3.5 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.03] active:scale-[0.98] transition-all glow"
+                    className="group inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold text-base px-7 h-12 hover:bg-primary/90 active:scale-[0.98] transition-all duration-150 glow"
                   >
                     <Megaphone className="h-5 w-5" />
                     Report a Plate
@@ -139,8 +134,8 @@ const Index = () => {
               >
                 {liveStats.map((stat, i) => (
                   <div key={stat.label} className="text-center">
-                    <p className="text-lg sm:text-2xl font-extrabold gradient-text">{stat.value}</p>
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">{stat.label}</p>
+                    <p className="text-lg sm:text-2xl font-extrabold tabular-nums">{stat.value}</p>
+                    <p className="eyebrow mt-0.5">{stat.label}</p>
                   </div>
                 ))}
               </motion.div>
@@ -151,7 +146,7 @@ const Index = () => {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      <footer className="border-t border-border/30 py-6">
+      <footer className="border-t border-border py-6">
         <div className="container text-center text-xs text-muted-foreground space-y-2">
           <p>Plate N' State — Community-driven road safety. Not affiliated with any government agency.</p>
           <div className="flex items-center justify-center gap-3">

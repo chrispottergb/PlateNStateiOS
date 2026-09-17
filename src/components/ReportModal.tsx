@@ -4,7 +4,7 @@ import { Loader2, MapPin, Pencil, Car, Wrench, User, Zap, Sparkles, ThumbsUp, Th
 import PlateScanner from "@/components/PlateScanner";
 import { LocationMiniMap } from "@/components/LocationMiniMap";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -341,20 +341,23 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
         <TabsTrigger value="good" className="gap-1.5 text-xs"><ThumbsUp className="h-3.5 w-3.5" /> Good Behavior</TabsTrigger>
       </TabsList>
       <TabsContent value="bad" className="mt-0">
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-2">
           {visibleBad.map(inf => (
             <button
               key={inf.type}
               type="button"
               onClick={() => setInfraction(inf.type)}
-              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all ${
+              aria-pressed={infraction === inf.type}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 min-h-[76px] text-[11px] font-semibold leading-tight text-center transition-colors duration-150 press [&_svg]:h-5 [&_svg]:w-5 ${
                 infraction === inf.type
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border/50 hover:border-primary/30 hover:bg-muted/50 text-muted-foreground"
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border bg-input hover:border-muted-foreground/40 text-muted-foreground"
               }`}
             >
-              {ICON_MAP_SM[inf.icon] ?? <AlertTriangle className="h-4 w-4" />}
-              <span className="font-medium truncate">{inf.label}</span>
+              <span className={infraction === inf.type ? "text-primary" : "text-foreground/80"}>
+                {ICON_MAP_SM[inf.icon] ?? <AlertTriangle className="h-4 w-4" />}
+              </span>
+              <span className="line-clamp-2">{inf.label}</span>
             </button>
           ))}
         </div>
@@ -362,31 +365,32 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
           <button
             type="button"
             onClick={() => setShowAllInfractions(!showAllInfractions)}
-            className="text-xs text-primary hover:underline mt-2"
+            className="text-xs font-semibold text-primary hover:underline mt-2.5"
           >
             {showAllInfractions ? "Show less" : `More infractions (${BAD_INFRACTIONS.length - QUICK_BAD.length}+)…`}
           </button>
         )}
       </TabsContent>
       <TabsContent value="good" className="mt-0">
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-2">
           {GOOD_BEHAVIORS.map(inf => (
             <button
               key={inf.type}
               type="button"
               onClick={() => setInfraction(inf.type)}
-              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all ${
+              aria-pressed={infraction === inf.type}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 min-h-[76px] text-[11px] font-semibold leading-tight text-center transition-colors duration-150 press ${
                 infraction === inf.type
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
-                  : "border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-muted-foreground"
+                  ? "border-success bg-success/10 text-foreground"
+                  : "border-border bg-input hover:border-muted-foreground/40 text-muted-foreground"
               }`}
             >
-              <ThumbsUp className="h-3.5 w-3.5" />
-              <span className="font-medium truncate">{inf.label}</span>
+              <ThumbsUp className={`h-5 w-5 ${infraction === inf.type ? "text-success" : "text-foreground/80"}`} />
+              <span className="line-clamp-2">{inf.label}</span>
             </button>
           ))}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2 italic">
+        <p className="text-xs text-muted-foreground mt-2">
           Good behavior reports lower a plate's score. Show 'em some love.
         </p>
       </TabsContent>
@@ -397,36 +401,37 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
     <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md glass-strong rounded-xl border-border/50 max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[88vh] overflow-y-auto p-5">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 pr-8">
             {mode === "quick" ? (
               <Zap className="h-5 w-5 text-primary" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <AlertTriangle className="h-5 w-5 text-primary" />
             )}
             {mode === "quick" ? "Quick Report" : "Report a Driver"}
-            <span className="ml-auto flex items-center gap-1 text-xs font-normal text-muted-foreground">
-              <Coins className="h-3.5 w-3.5" /> 1 coin
+            <span className="ml-auto flex items-center gap-1 rounded-md border border-warning/25 bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
+              <Coins className="h-3 w-3" /> 1 coin
             </span>
           </DialogTitle>
+          <DialogDescription className="text-left">Help keep our roads safe. Your report makes a difference.</DialogDescription>
         </DialogHeader>
 
         <button
           onClick={() => { setMode(mode === "quick" ? "detailed" : "quick"); setStep(1); }}
-          className="text-xs text-primary hover:underline text-left -mt-2 mb-1"
+          className="text-xs font-semibold text-primary hover:underline text-left -mt-1"
         >
           {mode === "quick"
             ? "Have more details? Switch to Detailed Report →"
-            : "⚡ Just need the basics? Quick Report"}
+            : "Just need the basics? Quick Report"}
         </button>
 
         {/* ===== QUICK MODE ===== */}
         {mode === "quick" && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Plate input + state */}
-            <div>
-              <Label htmlFor="quick-plate" className="text-sm font-medium">License Plate & State</Label>
+            <section className="rounded-xl border border-primary/25 bg-card p-3 space-y-2">
+              <Label htmlFor="quick-plate" className="text-sm font-semibold">License Plate & State</Label>
               <PlateScanner onResult={(plate, scannedState, gps, stacked) => {
                     setPlateNumber(plate.slice(0, 10));
                     setStackedPrefix(stacked || "");
@@ -466,7 +471,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                   maxLength={10}
                 />
                 <Select value={plateState} onValueChange={setPlateState}>
-                  <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className={`rounded-lg h-12 ${!plateState ? "border-destructive ring-2 ring-destructive/40 animate-pulse" : ""}`}>
+                  <SelectTrigger onPointerDown={(e) => e.stopPropagation()} className={`rounded-lg h-12 ${!plateState ? "border-destructive ring-2 ring-destructive/30" : ""}`}>
                     <SelectValue placeholder="State?" />
                   </SelectTrigger>
                   <SelectContent className="max-h-72">
@@ -482,96 +487,23 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Or scan/upload a photo above · <span className="italic">Plate state — your GPS location stays as the incident location.</span>
+                  Or scan/upload a photo above · Plate state — your GPS location stays as the incident location.
                 </p>
               )}
-            </div>
-
-            {/* Location — locked to GPS to prevent fraudulent reports */}
-            <div>
-              <Label className="text-sm font-medium">Incident Location</Label>
-              {geocoding || geoStatus === "loading" ? (
-                <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Detecting your location…
-                </div>
-              ) : autoDetectedLocation && latitude !== null && longitude !== null ? (
-                <>
-                  <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-                    <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-primary/70 font-semibold">Locked</span>
-                  </div>
-                  <LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} />
-                  <p className="text-[10px] text-muted-foreground mt-1 italic">
-                    Locked to your GPS to prevent fraudulent reports.
-                  </p>
-                </>
-              ) : (
-                <div className="mt-1.5 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2.5">
-                  <p className="text-sm font-medium text-destructive">Location required</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Enable location access — reports must be filed from where the incident happened.
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={detectLocation}
-                    className="mt-2 h-8 rounded-full text-xs"
-                  >
-                    <MapPin className="h-3 w-3 mr-1" /> Retry location
-                  </Button>
-                </div>
-              )}
-              {plateState === "KS" && (
-                <div className="mt-2">
-                  <Input
-                    value={ksCounty}
-                    onChange={e => setKsCounty(e.target.value.slice(0, 40))}
-                    placeholder="County the plate was issued in (optional)"
-                    className="rounded-lg text-sm h-9"
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1 italic">
-                    Kansas vanity plates are issued per county — include the county the plate was issued in.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Submit button — above optional fields */}
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmitQuick || submitting}
-              className="w-full rounded-lg h-12 text-base glow"
-            >
-              {submitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting…</>
-              ) : (
-                <><Zap className="h-4 w-4 mr-2" /> Submit Quick Report <Coins className="h-3.5 w-3.5 ml-1" /> 1</>
-              )}
-            </Button>
-
-            {/* Optional details divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/30" /></div>
-              <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
-                <span className="bg-card px-2 text-muted-foreground">optional details</span>
-              </div>
-            </div>
+            </section>
 
             {/* Behavior tabs */}
-            <div>
-              <Label className="text-sm font-medium">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-              <div className="mt-1.5">
+            <section>
+              <Label className="text-[15px] font-bold">What did they do? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+              <div className="mt-2">
                 {renderBehaviorTabs("quick")}
               </div>
-            </div>
+            </section>
 
             {/* Optional note */}
-            <div>
-              <Label htmlFor="quick-comment" className="text-sm font-medium flex items-center gap-2">
-                Note <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+            <section>
+              <Label htmlFor="quick-comment" className="text-[15px] font-bold flex items-center gap-2">
+                Add Details <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                 {aiTagging && (
                   <span className="ml-auto flex items-center gap-1 text-[10px] text-primary">
                     <Sparkles className="h-3 w-3 animate-pulse" /> AI is reading your note…
@@ -583,11 +515,79 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                 value={comment}
                 onChange={e => setComment(e.target.value.slice(0, 500))}
                 onBlur={autoTagFromComment}
-                placeholder="Add details about what happened…"
-                className="mt-1.5 rounded-lg min-h-[72px] resize-none"
+                placeholder="Tell us what happened…"
+                className="mt-2 min-h-[80px] resize-none"
                 maxLength={500}
               />
-            </div>
+            </section>
+
+            {/* Location — locked to GPS to prevent fraudulent reports */}
+            <section>
+              <Label className="text-[15px] font-bold">Incident Location</Label>
+              {geocoding || geoStatus === "loading" ? (
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-input px-3 py-3 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Detecting your location…
+                </div>
+              ) : autoDetectedLocation && latitude !== null && longitude !== null ? (
+                <>
+                  <div className="mt-2 flex items-center gap-3 rounded-xl border border-border bg-input px-3 py-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary"><MapPin className="h-4 w-4" /></span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-muted-foreground">Location</p>
+                      <p className="text-sm font-medium truncate">{autoDetectedLocation}</p>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wide text-primary font-bold">Locked</span>
+                  </div>
+                  <div className="map-dark"><LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} height={110} /></div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Locked to your GPS to prevent fraudulent reports.
+                  </p>
+                </>
+              ) : (
+                <div className="mt-2 rounded-xl border border-destructive/40 bg-destructive/[0.08] px-3 py-3">
+                  <p className="text-sm font-semibold text-destructive">Location required</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Enable location access — reports must be filed from where the incident happened.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={detectLocation}
+                    className="mt-2 h-8 text-xs"
+                  >
+                    <MapPin className="h-3 w-3 mr-1" /> Retry location
+                  </Button>
+                </div>
+              )}
+              {plateState === "KS" && (
+                <div className="mt-2">
+                  <Input
+                    value={ksCounty}
+                    onChange={e => setKsCounty(e.target.value.slice(0, 40))}
+                    placeholder="County the plate was issued in (optional)"
+                    className="text-sm h-10"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Kansas vanity plates are issued per county — include the county the plate was issued in.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <Button
+              size="lg"
+              onClick={handleSubmit}
+              disabled={!canSubmitQuick || submitting}
+              className="w-full h-14 text-[17px] rounded-[14px] sticky bottom-0"
+            >
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting…</>
+              ) : (
+                <><Zap className="h-4 w-4 mr-2" /> Submit Quick Report <Coins className="h-3.5 w-3.5 ml-1" /> 1</>
+              )}
+            </Button>
           </div>
         )}
 
@@ -600,13 +600,13 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                 {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(s => (
                   <div
                     key={s}
-                    className={`h-1 flex-1 rounded-full transition-colors ${
-                      s <= step ? "bg-primary" : "bg-muted"
+                    className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
+                      s <= step ? "bg-primary" : "bg-border"
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-[10px] text-muted-foreground text-center">
+              <p className="text-xs font-medium text-muted-foreground text-center">
                 Step {step} of {TOTAL_STEPS} — {stepLabels[step - 1]}
               </p>
             </div>
@@ -733,7 +733,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                     {VEHICLE_FEATURE_OPTIONS.map(feat => (
                       <label
                         key={feat}
-                        className="flex items-center gap-2 text-xs cursor-pointer rounded-lg border border-border/50 px-2.5 py-2 hover:bg-muted/40 transition-colors"
+                        className="flex items-center gap-2 text-xs cursor-pointer rounded-xl border border-border bg-input px-3 py-2.5 hover:border-muted-foreground/40 transition-colors duration-150"
                       >
                         <Checkbox
                           checked={vehicleFeatures.includes(feat)}
@@ -761,25 +761,25 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                 <div>
                   <Label className="text-sm font-medium">Incident Location</Label>
                   {geocoding || geoStatus === "loading" ? (
-                    <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2.5 text-sm text-muted-foreground">
+                    <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-border bg-input px-3 py-2.5 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Detecting your location…
                     </div>
                   ) : autoDetectedLocation && latitude !== null && longitude !== null ? (
                     <>
-                      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+                      <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/[0.08] px-3 py-2.5">
                         <MapPin className="h-4 w-4 text-primary shrink-0" />
                         <span className="text-sm font-medium flex-1">{autoDetectedLocation}</span>
-                        <span className="text-[10px] uppercase tracking-wide text-primary/70 font-semibold">Locked</span>
+                        <span className="text-[10px] uppercase tracking-wide text-primary font-bold">Locked</span>
                       </div>
                       <LocationMiniMap latitude={latitude} longitude={longitude} label={autoDetectedLocation} height={160} />
-                      <p className="text-[10px] text-muted-foreground mt-1 italic">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Locked to your GPS to prevent fraudulent reports.
                       </p>
                     </>
                   ) : (
-                    <div className="mt-1.5 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2.5">
-                      <p className="text-sm font-medium text-destructive">Location required</p>
+                    <div className="mt-1.5 rounded-xl border border-destructive/40 bg-destructive/[0.08] px-3 py-2.5">
+                      <p className="text-sm font-semibold text-destructive">Location required</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Enable location access — reports must be filed from where the incident happened.
                       </p>
@@ -788,7 +788,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                         size="sm"
                         variant="outline"
                         onClick={detectLocation}
-                        className="mt-2 h-8 rounded-full text-xs"
+                        className="mt-2 h-8 text-xs"
                       >
                         <MapPin className="h-3 w-3 mr-1" /> Retry location
                       </Button>
@@ -800,9 +800,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                         value={ksCounty}
                         onChange={e => setKsCounty(e.target.value.slice(0, 40))}
                         placeholder="County the plate was issued in (optional)"
-                        className="rounded-lg text-sm h-9"
+                        className="text-sm h-10"
                       />
-                      <p className="text-[10px] text-muted-foreground mt-1 italic">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Kansas vanity plates are issued per county — include the county the plate was issued in.
                       </p>
                     </div>
@@ -810,7 +810,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                 </div>
                 <div className="rounded-xl glass p-3 flex items-center justify-between">
                   <div className="text-sm">
-                    <p className="font-medium">📍 GPS Location</p>
+                    <p className="font-medium flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-primary" /> GPS Location</p>
                     {geoStatus === "loading" && <p className="text-xs text-muted-foreground">Detecting…</p>}
                     {geoStatus === "done" && (
                       <p className="text-xs text-primary">
@@ -821,7 +821,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
                     {geoStatus === "idle" && <p className="text-xs text-muted-foreground">Not detected</p>}
                   </div>
                   {(geoStatus === "denied" || geoStatus === "idle") && (
-                    <Button variant="outline" size="sm" onClick={detectLocation} type="button" className="rounded-full">
+                    <Button variant="outline" size="sm" onClick={detectLocation} type="button">
                       Detect
                     </Button>
                   )}
@@ -883,8 +883,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
 
             {/* Step 6: Review */}
             {step === 6 && (
-              <div className="space-y-3 rounded-xl glass p-4">
-                <h4 className="font-medium text-sm">Review Your Report</h4>
+              <div className="space-y-3 rounded-xl border border-border/60 bg-card p-4">
+                <h4 className="font-semibold text-sm">Review Your Report</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Plate</span>
@@ -938,16 +938,16 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
 
             <div className="flex justify-between pt-2">
               {step > 1 ? (
-                <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)} className="rounded-full">
+                <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)}>
                   <ArrowLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
               ) : <div />}
               {step < TOTAL_STEPS ? (
-                <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full">
+                <Button size="sm" onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="h-10 px-4">
                   {step === 2 || step === 3 || step === 5 ? "Skip / " : ""}Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={handleSubmit} disabled={submitting} className="rounded-full glow">
+                <Button size="sm" onClick={handleSubmit} disabled={submitting} className="h-10 px-4">
                   <Check className="h-4 w-4 mr-1" /> {submitting ? "Submitting…" : "Submit Report"}
                 </Button>
               )}
