@@ -23,6 +23,7 @@ import { useCaptcha } from "@/hooks/useCaptcha";
 import { useCredits } from "@/hooks/useCredits";
 import { getClientIp } from "@/lib/clientIp";
 import { useHomeState } from "@/hooks/useHomeState";
+import { usePlateClaim } from "@/hooks/useClaimStatus";
 import ClaimUpsellDialog, { claimUpsellDismissed } from "@/components/ClaimUpsellDialog";
 
 const ICON_MAP_SM: Record<string, React.ReactNode> = {
@@ -92,6 +93,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
   const [showClaimUpsell, setShowClaimUpsell] = useState(false);
   const [step, setStep] = useState(1);
   const [plateNumber, setPlateNumber] = useState(initialPlate);
+  // Ownership of the plate being reported — the generic claim upsell is
+  // suppressed when that plate already has an active claim (mine or other).
+  const { status: reportedPlateClaim } = usePlateClaim(plateNumber);
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
   const [behaviorTab, setBehaviorTab] = useState<"bad" | "good">("bad");
   const [location, setLocation] = useState("");
@@ -304,8 +308,9 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
       refetchCredits(); // keep header coin count in sync
       reset();
       setOpen(false);
-      // High-intent moment: nudge the reporter to claim their own plate (unless dismissed)
-      if (!claimUpsellDismissed()) {
+      // High-intent moment: nudge the reporter to claim their own plate (unless
+      // dismissed, or the plate just reported is already claimed).
+      if (!claimUpsellDismissed() && reportedPlateClaim === "unclaimed") {
         setTimeout(() => setShowClaimUpsell(true), 600);
       }
     } catch (err: any) {

@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope, Pencil, Check, X } from "lucide-react";
+import { MapPin, Clock, User, Calendar, Coins, Flame, Zap, Award, Star, Shield, Trophy, Eye, Flag, Telescope, Pencil, Check, X, Car, ChevronRight, ShieldCheck } from "lucide-react";
+import { useMyClaims } from "@/hooks/useClaimStatus";
+import { getStateByCode } from "@/lib/usStates";
 import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,6 +82,7 @@ interface UserBadge {
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const { credits } = useCredits();
+  const { paidClaims } = useMyClaims(user?.id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingReport, setEditingReport] = useState<EditableReport | null>(null);
@@ -273,6 +276,41 @@ const Profile = () => {
         {/* Coin store — renders nothing on iOS (Apple 3.1.1) */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-6">
           <CoinStore />
+        </motion.div>
+
+        {/* My Plates — the user's active (paid) claims from claimed_plates */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }} className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Car className="h-4 w-4" /> My Plates
+            </h2>
+            <Link to="/claim" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+              {paidClaims.length > 0 ? "Manage" : "Claim a plate"} <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {paidClaims.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">No claimed plates yet. Claim yours to get alerts when it's reported.</p>
+          ) : (
+            <div className="space-y-2">
+              {paidClaims.map(plate => (
+                <Link key={plate.id} to="/claim" className="block">
+                  <div className="flex items-center gap-3 rounded-xl glass-card p-3 hover:border-primary/30 transition-all">
+                    <LicensePlate plateNumber={plate.plate_number} state={plate.state} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-base font-bold tracking-wider">{plate.plate_number}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {plate.state ? getStateByCode(plate.state).name : "State not set"}
+                        {" · "}Claimed {format(new Date(plate.claimed_at), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-xs text-success border-success/30 gap-1 shrink-0">
+                      <ShieldCheck className="h-3 w-3" /> Active
+                    </Badge>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         {/* Level Progress */}

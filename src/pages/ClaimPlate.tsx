@@ -17,6 +17,8 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { useHomeState } from "@/hooks/useHomeState";
+import { useMyClaims, usePlateClaim } from "@/hooks/useClaimStatus";
+import { normalizePlate } from "@/lib/plate";
 
 type ClaimPriceId =
   | "plate_claim_1yr"
@@ -27,8 +29,14 @@ type ClaimPriceId =
 type CheckoutTarget = {
   priceId: ClaimPriceId | "plate_privacy_monthly" | "plate_total_block_monthly";
   plateNumber: string;
+  state?: string;
   title: string;
 } | null;
+
+// Post-checkout: the Stripe webhook lands asynchronously. Poll briefly for the
+// new paid claim instead of a single fixed delay.
+const CLAIM_POLL_INTERVAL_MS = 2000;
+const CLAIM_POLL_MAX_ATTEMPTS = 15; // ~30s
 
 const CLAIM_TIERS: { id: ClaimPriceId; label: string; price: string; badge?: string }[] = [
   { id: "plate_claim_1yr", label: "1 Year", price: "$4.99" },
@@ -52,7 +60,8 @@ const ClaimPlate = () => {
   const [selectedTier, setSelectedTier] = useState<ClaimPriceId>("plate_claim_lifetime");
   const { homeState, setHomeState } = useHomeState();
 
-  const cleanedPlate = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const cleanedPlate = normalizePlate(plateNumber);
+  const { status: typedPlateClaim } = usePlateClaim(cleanedPlate);
 
   // Detect identical KS vanity collisions: another KS claim or report exists for this exact plate
   const { data: ksDuplicate } = useQuery({
@@ -79,19 +88,7 @@ const ClaimPlate = () => {
     enabled: homeState === "KS" && cleanedPlate.length >= 3,
   });
 
-  const { data: claimedPlates, refetch: refetchClaims } = useQuery({
-    queryKey: ["my-claimed-plates", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from("claimed_plates")
-        .select("*")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const { claims: claimedPlates, refetch: refetchClaims } = useMyClaims(user?.id);
 
   const { data: subs, refetch: refetchSubs } = useQuery({
     queryKey: ["my-plate-subs", user?.id],
@@ -109,26 +106,49 @@ const ClaimPlate = () => {
     enabled: !!user,
   });
 
-  // After Stripe redirect back, refresh state and clear query
+  // After Stripe redirect back: poll (bounded) until the webhook has recorded
+  // the paid claim, then refresh subs and clear the query string.
   useEffect(() => {
-    if (params.get("checkout") === "success") {
-      toast({ title: "Payment received", description: "Updating your account…" });
-      setTimeout(async () => {
+    if (params.get("checkout") !== "success") return;
+    params.delete("checkout");
+    params.delete("session_id");
+    setParams(params, { replace: true });
+
+    let cancelled = false;
+    toast({ title: "Payment received", description: "Confirming your claim…" });
+
+    (async () => {
+      const baseline = new Set((claimedPlates ?? []).filter(c => c.paid).map(c => c.plate_number));
+      for (let attempt = 0; attempt < CLAIM_POLL_MAX_ATTEMPTS && !cancelled; attempt++) {
         const { data: refreshed } = await refetchClaims();
-        await refetchSubs();
-        // Set home state from most recently claimed plate if not already set
-        if (!homeState && refreshed && refreshed.length > 0) {
-          const newest = [...refreshed].sort((a, b) =>
-            new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime()
-          )[0];
-          if (newest?.state) setHomeState(newest.state);
+        const newPaid = (refreshed ?? []).filter(c => c.paid && !baseline.has(c.plate_number));
+        if (newPaid.length > 0) {
+          await refetchSubs();
+          if (!homeState) {
+            const newest = [...newPaid].sort((a, b) =>
+              new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime()
+            )[0];
+            if (newest?.state) setHomeState(newest.state);
+          }
+          if (!cancelled) toast({ title: "Plate claimed", description: `${newPaid[0].plate_number} is now yours.` });
+          return;
         }
-      }, 1500);
-      params.delete("checkout");
-      params.delete("session_id");
-      setParams(params, { replace: true });
-    }
-  }, [params, setParams, refetchClaims, refetchSubs, toast, homeState, setHomeState]);
+        await new Promise(r => setTimeout(r, CLAIM_POLL_INTERVAL_MS));
+      }
+      // Subscription checkouts don't add a claim row — still refresh them.
+      await refetchSubs();
+      if (!cancelled) {
+        toast({
+          title: "Still processing",
+          description: "Your payment went through but the claim hasn't appeared yet. It usually lands within a minute — check back shortly.",
+        });
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // Runs once per successful checkout return; the query params are cleared above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.get("checkout")]);
 
   if (!user) {
     navigate("/auth");
@@ -149,15 +169,22 @@ const ClaimPlate = () => {
   };
 
   const startClaim = async () => {
-    const cleaned = plateNumber.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const cleaned = cleanedPlate;
     if (cleaned.length < 3) {
       toast({ title: "Enter a plate number first", variant: "destructive" });
+      return;
+    }
+    // Pre-check (the backend enforces this too): never sell a plate that
+    // already has an active claim by someone else.
+    if (typedPlateClaim === "other") {
+      toast({ title: "Plate already claimed", description: `${cleaned} has an active claim by another user.`, variant: "destructive" });
       return;
     }
     const tier = CLAIM_TIERS.find(t => t.id === selectedTier)!;
     setCheckout({
       priceId: selectedTier,
       plateNumber: cleaned,
+      state: homeState ?? undefined,
       title: `Claim ${cleaned} (${tier.label}) — ${tier.price}`,
     });
   };
@@ -230,6 +257,17 @@ const ClaimPlate = () => {
                     maxLength={10}
                   />
 
+                  {cleanedPlate.length >= 3 && typedPlateClaim === "other" && (
+                    <p className="text-xs font-semibold text-destructive rounded-md border border-destructive/30 bg-destructive/10 p-2.5">
+                      {cleanedPlate} already has an active claim by another user and can't be claimed.
+                    </p>
+                  )}
+                  {cleanedPlate.length >= 3 && typedPlateClaim === "mine" && (
+                    <p className="text-xs text-muted-foreground rounded-md border border-border/50 bg-muted/30 p-2.5">
+                      You already own {cleanedPlate}. Checking out again extends your existing claim.
+                    </p>
+                  )}
+
                   {homeState === "KS" && ksDuplicate && (
                     <div className="flex gap-2 items-start text-xs rounded-md border border-amber-400/40 bg-amber-500/10 text-amber-200 p-3">
                       <Info className="h-4 w-4 mt-0.5 shrink-0" />
@@ -276,7 +314,7 @@ const ClaimPlate = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button onClick={startClaim} disabled={plateNumber.trim().length < 3} className="flex-1">
+                    <Button onClick={startClaim} disabled={cleanedPlate.length < 3 || typedPlateClaim === "other"} className="flex-1">
                       <Lock className="h-4 w-4 mr-1" /> Claim {CLAIM_TIERS.find(t => t.id === selectedTier)?.price}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => setShowScanner(true)}>
@@ -402,6 +440,7 @@ const ClaimPlate = () => {
           title={checkout.title}
           priceId={checkout.priceId}
           plateNumber={checkout.plateNumber}
+          state={checkout.state}
         />
       )}
     </div>

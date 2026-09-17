@@ -15,7 +15,7 @@ export const IAP_PRODUCT_IDS = [
 ] as const;
 export const IAP_SUBSCRIPTION_IDS = ["plate_privacy_monthly", "plate_total_block_monthly"] as const;
 
-type PurchaseMeta = { userId?: string; plateNumber?: string; disputeId?: string };
+type PurchaseMeta = { userId?: string; plateNumber?: string; state?: string; disputeId?: string };
 
 let storeReady: Promise<any> | null = null;
 

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Camera, Home as HomeIcon, Map as MapIcon, Users as UsersIcon, MessageSquare, ArrowRight, X, Search, Trophy, Shield, Bell } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useMyClaims } from "@/hooks/useClaimStatus";
 
 interface OnboardingCard {
   visual: React.ReactNode;
@@ -399,8 +401,18 @@ interface Props {
 
 const OnboardingWalkthrough = ({ mode, onComplete }: Props) => {
   const [step, setStep] = useState(0);
+  const { user } = useAuth();
+  const { paidClaims } = useMyClaims(user?.id);
   const cards = mode === "enterprise" ? ENTERPRISE_CARDS : PERSONAL_CARDS;
-  const card = cards[step];
+  const rawCard = cards[step];
+  // Existing claimants shouldn't be told to "Claim Your Plate" as if new.
+  const card = rawCard.title === "Claim Your Plate" && paidClaims.length > 0
+    ? {
+        ...rawCard,
+        title: "Your Claimed Plate",
+        description: "You've already claimed a plate — you'll be notified when it's reported and can dispute false ones. Manage it or claim another under Account → My Plates.",
+      }
+    : rawCard;
   const isLast = step === cards.length - 1;
 
   return (

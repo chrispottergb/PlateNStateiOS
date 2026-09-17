@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useMyClaims } from "@/hooks/useClaimStatus";
 import { usePlateRecords } from "@/hooks/usePlateRecords";
 import { INFRACTIONS } from "@/lib/data";
 import { toast } from "sonner";
@@ -153,6 +154,7 @@ const HonkZone = () => {
   const [viewMode, setViewMode] = useState<"feed" | "grid">("feed");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { paidClaims } = useMyClaims(user?.id);
   const queryClient = useQueryClient();
   const { plates: trendingPlatesRaw } = usePlateRecords(5);
 
@@ -432,7 +434,7 @@ const HonkZone = () => {
             >
               <span className="inline-flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-primary shrink-0" strokeWidth={1.75} />
-                <span className="text-[15px] font-semibold">Claim Your Plate</span>
+                <span className="text-[15px] font-semibold">{paidClaims.length > 0 ? "My Plates" : "Claim Your Plate"}</span>
               </span>
               <ChevronRight className="h-[18px] w-[18px] text-[#889AAA]" />
             </Link>

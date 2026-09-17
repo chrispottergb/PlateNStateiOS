@@ -14,11 +14,13 @@ interface CheckoutDialogProps {
   title: string;
   priceId: string;
   plateNumber?: string;
+  /** 2-letter registration state for plate claims; stored on the claim row. */
+  state?: string;
   disputeId?: string;
   returnUrl?: string;
 }
 
-export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, disputeId, returnUrl }: CheckoutDialogProps) {
+export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, state, disputeId, returnUrl }: CheckoutDialogProps) {
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
@@ -32,7 +34,7 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
       // iOS: Apple In-App Purchase instead of Stripe (Guideline 3.1.1).
       if (isIOS) {
         const { buyWithApple } = await import("@/lib/payments");
-        await buyWithApple(priceId, { userId, plateNumber, disputeId });
+        await buyWithApple(priceId, { userId, plateNumber, state, disputeId });
         toast({ title: "Purchase complete", description: "Your account has been updated." });
         onClose();
         return;
@@ -46,6 +48,7 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, dis
         body: JSON.stringify({
           priceId,
           plateNumber: plateNumber || undefined,
+          state: state || undefined,
           disputeId: disputeId || undefined,
           userId: userId || undefined,
           email: email || undefined,

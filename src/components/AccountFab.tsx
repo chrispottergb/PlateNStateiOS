@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronUp, User, Briefcase, Coins, LogOut, ShieldCheck } from "lucide-react";
+import { ChevronUp, User, Briefcase, Coins, LogOut, ShieldCheck, Car } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useMyClaims } from "@/hooks/useClaimStatus";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,7 @@ const AccountFab = () => {
   const { user, portalMode, signOut } = useAuth();
   const { credits } = useCredits();
   const { isAdmin } = useIsAdmin();
+  const { paidClaims } = useMyClaims(user?.id);
   const location = useLocation();
 
   // Don't render on /auth (sign-in page) or when not authenticated
@@ -66,6 +68,19 @@ const AccountFab = () => {
           >
             <User className="h-4 w-4 text-muted-foreground" />
             My Account
+          </Link>
+
+          {/* Claimed plates — same /claim management surface, labelled by state */}
+          <Link
+            to="/claim"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
+          >
+            <Car className="h-4 w-4 text-muted-foreground" />
+            {paidClaims.length > 0 ? "My Plates" : "Claim Your Plate"}
+            {paidClaims.length > 0 && (
+              <span className="ml-auto text-xs font-bold text-primary tabular-nums">{paidClaims.length}</span>
+            )}
           </Link>
 
           {/* Enterprise */}
