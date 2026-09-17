@@ -4,11 +4,17 @@ import { getStateByCode } from "@/lib/usStates";
 interface LicensePlateProps {
   plateNumber: string;
   state?: string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
 
 const sizeStyles = {
+  xl: {
+    container: "w-[300px] h-[150px] rounded-[14px]",
+    header: "text-[12px] tracking-[0.3em]",
+    number: "text-[46px]",
+    footer: "text-[9px] tracking-[0.2em]",
+  },
   sm: {
     container: "w-[120px] h-[60px] rounded-md",
     header: "text-[6px] tracking-[0.2em]",
