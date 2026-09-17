@@ -286,10 +286,10 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
                 <p>
                   By continuing, you confirm that you are a <strong>passenger</strong> or
                   your vehicle is <strong>parked</strong>, and that you will not use
-                  Plate'n State while operating a moving vehicle.
+                  Plate N' State while operating a moving vehicle.
                 </p>
                 <p>
-                  You agree that Plate'n State and its operators are <strong>not liable</strong>{" "}
+                  You agree that Plate N' State and its operators are <strong>not liable</strong>{" "}
                   for any misuse, accidents, injuries, or damages resulting from use of this feature.
                 </p>
               </div>

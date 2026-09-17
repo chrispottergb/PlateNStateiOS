@@ -129,7 +129,7 @@ const PlateDetail = () => {
     const shareUrl = `https://platenstate.com/plate/${encodeURIComponent(plate?.plateNumber ?? "")}`;
     if (typeof navigator.share === "function") {
       try {
-        await navigator.share({ title: "Plate N State Report", text: shareText, url: shareUrl });
+        await navigator.share({ title: "Plate N' State Report", text: shareText, url: shareUrl });
         return;
       } catch { /* cancelled or unsupported — fall through */ }
     }

@@ -39,9 +39,9 @@ const DeleteAccount = () => {
   };
 
   useEffect(() => {
-    document.title = "Delete Your Account & Data | Plate'n State";
+    document.title = "Delete Your Account & Data | Plate N' State";
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute("content", "Request deletion of your Plate'n State account and personal data. Processed within 30 days.");
+    if (desc) desc.setAttribute("content", "Request deletion of your Plate N' State account and personal data. Processed within 30 days.");
   }, []);
 
   return (
@@ -54,7 +54,7 @@ const DeleteAccount = () => {
             Delete My Account & Data
           </h1>
           <p className="text-muted-foreground text-sm max-w-prose mx-auto">
-            Submit this form to request permanent deletion of your Plate'n State account and all
+            Submit this form to request permanent deletion of your Plate N' State account and all
             personal data we hold about you. Requests are processed within 30 days.
           </p>
         </div>

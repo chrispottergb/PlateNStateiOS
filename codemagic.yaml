@@ -79,6 +79,10 @@ workflows:
           plutil -replace NSLocationWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           plutil -replace NSLocationAlwaysAndWhenInUseUsageDescription -string "Plate N' State uses your location to attach a location to reports." "$PLIST"
           plutil -replace ITSAppUsesNonExemptEncryption -bool false "$PLIST"
+          # Pin the home-screen name explicitly so iOS and Android always match
+          # capacitor.config.ts appName regardless of Capacitor template defaults.
+          plutil -replace CFBundleDisplayName -string "Plate N' State" "$PLIST"
+          plutil -replace CFBundleName -string "Plate N' State" "$PLIST"
           # Register custom URL scheme for OAuth deep links
           # Use -replace to guarantee it's set, even if CFBundleURLTypes already exists
           plutil -remove CFBundleURLTypes "$PLIST" 2>/dev/null || true
