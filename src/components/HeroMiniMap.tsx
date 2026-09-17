@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
+import { getPosition } from "@/lib/native";
 
 interface MapReport {
   id: string;
@@ -22,6 +23,9 @@ const HeroMiniMap = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
+  // Once the map is centered on the user's own location, report loading must
+  // not yank the view away to fit every marker in the country.
+  const userCenteredRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -50,6 +54,15 @@ const HeroMiniMap = () => {
 
     const resizeTimer = setTimeout(() => map.invalidateSize(), 300);
 
+    // Default the map to the user's location (coarse). Falls through to the
+    // report-fitting behaviour below when permission is denied/unavailable.
+    let disposed = false;
+    getPosition().then((pos) => {
+      if (disposed || !pos || !mapRef.current) return;
+      userCenteredRef.current = true;
+      mapRef.current.setView([pos.latitude, pos.longitude], 11, { animate: false });
+    }).catch(() => { /* keep fallback */ });
+
     const loadReports = async () => {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
@@ -77,7 +90,7 @@ const HeroMiniMap = () => {
         L.marker([r.latitude, r.longitude], { icon }).addTo(markersRef.current!);
       });
 
-      if (reports.length > 0) {
+      if (reports.length > 0 && !userCenteredRef.current) {
         const bounds = L.latLngBounds(
           reports.filter(r => r.latitude && r.longitude).map(r => [r.latitude!, r.longitude!] as [number, number])
         );
@@ -105,6 +118,7 @@ const HeroMiniMap = () => {
       .subscribe();
 
     return () => {
+      disposed = true;
       clearTimeout(resizeTimer);
       supabase.removeChannel(channel);
       map.remove();

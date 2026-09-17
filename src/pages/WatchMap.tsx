@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Clock, RefreshCw, Search, Plus } from "lucide-react";
 import ReportModal from "@/components/ReportModal";
+import { getPosition } from "@/lib/native";
 
 interface Report {
   id: string;
@@ -39,6 +40,9 @@ const WatchMap = () => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
+  // True once the view is anchored to a deliberate center (URL coords or the
+  // user's own location); report loading then won't re-fit the whole state.
+  const anchoredRef = useRef(false);
   const [searchParams] = useSearchParams();
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<"24h" | "7d" | "all">("24h");
@@ -115,18 +119,30 @@ const WatchMap = () => {
       }
       const lat = parseFloat(searchParams.get("lat") ?? "");
       const lng = parseFloat(searchParams.get("lng") ?? "");
-      const initCenter: [number, number] = (lat && lng) ? [lat, lng] : [44.5, -89.5];
-      const initZoom = (lat && lng) ? 13 : 7;
+      const hasUrlCenter = !!(lat && lng);
+      const initCenter: [number, number] = hasUrlCenter ? [lat, lng] : [44.5, -89.5];
+      const initZoom = hasUrlCenter ? 13 : 7;
+      anchoredRef.current = hasUrlCenter;
       mapRef.current = L.map(container).setView(initCenter, initZoom);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(mapRef.current);
       markersRef.current = L.layerGroup().addTo(mapRef.current);
       setTimeout(() => mapRef.current?.invalidateSize(), 300);
+
+      // No explicit coordinates → default to the user's location (coarse).
+      if (!hasUrlCenter) {
+        getPosition().then((pos) => {
+          if (disposed || !pos || !mapRef.current) return;
+          anchoredRef.current = true;
+          mapRef.current.setView([pos.latitude, pos.longitude], 11);
+        }).catch(() => { /* keep state-wide fallback */ });
+      }
     }
 
+    let disposed = false;
     initMap();
-    return () => { mapRef.current?.remove(); mapRef.current = null; };
+    return () => { disposed = true; mapRef.current?.remove(); mapRef.current = null; };
   }, []);
 
   useEffect(() => {
@@ -154,7 +170,7 @@ const WatchMap = () => {
       `);
       markersRef.current!.addLayer(marker);
     });
-    if (geoReports.length > 0) {
+    if (geoReports.length > 0 && !anchoredRef.current) {
       const bounds = L.latLngBounds(geoReports.map((r) => [r.latitude!, r.longitude!] as [number, number]));
       mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
     }
