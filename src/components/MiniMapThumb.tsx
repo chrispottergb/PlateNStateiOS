@@ -63,7 +63,7 @@ const MiniMapThumb = ({ latitude, longitude, location, size = 56 }: MiniMapThumb
 
   const zoom = 13;
   const tile = latLngToTile(coords.lat, coords.lng, zoom);
-  const tileUrl = `https://a.basemaps.cartocdn.com/light_all/${zoom}/${tile.x}/${tile.y}.png`;
+  const tileUrl = `https://a.tile.openstreetmap.org/${zoom}/${tile.x}/${tile.y}.png`;
 
   return (
     <div
