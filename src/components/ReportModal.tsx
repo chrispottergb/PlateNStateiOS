@@ -355,8 +355,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
               aria-pressed={infraction === inf.type}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 min-h-[76px] text-[11px] font-semibold leading-tight text-center transition-colors duration-150 press [&_svg]:h-5 [&_svg]:w-5 ${
                 infraction === inf.type
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border bg-input hover:border-muted-foreground/40 text-muted-foreground"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-input hover:border-muted-foreground/40 text-foreground"
               }`}
             >
               <span className={infraction === inf.type ? "text-primary" : "text-foreground/80"}>
@@ -386,8 +386,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
               aria-pressed={infraction === inf.type}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 min-h-[76px] text-[11px] font-semibold leading-tight text-center transition-colors duration-150 press ${
                 infraction === inf.type
-                  ? "border-success bg-success/10 text-foreground"
-                  : "border-border bg-input hover:border-muted-foreground/40 text-muted-foreground"
+                  ? "border-success bg-success/10 text-success"
+                  : "border-border bg-input hover:border-muted-foreground/40 text-foreground"
               }`}
             >
               <ThumbsUp className={`h-5 w-5 ${infraction === inf.type ? "text-success" : "text-foreground/80"}`} />
