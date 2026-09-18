@@ -21,13 +21,15 @@ import {
 
 interface PlateScannerProps {
   onResult: (plateNumber: string, state: string | null, gps?: { latitude: number; longitude: number } | null, stackedPrefix?: string | null) => void;
+  // "primary" makes Scan the dominant amber action with Upload secondary
+  variant?: "default" | "primary";
 }
 
 type PendingAction = "native-camera" | "web-camera" | "upload";
 
 const ACK_KEY = "plate_scan_liability_ack";
 
-const PlateScanner = ({ onResult }: PlateScannerProps) => {
+const PlateScanner = ({ onResult, variant = "default" }: PlateScannerProps) => {
   const isMobile = useIsMobile();
   const { addScan } = useScanHistory();
   const [scanning, setScanning] = useState(false);
@@ -252,6 +254,23 @@ const PlateScanner = ({ onResult }: PlateScannerProps) => {
               </div>
             </div>
           )}
+        </div>
+      ) : variant === "primary" ? (
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => requestAction(isNative ? "native-camera" : "web-camera")}
+            className="press flex w-full h-14 items-center justify-center gap-3 rounded-[14px] bg-primary text-[#0B1017] text-[17px] font-bold shadow-[0_1px_0_rgba(255,255,255,0.28)_inset,0_6px_14px_-6px_rgba(245,166,35,0.55)] hover:brightness-[1.03]"
+          >
+            <Camera className="h-[22px] w-[22px]" /> Scan Plate
+          </button>
+          <button
+            type="button"
+            onClick={() => requestAction("upload")}
+            className="press flex w-full h-12 items-center justify-center gap-2.5 rounded-[14px] bg-[#122431] border border-[#889AAA]/[0.18] text-[15px] font-semibold text-foreground hover:border-[#889AAA]/40"
+          >
+            <Upload className="h-[18px] w-[18px] text-[#A0B0BE]" /> Upload Photo
+          </button>
         </div>
       ) : (
         <div className="flex gap-2">
