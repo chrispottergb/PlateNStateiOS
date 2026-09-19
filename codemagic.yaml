@@ -17,6 +17,18 @@ workflows:
         VITE_PAYMENTS_CLIENT_TOKEN: "pk_live_51TlN4VF1rSA57RFZsaO7QGtEm5KbcbC6imVvdd8xTbz3y1pTBB4ASoXLQ9PWsl5aOZnMy3btovUknoOBmW5kIXxh00qqz0Ix0q"
       node: 22
       xcode: latest
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      tag_patterns:
+        - pattern: "ios-*"
+          include: true
+      cancel_previous_builds: true
     scripts:
       - name: Install npm dependencies
         script: npm ci
