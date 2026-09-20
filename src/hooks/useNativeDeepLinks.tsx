@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { isNative } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const useNativeDeepLinks = () => {
   const navigate = useNavigate();
+  // react-router rebuilds `navigate` on every location change, so depending on
+  // it here would re-run this effect after each navigation and re-apply the
+  // launch URL — bouncing the user back to "/" every time they changed tabs.
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+  // The cold-start launch URL must only ever be consumed once per app session.
+  const launchHandled = useRef(false);
 
   useEffect(() => {
     if (!isNative) return;
@@ -43,7 +50,7 @@ export const useNativeDeepLinks = () => {
             if (accessToken && refreshToken) {
               await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
               await closeBrowser();
-              navigate("/", { replace: true });
+              navigateRef.current("/", { replace: true });
               return;
             }
 
@@ -52,7 +59,7 @@ export const useNativeDeepLinks = () => {
             const returnTo = queryParams.get("to");
             if (returnTo && rawUrl.includes("://return")) {
               await closeBrowser();
-              navigate(decodeURIComponent(returnTo), { replace: true });
+              navigateRef.current(decodeURIComponent(returnTo), { replace: true });
               return;
             }
 
@@ -60,7 +67,7 @@ export const useNativeDeepLinks = () => {
             if (code) {
               await supabase.auth.exchangeCodeForSession(code).catch(() => {});
               await closeBrowser();
-              navigate("/", { replace: true });
+              navigateRef.current("/", { replace: true });
               return;
             }
 
@@ -69,13 +76,17 @@ export const useNativeDeepLinks = () => {
             const path = u.pathname || "/";
             const target = `${path}${u.search || ""}${u.hash || ""}`;
 
+            // The app's own origin (capacitor://localhost, "/") is not a deep
+            // link — treating it as one would yank the user to Home.
+            if (target === "/") return;
+
             if (target && target !== window.location.pathname + window.location.search + window.location.hash) {
-              navigate(target, { replace: true });
+              navigateRef.current(target, { replace: true });
             }
           } catch {
             // Custom-scheme URLs that aren't valid http(s) — try a loose parse.
             const idx = rawUrl.indexOf("/reset-password");
-            if (idx >= 0) navigate(rawUrl.slice(idx), { replace: true });
+            if (idx >= 0) navigateRef.current(rawUrl.slice(idx), { replace: true });
           }
         };
 
@@ -85,11 +96,14 @@ export const useNativeDeepLinks = () => {
         if (cancelled) listener.remove();
         else sub = listener;
 
-        // If the app was cold-started from a URL, route to it now.
-        try {
-          const launch = await App.getLaunchUrl();
-          if (launch?.url) handle(launch.url);
-        } catch { /* ignore */ }
+        // If the app was cold-started from a URL, route to it now — once.
+        if (!launchHandled.current) {
+          launchHandled.current = true;
+          try {
+            const launch = await App.getLaunchUrl();
+            if (launch?.url) handle(launch.url);
+          } catch { /* ignore */ }
+        }
       } catch {
         /* @capacitor/app missing — no-op */
       }
@@ -99,5 +113,7 @@ export const useNativeDeepLinks = () => {
       cancelled = true;
       sub?.remove();
     };
-  }, [navigate]);
+    // Mount once: the listener and launch URL are app-lifetime concerns.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 };
