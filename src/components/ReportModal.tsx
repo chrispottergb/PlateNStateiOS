@@ -78,14 +78,12 @@ const BehaviorIcon = ({ name, className }: { name: string; className?: string })
   return Cmp ? <Cmp className={className} /> : <AlertTriangle className={className} />;
 };
 
-// Bad driving is a deduction, good driving is a credit — display only, the
-// stored weights in data.ts are untouched.
+// Points are already signed: bad driving is stored negative, good positive.
 const formatPoints = (inf?: InfractionDef | null) => {
   if (!inf || inf.points === 0) return null;
-  const magnitude = Math.abs(inf.points);
-  return inf.kind === "good"
-    ? { text: `+${magnitude} pts`, className: "text-success" }
-    : { text: `−${magnitude} pts`, className: "text-destructive" };
+  return inf.points > 0
+    ? { text: `+${inf.points} pts`, className: "text-success" }
+    : { text: `−${Math.abs(inf.points)} pts`, className: "text-destructive" };
 };
 
 const formatWhen = (iso: string) => {

@@ -69,7 +69,7 @@ export function usePlateRecords(limit?: number, infractionFilter?: string) {
       let query = supabase
         .from("wall_of_shame_mv")
         .select("plate_number, state, total_score, report_count, last_reported_at, last_location, top_infraction")
-        .order("total_score", { ascending: false });
+        .order("total_score", { ascending: true });
       if (limit) query = query.limit(limit);
       else query = query.limit(100);
 
@@ -113,9 +113,9 @@ function buildRecords(rows: {
       map.set(r.plate_number, rec);
     }
     const inf = INFRACTIONS.find(i => i.type === r.infraction);
-    // Mirror public.infraction_points(): unspecified = 0 (no rating given, so
-    // no score movement), any unknown type = +5.
-    rec.totalScore += inf?.points ?? (r.infraction === "unspecified" ? 0 : 5);
+    // Mirror public.infraction_points(): unspecified and any unknown type = 0
+    // (no rating given, so no score movement).
+    rec.totalScore += inf?.points ?? 0;
     rec.reportCount += 1;
     if (r.infraction in rec.infractions) {
       rec.infractions[r.infraction as InfractionType] += 1;
@@ -126,7 +126,7 @@ function buildRecords(rows: {
       rec.state = r.state ?? rec.state;
     }
   }
-  return Array.from(map.values()).sort((a, b) => b.totalScore - a.totalScore);
+  return Array.from(map.values()).sort((a, b) => a.totalScore - b.totalScore);
 }
 
 export interface PlateStats {

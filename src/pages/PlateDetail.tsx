@@ -32,10 +32,10 @@ const HIGH_RISK_INFRACTIONS = new Set([
 
 // Shame points: high positive = bad driver, negative/zero = good or unknown.
 const getSeverityLabel = (score: number, hasHighRiskInfraction = false) => {
-  if (score >= 25 || hasHighRiskInfraction) return { label: "CRITICAL OFFENDER", short: "Critical", tone: "destructive" as const };
-  if (score >= 12) return { label: "HIGH RISK", short: "High", tone: "destructive" as const };
-  if (score >= 6) return { label: "MODERATE", short: "Moderate", tone: "warning" as const };
-  if (score > 0) return { label: "LOW RISK", short: "Low", tone: "warning" as const };
+  if (score <= -25 || hasHighRiskInfraction) return { label: "CRITICAL OFFENDER", short: "Critical", tone: "destructive" as const };
+  if (score <= -12) return { label: "HIGH RISK", short: "High", tone: "destructive" as const };
+  if (score <= -6) return { label: "MODERATE", short: "Moderate", tone: "warning" as const };
+  if (score < 0) return { label: "LOW RISK", short: "Low", tone: "warning" as const };
   return { label: "CLEAN", short: "Clean", tone: "success" as const };
 };
 
@@ -65,14 +65,12 @@ const toneFor = (inf?: InfractionDef): Tone => {
 
 // Points are STORED as positive magnitudes for bad driving (shame points) and
 // negative for good driving (see infraction_points() / data.ts). For display,
-// bad driving is a deduction and good driving a credit, so the sign is flipped
-// purely for presentation — the stored values and score math are untouched.
+// Points are already signed: bad driving is stored negative, good positive.
 const formatPoints = (inf?: InfractionDef): { text: string; tone: Tone } | null => {
   if (!inf || inf.points === 0) return null;
-  const magnitude = Math.abs(inf.points);
-  return inf.kind === "good"
-    ? { text: `+${magnitude} pts`, tone: "success" }
-    : { text: `−${magnitude} pts`, tone: "destructive" };
+  return inf.points > 0
+    ? { text: `+${inf.points} pts`, tone: "success" }
+    : { text: `−${Math.abs(inf.points)} pts`, tone: "destructive" };
 };
 
 const PlateDetail = () => {
@@ -289,7 +287,7 @@ const PlateDetail = () => {
               {plate.totalScore}
             </span>
             <span className="min-w-0 leading-[1.15]">
-              <span className="block text-[12px] font-bold whitespace-nowrap">Risk Score</span>
+              <span className="block text-[12px] font-bold whitespace-nowrap">Driver Score</span>
               <span className={`block text-[11px] font-medium whitespace-nowrap ${TONE_TEXT[severity.tone]}`}>{riskPillLabel}</span>
             </span>
           </div>

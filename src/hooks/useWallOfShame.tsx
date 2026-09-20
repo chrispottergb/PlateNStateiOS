@@ -20,8 +20,8 @@ export function useWallOfShame(state?: string | null, limit = 20) {
       let query = supabase
         .from("wall_of_shame_mv")
         .select("state, plate_number, report_count, total_score, last_reported_at, top_infraction")
-        .gt("total_score", 0) // the shame wall is for offenders, not good samaritans
-        .order("total_score", { ascending: false })
+        .lt("total_score", 0) // the shame wall is for offenders, not good samaritans
+        .order("total_score", { ascending: true })
         .limit(limit);
       if (state) query = query.eq("state", state);
       const { data, error } = await query;
