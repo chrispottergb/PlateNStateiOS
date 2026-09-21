@@ -84,12 +84,12 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, sta
             {title}
           </DialogTitle>
           <DialogDescription>
-            You'll be redirected to Stripe's secure checkout to complete payment.
+            {isIOS ? "Complete your purchase with the App Store." : "You'll be redirected to Stripe's secure checkout to complete payment."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
-          <p>Payments are processed securely by Stripe. Your card details never touch our servers.</p>
+          <p>{isIOS ? "Billed to your Apple account. Manage purchases in Settings › Apple Account." : "Payments are processed securely by Stripe. Your card details never touch our servers."}</p>
         </div>
 
         <DialogFooter className="gap-2">

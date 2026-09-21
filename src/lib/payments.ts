@@ -96,6 +96,23 @@ export async function buyWithApple(priceId: string, meta: PurchaseMeta): Promise
   });
 }
 
+/** Localized StoreKit prices for the given product ids (iOS only), e.g. { coins_16: "$3.99" }. */
+export async function getApplePrices(ids: readonly string[]): Promise<Record<string, string>> {
+  if (!isIOS) return {};
+  try {
+    const store = await initStore();
+    const { Platform } = (window as any).CdvPurchase;
+    const out: Record<string, string> = {};
+    for (const id of ids) {
+      const price = store.get(id, Platform.APPLE_APPSTORE)?.pricing?.price;
+      if (price) out[id] = price;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 /** Restore previously purchased non-consumables/subscriptions (Apple requires this button). */
 export async function restoreApplePurchases(): Promise<void> {
   const store = await initStore();

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
-import { purchasesEnabled } from "@/lib/native";
+import { purchasesEnabled, isIOS } from "@/lib/native";
+import { getApplePrices } from "@/lib/payments";
 import { Coins } from "lucide-react";
 
 const COIN_PACKS = [
@@ -17,6 +18,22 @@ const COIN_PACKS = [
  */
 export function CoinStore() {
   const [checkout, setCheckout] = useState<{ priceId: string; title: string } | null>(null);
+  // Apple sets its own price tiers ($3.99 / $6.99 / $7.99), so iOS must show
+  // the StoreKit price rather than the Stripe one.
+  const [applePrices, setApplePrices] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!isIOS) return;
+    let alive = true;
+    getApplePrices(COIN_PACKS.map(p => p.priceId)).then(p => { if (alive) setApplePrices(p); });
+    return () => { alive = false; };
+  }, []);
+  const priceFor = (pack: typeof COIN_PACKS[number]) => applePrices[pack.priceId] ?? pack.price;
+  const perReportFor = (pack: typeof COIN_PACKS[number]) => {
+    const p = applePrices[pack.priceId];
+    if (!p) return pack.perReport;
+    const dollars = parseFloat(p.replace(/[^0-9.]/g, ""));
+    return Number.isFinite(dollars) ? `${Math.round((dollars * 100) / pack.coins)}¢` : pack.perReport;
+  };
 
   if (!purchasesEnabled) return null;
 
@@ -34,7 +51,7 @@ export function CoinStore() {
           <button
             key={pack.priceId}
             type="button"
-            onClick={() => setCheckout({ priceId: pack.priceId, title: `${pack.coins} Coins — ${pack.price}` })}
+            onClick={() => setCheckout({ priceId: pack.priceId, title: `${pack.coins} Coins — ${priceFor(pack)}` })}
             className="relative rounded-xl border border-border p-3 text-center transition-all hover:border-amber-500/50 hover:bg-amber-500/5"
           >
             {pack.badge && (
@@ -44,8 +61,8 @@ export function CoinStore() {
             )}
             <p className="text-xl font-extrabold font-mono">{pack.coins}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">coins</p>
-            <p className="text-sm font-bold text-amber-500">{pack.price}</p>
-            <p className="text-[10px] text-muted-foreground">{pack.perReport}/report</p>
+            <p className="text-sm font-bold text-amber-500">{priceFor(pack)}</p>
+            <p className="text-[10px] text-muted-foreground">{perReportFor(pack)}/report</p>
           </button>
         ))}
       </div>
