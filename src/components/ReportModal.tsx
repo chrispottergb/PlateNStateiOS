@@ -25,7 +25,7 @@ import { useCaptcha } from "@/hooks/useCaptcha";
 import { useCredits } from "@/hooks/useCredits";
 import { getClientIp } from "@/lib/clientIp";
 import { useHomeState } from "@/hooks/useHomeState";
-import { usePlateClaim } from "@/hooks/useClaimStatus";
+import { useMyClaims, usePlateClaim } from "@/hooks/useClaimStatus";
 import ClaimUpsellDialog, { claimUpsellDismissed } from "@/components/ClaimUpsellDialog";
 import { cn } from "@/lib/utils";
 
@@ -115,6 +115,8 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
   // Ownership of the plate being reported — the generic claim upsell is
   // suppressed when that plate already has an active claim (mine or other).
   const { status: reportedPlateClaim } = usePlateClaim(plateNumber);
+  // A reporter who already owns a paid claim must never be upsold again.
+  const { paidClaims } = useMyClaims(user?.id);
   const [infraction, setInfraction] = useState<InfractionType | null>(null);
   const [behaviorTab, setBehaviorTab] = useState<"bad" | "good">("bad");
   const [location, setLocation] = useState("");
@@ -328,7 +330,7 @@ const ReportModal = ({ trigger, initialPlate = "", initialComment = "", initialS
       // High-intent moment: nudge the reporter to claim their own plate (unless
       // dismissed, or the plate just reported is already claimed). Fires when
       // the success screen is dismissed.
-      upsellAfterCloseRef.current = !claimUpsellDismissed() && reportedPlateClaim === "unclaimed";
+      upsellAfterCloseRef.current = !claimUpsellDismissed() && reportedPlateClaim === "unclaimed" && paidClaims.length === 0;
       setSubmitted({ plate: finalPlate, label: inf?.label ?? null });
       go(6);
     } catch (err: any) {
