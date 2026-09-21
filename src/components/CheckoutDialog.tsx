@@ -96,7 +96,9 @@ export function CheckoutDialog({ open, onClose, title, priceId, plateNumber, sta
           <Button variant="outline" onClick={onClose} disabled={processing}>Cancel</Button>
           <Button onClick={handlePay} disabled={processing} className="min-w-[140px] gap-2">
             {processing ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</>
+              <><Loader2 className="h-4 w-4 animate-spin" /> {isIOS ? "Waiting for App Store…" : "Redirecting…"}</>
+            ) : isIOS ? (
+              <>Pay with App Store</>
             ) : (
               <><ExternalLink className="h-4 w-4" /> Proceed to Checkout</>
             )}

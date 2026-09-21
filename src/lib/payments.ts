@@ -51,40 +51,48 @@ function initStore(): Promise<any> {
 export async function buyWithApple(priceId: string, meta: PurchaseMeta): Promise<void> {
   const store = await initStore();
   const w = window as any;
-  const { Platform } = w.CdvPurchase;
+  const { Platform, ErrorCode } = w.CdvPurchase;
 
   const offer = store.get(priceId, Platform.APPLE_APPSTORE)?.getOffer();
   if (!offer) throw new Error("Product not available. Try again in a moment.");
 
   return new Promise<void>((resolve, reject) => {
-    const off = store.when()
-      .approved(async (transaction: any) => {
-        if (!transaction.products.some((p: any) => p.id === priceId)) return;
-        try {
-          // Server-side verification + fulfillment BEFORE finishing the transaction
-          const resp = await fetch(`${API_BASE}/api/apple-verify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              transactionId: transaction.transactionId,
-              productId: priceId,
-              ...meta,
-            }),
-          });
-          const data = await resp.json();
-          if (!resp.ok) throw new Error(data?.error || "Verification failed");
-          transaction.finish();
-          off.off?.();
-          resolve();
-        } catch (e) {
-          // Do NOT finish — StoreKit will retry delivery; server fulfillment is idempotent.
-          off.off?.();
-          reject(e);
-        }
-      })
-      .cancelled(() => { off.off?.(); reject(new Error("Purchase cancelled")); });
+    // cordova-plugin-purchase v13: approvals arrive through store.when(), and
+    // offer.order() RESOLVES with an error object on failure/cancel (it never
+    // rejects). Listeners are removed with store.off(callback).
+    const onApproved = async (transaction: any) => {
+      if (!transaction.products?.some((p: any) => p.id === priceId)) return;
+      try {
+        // Server-side verification + fulfillment BEFORE finishing the transaction
+        const resp = await fetch(`${API_BASE}/api/apple-verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transactionId: transaction.transactionId,
+            productId: priceId,
+            ...meta,
+          }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.error || "Verification failed");
+        transaction.finish();
+        store.off(onApproved);
+        resolve();
+      } catch (e) {
+        // Do NOT finish — StoreKit will retry delivery; server fulfillment is idempotent.
+        store.off(onApproved);
+        reject(e);
+      }
+    };
+    store.when().approved(onApproved);
 
-    offer.order().catch((e: any) => { off.off?.(); reject(e); });
+    offer.order().then((err: any) => {
+      if (!err) return; // purchase sheet accepted; wait for approved()
+      store.off(onApproved);
+      reject(new Error(err.code === ErrorCode.PAYMENT_CANCELLED
+        ? "Purchase cancelled"
+        : err.message || "Purchase failed"));
+    }).catch((e: any) => { store.off(onApproved); reject(e); });
   });
 }
 
