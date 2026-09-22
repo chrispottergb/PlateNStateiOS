@@ -7,9 +7,12 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Clock, RefreshCw, Search, Plus } from "lucide-react";
+import { Clock, RefreshCw, Search, Plus, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ReportModal from "@/components/ReportModal";
 import { getPosition } from "@/lib/native";
+
+const FILTER_LABELS = { all: "All Time", "7d": "Last 7 Days", "24h": "Last 24h" } as const;
 
 interface Report {
   id: string;
@@ -222,20 +225,22 @@ const WatchMap = () => {
 
         {/* Filters + report count (folded into active chip) + refresh — row 2 */}
         <div className="absolute top-[60px] left-3 right-3 z-[1000] flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {(["all", "7d", "24h"] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium shadow-md transition-colors ${
-                filter === f ? "bg-primary text-primary-foreground" : "bg-background/90 backdrop-blur-md text-muted-foreground"
-              }`}
-            >
-              {f === "24h" && <><Clock className="h-3 w-3 inline mr-1" />Last 24h</>}
-              {f === "7d" && "Last 7 Days"}
-              {f === "all" && "All Time"}
-              {filter === f && ` · ${reports.length}`}
-            </button>
-          ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-md bg-primary text-primary-foreground">
+                <Clock className="h-3 w-3" />
+                {FILTER_LABELS[filter]} · {reports.length}
+                <ChevronDown className="h-3 w-3 opacity-80" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="z-[1100] min-w-[150px]">
+              {(["all", "7d", "24h"] as const).map(f => (
+                <DropdownMenuItem key={f} onSelect={() => setFilter(f)} className={filter === f ? "font-semibold text-primary" : ""}>
+                  {FILTER_LABELS[f]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             onClick={fetchReports}
             aria-label="Refresh reports"
