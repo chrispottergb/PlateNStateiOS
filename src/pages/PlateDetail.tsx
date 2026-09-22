@@ -19,7 +19,8 @@ import { LocationMiniMap } from "@/components/LocationMiniMap";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { DisputeReportDialog } from "@/components/DisputeReportDialog";
 import { toast } from "sonner";
@@ -30,7 +31,7 @@ const HIGH_RISK_INFRACTIONS = new Set([
   "passing_school_bus", "brake_checking", "ran_red_light",
 ]);
 
-// Shame points: high positive = bad driver, negative/zero = good or unknown.
+// Driver score: deeply negative = bad driver, zero/positive = clean or good.
 const getSeverityLabel = (score: number, hasHighRiskInfraction = false) => {
   if (score <= -25 || hasHighRiskInfraction) return { label: "CRITICAL OFFENDER", short: "Critical", tone: "destructive" as const };
   if (score <= -12) return { label: "HIGH RISK", short: "High", tone: "destructive" as const };
@@ -63,8 +64,6 @@ const toneFor = (inf?: InfractionDef): Tone => {
   return HIGH_RISK_INFRACTIONS.has(inf.type) ? "destructive" : "warning";
 };
 
-// Points are STORED as positive magnitudes for bad driving (shame points) and
-// negative for good driving (see infraction_points() / data.ts). For display,
 // Points are already signed: bad driving is stored negative, good positive.
 const formatPoints = (inf?: InfractionDef): { text: string; tone: Tone } | null => {
   if (!inf || inf.points === 0) return null;
@@ -78,6 +77,36 @@ const PlateDetail = () => {
   const decoded = decodeURIComponent(plateNumber || "");
   const { plate, stats, reports, loading } = usePlateDetail(decoded);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [votingId, setVotingId] = useState<string | null>(null);
+  const { data: upvoteRows = [] } = useQuery({
+    queryKey: ["my-upvotes", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("report_upvotes").select("report_id").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+  });
+  const myUpvotes = new Set((upvoteRows as { report_id: string }[]).map(u => u.report_id));
+  const handleUpvote = async (reportId: string) => {
+    if (!user) { toast.error("Sign in to upvote"); return; }
+    if (myUpvotes.has(reportId)) { toast.info("Already upvoted"); return; }
+    setVotingId(reportId);
+    try {
+      const { error } = await supabase.rpc("upvote_report", { p_report_id: reportId } as any);
+      if (error) {
+        if (error.message.includes("duplicate")) toast.info("Already upvoted");
+        else if (error.message.includes("own report")) toast.info("Can't upvote your own report");
+        else toast.error(error.message);
+        return;
+      }
+      queryClient.setQueryData<{ report_id: string }[]>(["my-upvotes", user.id], prev => [...(prev ?? []), { report_id: reportId }]);
+      queryClient.invalidateQueries({ queryKey: queryKeys.plateDetail(decoded) });
+      queryClient.invalidateQueries({ queryKey: ["plate-stats", decoded] });
+      toast.success("Upvoted! +1 XP");
+    } finally { setVotingId(null); }
+  };
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [disputeReportId, setDisputeReportId] = useState<string | null>(null);
   // Ownership via the canonical plate identity (normalizes the route param),
@@ -471,9 +500,18 @@ const PlateDetail = () => {
                   </div>
 
                   <div className="flex items-center shrink-0 mt-2 -mr-1">
-                    <span className="inline-flex items-center gap-1 text-[12.5px] text-[#A0B0BE] tabular-nums">
-                      <ThumbsUp className="h-[15px] w-[15px]" strokeWidth={2} /> {report.upvote_count}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpvote(report.id)}
+                      disabled={votingId === report.id}
+                      aria-pressed={myUpvotes.has(report.id)}
+                      aria-label="Upvote this report"
+                      className={`press inline-flex items-center gap-1 h-8 px-2 rounded-full text-[12.5px] tabular-nums transition-colors disabled:opacity-60 ${
+                        myUpvotes.has(report.id) ? "text-primary bg-primary/10" : "text-[#A0B0BE] hover:text-foreground hover:bg-[#122431]"
+                      }`}
+                    >
+                      <ThumbsUp className="h-[15px] w-[15px]" strokeWidth={2} fill={myUpvotes.has(report.id) ? "currentColor" : "none"} /> {report.upvote_count}
+                    </button>
                     {hasCoords ? (
                       <Link
                         to={`/map?lat=${r.latitude}&lng=${r.longitude}`}
