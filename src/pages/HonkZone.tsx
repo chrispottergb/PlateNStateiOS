@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Search, Skull, ShieldCheck, Camera, Inbox, User, Users, Route, Flame, CarFront, CircleAlert, Gauge, ParkingSquare, ArrowLeftRight, Smartphone, AlertTriangle, ChevronRight } from "lucide-react";
+import { Search, Skull, ShieldCheck, Camera, Inbox, User, Users, Route, Flame, CarFront, CircleAlert, Gauge, ParkingSquare, ArrowLeftRight, Smartphone, AlertTriangle, ChevronRight, Zap, PenLine } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -90,22 +90,30 @@ const ReportComposer = () => {
           setOpen(v);
           if (!v) setText("");
         }}
-        trigger={
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="relative w-full h-[58px] flex items-center justify-center gap-3 rounded-[14px] text-[#0B1017] text-[19px] font-bold tracking-[-0.01em] transition-[filter,transform] duration-150 hover:brightness-[1.03] active:translate-y-px active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            style={{
-              background: "linear-gradient(180deg, #F8AE2E 0%, #F5A623 60%, #EE9E1C 100%)",
-              boxShadow: "0 1px 0 rgba(255,255,255,0.28) inset, 0 -1px 0 rgba(0,0,0,0.10) inset, 0 4px 10px -2px rgba(0,0,0,0.5), 0 8px 16px -10px rgba(245,166,35,0.28)",
-            }}
-          >
-            <Camera className="h-6 w-6" strokeWidth={2.25} />
-            Report a Plate
-            <ChevronRight className="absolute right-4 h-5 w-5" strokeWidth={2.5} />
-          </button>
-        }
+        trigger={<span className="hidden" />}
       />
+      {/* Split CTA: fast camera path vs the full progressive report */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <Link
+          to="/quick-capture"
+          className="relative h-[58px] flex flex-col items-center justify-center rounded-[14px] text-[#0B1017] transition-[filter,transform] duration-150 hover:brightness-[1.03] active:translate-y-px active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          style={{
+            background: "linear-gradient(180deg, #F8AE2E 0%, #F5A623 60%, #EE9E1C 100%)",
+            boxShadow: "0 1px 0 rgba(255,255,255,0.28) inset, 0 -1px 0 rgba(0,0,0,0.10) inset, 0 4px 10px -2px rgba(0,0,0,0.5), 0 8px 16px -10px rgba(245,166,35,0.28)",
+          }}
+        >
+          <span className="inline-flex items-center gap-2 text-[17px] font-bold tracking-[-0.01em] leading-none"><Camera className="h-5 w-5" strokeWidth={2.25} /> Quick Report</span>
+          <span className="mt-1 text-[11px] font-semibold leading-none opacity-75">Snap the plate</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="relative h-[58px] flex flex-col items-center justify-center rounded-[14px] bg-[#122431] border border-primary/45 text-foreground transition-colors duration-150 hover:border-primary active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <span className="inline-flex items-center gap-2 text-[17px] font-bold tracking-[-0.01em] leading-none text-primary"><PenLine className="h-5 w-5" strokeWidth={2.25} /> Snitch Harder</span>
+          <span className="mt-1 text-[11px] font-semibold leading-none text-[#A0B0BE]">Full report</span>
+        </button>
+      </div>
       <p className="text-center text-[13px] text-muted-foreground mt-2.5">Snap it. Report it. Make an impact.</p>
 
       {/* Optional pre-modal note (prefills the report comment). Hidden in the
