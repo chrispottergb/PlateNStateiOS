@@ -144,6 +144,8 @@ const ReportComposer = () => {
   );
 };
 
+const SHOW_RECENT_ACTIVITY = false;
+
 const HonkZone = () => {
   const [searchPlate, setSearchPlate] = useState("");
   const [taglineIndex, setTaglineIndex] = useState(0);
@@ -326,6 +328,18 @@ const HonkZone = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main feed */}
           <div className="flex-1 space-y-3">
+            {/* Fresh Catches — leads the feed */}
+            {reports.length > 0 && (
+              <div className="pb-2">
+                <FreshCatches reports={reports.slice(0, 10)} />
+                <Link to="/patrol/wall" className="mt-3 inline-flex items-center gap-1 text-[13px] font-semibold text-[#A0B0BE] hover:text-foreground transition-colors">
+                  <Skull className="h-3.5 w-3.5" /> Wall of Shame
+                </Link>
+              </div>
+            )}
+
+            {/* Recent Activity list hidden: it duplicated Fresh Catches. */}
+            {SHOW_RECENT_ACTIVITY && (<>
             <div className="flex items-baseline justify-between">
               <h2 className="text-[22px] font-bold tracking-tight">Recent Activity</h2>
               <Link to="/patrol/wall" className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#A0B0BE] hover:text-foreground transition-colors">
@@ -420,13 +434,7 @@ const HonkZone = () => {
                 ))}
               </div>
             )}
-
-            {/* Fresh Catches */}
-            {reports.length > 0 && (
-              <div className="pt-4">
-                <FreshCatches reports={reports.slice(0, 10)} />
-              </div>
-            )}
+            </>)}
 
             <Link
               to="/claim"
