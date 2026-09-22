@@ -45,7 +45,7 @@ const WatchMap = () => {
   const anchoredRef = useRef(false);
   const [searchParams] = useSearchParams();
   const [reports, setReports] = useState<Report[]>([]);
-  const [filter, setFilter] = useState<"24h" | "7d" | "all">("24h");
+  const [filter, setFilter] = useState<"24h" | "7d" | "all">("all");
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -77,7 +77,7 @@ const WatchMap = () => {
       .from("reports")
       .select("id, plate_number, infraction, location, latitude, longitude, created_at")
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(500);
 
     if (filter === "24h") {
       query = query.gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
@@ -222,7 +222,7 @@ const WatchMap = () => {
 
         {/* Filters + report count (folded into active chip) + refresh — row 2 */}
         <div className="absolute top-[60px] left-3 right-3 z-[1000] flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {(["24h", "7d", "all"] as const).map(f => (
+          {(["all", "7d", "24h"] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}

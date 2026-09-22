@@ -63,16 +63,16 @@ const HeroMiniMap = () => {
       mapRef.current.setView([pos.latitude, pos.longitude], 11, { animate: false });
     }).catch(() => { /* keep fallback */ });
 
+    // Every geotagged report ever filed, newest first. The dataset is small
+    // and sparse, so a recency window left the map looking empty.
     const loadReports = async () => {
-      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
         .from("reports")
         .select("id, plate_number, infraction, latitude, longitude, created_at")
         .not("latitude", "is", null)
         .not("longitude", "is", null)
-        .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (!data || !markersRef.current) return;
 
