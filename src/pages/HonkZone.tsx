@@ -77,6 +77,7 @@ interface Report {
 
 const ReportComposer = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
   const [promptIndex] = useState(() => Math.floor(Math.random() * COMPOSER_PROMPTS.length));
@@ -107,7 +108,10 @@ const ReportComposer = () => {
         </Link>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            if (!user) { toast.error("Sign in required", { description: "You need an account to report plates." }); navigate("/auth"); return; }
+            setOpen(true);
+          }}
           className="relative h-[58px] flex flex-col items-center justify-center rounded-[14px] bg-[#122431] border border-primary/45 text-foreground transition-colors duration-150 hover:border-primary active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <span className="inline-flex items-center gap-2 text-[17px] font-bold tracking-[-0.01em] leading-none text-primary"><PenLine className="h-5 w-5" strokeWidth={2.25} /> Snitch Harder</span>
