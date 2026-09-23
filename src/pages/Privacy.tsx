@@ -7,7 +7,23 @@ const Privacy = () => {
       <Header />
       <main className="container max-w-3xl py-10 prose prose-invert">
         <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground mb-8">Last updated: June 30, 2026</p>
+        <p className="text-sm text-muted-foreground mb-8">Last updated: September 23, 2026</p>
+
+        <section className="space-y-3 mb-8">
+          <h2 className="text-xl font-semibold">Who this policy covers</h2>
+          <p>
+            This Privacy Policy applies to the <strong>Plate and State</strong> mobile application
+            (branded in-app as <strong>Plate N' State</strong>) published on Google Play under the developer
+            name <strong>Plate and State</strong> (Android package <code>com.platenstate.myapp</code>) and on
+            the Apple App Store (bundle <code>com.plateandstate.platenstate</code>), and to the website{" "}
+            <a className="text-primary" href="https://platenstate.com">platenstate.com</a>.
+          </p>
+          <p>
+            The app and website are operated by <strong>Plate and State LLC</strong>, a Wisconsin limited
+            liability company ("Plate and State", "we", "us"). Contact:{" "}
+            <a className="text-primary" href="mailto:support@platenstate.com">support@platenstate.com</a>.
+          </p>
+        </section>
 
         <section className="space-y-6 text-sm leading-relaxed text-muted-foreground">
           <div>
