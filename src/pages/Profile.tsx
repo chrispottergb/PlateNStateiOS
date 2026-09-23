@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import { CoinStore } from "@/components/CoinStore";
@@ -170,27 +170,7 @@ const Profile = () => {
     staleTime: 60_000,
   });
 
-  const autoAwardBadges = useCallback(async (p: any, existing: UserBadge[]) => {
-    const earned = new Set(existing.map((b) => b.badge_key));
-    const toAward: string[] = [];
-    if (p.total_reports >= 1 && !earned.has("first_report")) toAward.push("first_report");
-    if (p.total_reports >= 10 && !earned.has("ten_reports")) toAward.push("ten_reports");
-    if (p.total_reports >= 50 && !earned.has("fifty_reports")) toAward.push("fifty_reports");
-    if (p.streak_days >= 7 && !earned.has("streak_7")) toAward.push("streak_7");
-    if (p.streak_days >= 30 && !earned.has("streak_30")) toAward.push("streak_30");
-    if (p.xp >= 100 && !earned.has("hundred_xp")) toAward.push("hundred_xp");
-    if (p.xp >= 1000 && !earned.has("thousand_xp")) toAward.push("thousand_xp");
-    if (toAward.length > 0 && user) {
-      await supabase.from("user_badges").insert(toAward.map((key) => ({ user_id: user.id, badge_key: key })));
-      // Invalidate badges cache so the new badges appear
-      queryClient.invalidateQueries({ queryKey: queryKeys.badges(user.id) });
-    }
-  }, [user, queryClient]);
-
-  // Award badges once profile + badges are loaded
-  useEffect(() => {
-    if (profile && badges.length >= 0) autoAwardBadges(profile, badges);
-  }, [profile?.id]); // only run when profile first loads, not on every badge change
+  // Badges are awarded server-side (award_badges trigger); this page only reads them.
 
   if (authLoading || !profile) {
     return (
