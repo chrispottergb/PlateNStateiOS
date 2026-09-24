@@ -295,7 +295,16 @@ const HonkZone = () => {
         {!loading && <ReportComposer />}
       </section>
 
-      {/* ===== ZONE 3: secondary plate lookup ===== */}
+      {/* ===== ZONE 3: live map (all-time reports, shown up front) ===== */}
+      <section className="container pb-6">
+        <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0D1B26] animate-pulse" />}>
+          <div>
+            <HeroMiniMap />
+          </div>
+        </Suspense>
+      </section>
+
+      {/* ===== ZONE 4: secondary plate lookup ===== */}
       <section className="container pt-1 pb-6">
         <form onSubmit={handleSearch}>
           <label htmlFor="plate-lookup" className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#A0B0BE]">Look up a plate</label>
@@ -324,15 +333,6 @@ const HonkZone = () => {
             </button>
           </div>
         </form>
-      </section>
-
-      {/* ===== ZONE 4: live map ===== */}
-      <section className="container pb-6">
-        <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0D1B26] animate-pulse" />}>
-          <div>
-            <HeroMiniMap />
-          </div>
-        </Suspense>
       </section>
 
       {/* ===== ZONE 5: recent activity ===== */}
