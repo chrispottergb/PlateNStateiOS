@@ -329,7 +329,7 @@ const HonkZone = () => {
       {/* ===== ZONE 4: live map ===== */}
       <section className="container pb-6">
         <Suspense fallback={<div className="h-[200px] rounded-2xl bg-[#0D1B26] animate-pulse" />}>
-          <div className="map-dark">
+          <div>
             <HeroMiniMap />
           </div>
         </Suspense>

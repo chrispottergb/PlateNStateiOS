@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
-import { getPosition } from "@/lib/native";
 
 interface MapReport {
   id: string;
@@ -23,10 +22,6 @@ const HeroMiniMap = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
-  // Once the map is centered on the user's own location, report loading must
-  // not yank the view away to fit every marker in the country.
-  const userCenteredRef = useRef(false);
-
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -54,17 +49,8 @@ const HeroMiniMap = () => {
 
     const resizeTimer = setTimeout(() => map.invalidateSize(), 300);
 
-    // Default the map to the user's location (coarse). Falls through to the
-    // report-fitting behaviour below when permission is denied/unavailable.
     let disposed = false;
-    getPosition().then((pos) => {
-      if (disposed || !pos || !mapRef.current) return;
-      userCenteredRef.current = true;
-      mapRef.current.setView([pos.latitude, pos.longitude], 11, { animate: false });
-    }).catch(() => { /* keep fallback */ });
 
-    // Every geotagged report ever filed, newest first. The dataset is small
-    // and sparse, so a recency window left the map looking empty.
     const loadReports = async () => {
       const { data } = await supabase
         .from("reports")
@@ -83,18 +69,22 @@ const HeroMiniMap = () => {
         const color = severityColor(r.infraction);
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 6px ${color}80;"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
+          html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.45);"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
         });
         L.marker([r.latitude, r.longitude], { icon }).addTo(markersRef.current!);
       });
 
-      if (reports.length > 0 && !userCenteredRef.current) {
-        const bounds = L.latLngBounds(
-          reports.filter(r => r.latitude && r.longitude).map(r => [r.latitude!, r.longitude!] as [number, number])
-        );
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 10, animate: false });
+      // Frame where the reports actually cluster: drop far-flung outliers
+      // (more than 1.2° from the median) so a single stray report can't zoom
+      // the preview out to the whole country.
+      const pts = reports.filter(r => r.latitude && r.longitude).map(r => [r.latitude!, r.longitude!] as [number, number]);
+      if (pts.length > 0 && !disposed) {
+        const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+        const mLat = median(pts.map(p => p[0])), mLng = median(pts.map(p => p[1]));
+        const core = pts.filter(([la, ln]) => Math.abs(la - mLat) <= 1.2 && Math.abs(ln - mLng) <= 1.2);
+        map.fitBounds(L.latLngBounds(core.length ? core : pts), { padding: [16, 16], maxZoom: 11, animate: false });
       }
     };
 
