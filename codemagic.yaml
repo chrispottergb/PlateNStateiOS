@@ -13,7 +13,7 @@ workflows:
         APP_STORE_APP_ID: 6776563225
         # Bump for every App Store release: once a version is on sale, Apple
         # rejects further TestFlight builds on that train.
-        MARKETING_VERSION: "1.1.1"
+        MARKETING_VERSION: "1.1.2"
         VITE_SUPABASE_PROJECT_ID: "qcnhusvxygyczbnmbyvd"
         VITE_SUPABASE_URL: "https://qcnhusvxygyczbnmbyvd.supabase.co"
         VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbmh1c3Z4eWd5Y3pibm1ieXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNzg0NTAsImV4cCI6MjA5Nzc1NDQ1MH0.sQJL5eJkI706OwjtUcmr3R1yaT_VaOyEkV7b-Ljrqyk"
